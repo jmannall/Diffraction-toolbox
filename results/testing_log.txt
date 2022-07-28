@@ -1,0 +1,22 @@
+####################################################################
+#  EDmain_convexESIE, v. 0.219 (8Jun2022)
+#  filestem for results: testing
+ 
+   EDreadcad (6 corners and 5 planes), time: 0.015 s
+   EDedgeo, (9 edges), time: 0.005 s
+      by recycling and duplicating C:\Users\jmann\OneDrive - University of Surrey\Documents\Sound PhD\Year 1\BTM Modelling\jmannall\BTM-toolbox\results\testing_eddata.mat
+   EDSorRgeo(S), (1 source(s)), time: 0.006 s
+      by recycling and duplicating C:\Users\jmann\OneDrive - University of Surrey\Documents\Sound PhD\Year 1\BTM Modelling\jmannall\BTM-toolbox\results\testing_Sdata.mat
+   EDSorRgeo(R), (1 receiver(s)), time: 0.005 s
+      by recycling and duplicating C:\Users\jmann\OneDrive - University of Surrey\Documents\Sound PhD\Year 1\BTM Modelling\jmannall\BTM-toolbox\results\testing_Rdata.mat
+   EDfindconvexGApaths
+                                Total time: 0.007 s
+      by recycling C:\Users\jmann\OneDrive - University of Surrey\Documents\Sound PhD\Year 1\BTM Modelling\jmannall\BTM-toolbox\results\testing_paths.mat
+   EDmakefirstordertfs (100 frequencies)
+                                Total time: 0.115 s. Parts, for all frequencies, as below
+                                Generate the direct sound: 0.002 s
+                                Generate the specular reflections: 0 s
+                                Generate the first-order diffraction: 0.102 s
+   EDed2geo was not run
+   The integral equation Hsubmatrixdata struct was not created
+   The integral equation stage was not run
