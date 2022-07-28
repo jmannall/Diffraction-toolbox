@@ -1,4 +1,14 @@
 
+% Ask Enzo about adding automatic testing features. e.g Run a document and
+% return a 1 if everything running as expected.
+
+% Look into adding a datahash for each calculation. Could include in the
+% single wedge function so if gets the same wedge dimensions
+% (non-consecutively) can still recycle results.
+
+% Split into functions e.g make CAD file.
+
+% Create input struct.
 
 % Requires EDtoolbox by upsvensson, DataHash.m and lgwt.m to run
 
@@ -8,12 +18,6 @@
 
 close all
 clear all
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Create file info
-mFile = mfilename('fullpath');
-[inFilePath,fileStem] = fileparts(mFile);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -28,6 +32,26 @@ radiusR = 0.8;
 zS = 2.2;
 zR = 3;
 wedgeSize = max(radiusS, radiusR);
+
+fs = 48000;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% SingleWedge function
+
+[ir, tf, tvec, fvec] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,fs);
+
+figure(1)
+plot(tvec, ir)
+
+figure(2)
+semilogx(fvec, tf)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Create file info
+mFile = mfilename('fullpath');
+[inFilePath,fileStem] = fileparts(mFile);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -131,9 +155,6 @@ EDmain_convexESIE(geofiledata,Sindata,Rindata,struct,controlparameters,filehandl
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Load and present the results
-    
-nreceivers = size(Rindata.coordinates,1);
-nsources = size(Sindata.coordinates,1);
 
 eval(['load ''',inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_ir.mat'''])
 %eval(['load ''',inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_irhod.mat'''])
@@ -160,12 +181,12 @@ tftot = tfdirect + tfgeom + tfdiff + tfinteqdiff;
 tvec = 1/controlparameters.fs*[0:ndir-1];
 
 % Plot the model
-figure(1)
+figure(3)
 eddatafile = [inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_eddata.mat'];
-EDplotmodel(eddatafile,3)
+EDplotmodel(eddatafile,3,'figurewindow',3)
 
 % Plot the irs
-figure(2)
+figure(4)
 h = plot(tvec*1e3,cumsumirtots,'-');
 % set(h(1),'MarkerSize',2);
 set(h(2),'LineWidth',2);
@@ -184,7 +205,7 @@ set(g,'FontSize',14,'Location','SouthEast')
 F = fft(cumsumirtots,nfft);
 
 % Plot the frequency response
-figure(3)
+figure(5)
 h = semilogx(fvec,20*log10(abs(F(1:nfft/2,:))));
 for ii = 1:2
    set(h(ii),'LineWidth',2) 
