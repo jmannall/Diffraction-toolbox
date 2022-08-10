@@ -22,30 +22,256 @@ clear all
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Input data
-wedgeLength = 2;
-wedgeIndex = 270;
+wedgeLength = 20;
+wedgeIndex = 345.01:10:355.01;
 thetaW = 360 - wedgeIndex;
 thetaS = 30;
-thetaR = 250;
+thetaR = wedgeIndex - 10;
 radiusS = 1;
-radiusR = 0.8;
-zS = 2.2;
-zR = 3;
+radiusR = 1;
+zS = 10;
+zR = 10;
 wedgeSize = max(radiusS, radiusR);
 
-fs = 48000;
+fs = 96000;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % SingleWedge function
 
-[ir, tf, tvec, fvec] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,fs);
+numResults = length(wedgeIndex);
+
+[ir, tfvalue, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex(1),thetaS,thetaR(1),radiusS,radiusR,zS,zR,fs);
+
+tlen = length(tvec);
+flen = length(fvec);
+
+irall = zeros(numResults, tlen);
+tfall = zeros(numResults, flen);
+
+irall(1,:) = ir;
+tfall(1,:) = tfvalue;
+
+
+% for i = 2:numResults
+% 
+%     [ir, tf, tvec, fvec] = SingleWedge(wedgeLength,wedgeIndex(i),thetaS,thetaR(i),radiusS,radiusR,zS,zR,fs);
+% 
+%     irall(i,:) = ir;
+%     tfall(i,:) = tf;
+% end
+
+    T = 1 / fs;
+    fc = 100;
+    omega = 2 * pi * fc;
+    K = omega * T;
+    
+    Hz.a0 = K;
+    Hz.a1 = K;
+    Hz.b0 = K + 2;
+    Hz.b1 = K - 2;
+    
+    num = [Hz.a0 Hz.a1];
+    den = [Hz.b0 Hz.b1];
+    filter = dfilt.df1(num, den);
+
+    [z, p, k] = tf2zpk(num, den);
+    fc = 200;
+    G = 2;
+    Bpi = 10 ^ (G / 20);
+    omega = 2 * pi * fc;
+    K = omega * T;
+    
+    Hz.a0 = K + 2 * Bpi;
+    Hz.a1 = K - 2 * Bpi;
+    Hz.b0 = K + 2;
+    Hz.b1 = K - 2;
+    
+    num = [Hz.a0 Hz.a1];
+    den = [Hz.b0 Hz.b1];
+    filter = dfilt.df1(num, den);
+
+    [z, p, k] = tf2zpk(num, den);
+
+%% For filters
+
+% Start values
+plpf = 0.998;
+phsh = 0.5;
+zlpf = -1;
+zhsh = 0.8;
+klpf = 0.002;
+khsh = 30;
+
+% in series
+% pcomb = [plpf; phsh];
+% zcomb = [zlpf; zhsh];
+% kcomb = klpf * khsh;
+
+
+% change k - overall level
+% change p - higher the pole the higher the fc
+
+z1 = -1;
+z2= 0.5;
+p1 = 0.5;
+p2 = 0.5;
+k1 = 0.1;
+
+store = -1 + 2 * rand(5,1);
+z1 = -1;
+z1 = -1+0.5*abs(store(1));
+z2= store(2);
+p1 = store(3);
+p2 = store(4);
+k1 = abs(store(5)) / 10;
+
+z = [z1; z2];
+p = [p1; p2];
+k = k1;
+
+z1step = 0.1;
+z2step = 0.1;
+p1step = 0.1;
+p2step = 0.1;
+k1step = 0.01;
+error = 100;
+count = 0;
+subcount = 0;
+
+while error > 1 && count < 8
+    improvement = false;
+    [tfiir, ~] = IIRFilter(z, p, k, fs);
+    error = Error(tfiir, tfvalue, fvec);
+    
+    z2new = z2 + z2step;
+    z(2,1) = z2new;
+    [tfiir, ~] = IIRFilter(z, p, k, fs);
+    errornew = Error(tfiir, tfvalue, fvec);
+
+    if errornew >= error
+        z(2,1) = z2;
+        z2step = -z2step;
+    else
+        improvement = true;
+        z2 = z2new;
+        error = errornew;
+    end
+    z1new = z1 + z1step;
+    z(1,1) = z1new;
+    [tfiir, ~] = IIRFilter(z, p, k, fs);
+    errornew = Error(tfiir, tfvalue, fvec);
+
+    if errornew >= error
+        z(1,1) = z1;
+        z1step = -z1step;
+    else
+        improvement = true;
+        z1 = z1new;
+        error = errornew;
+    end
+    p2new = p2 + p2step;
+    p(2,1) = p2new;
+    [tfiir, fveciir] = IIRFilter(z, p, k, fs);
+    errornew = Error(tfiir, tfvalue, fvec);
+
+    if errornew >= error
+        p(2,1) = p2;
+        p2step = -p2step;
+    else
+        improvement = true;
+        p2 = p2new;
+        error = errornew;
+    end
+    p1new = p1 + p1step;
+    p(1,1) = p1new;
+    [tfiir, fveciir] = IIRFilter(z, p, k, fs);
+    errornew = Error(tfiir, tfvalue, fvec);
+
+    if errornew >= error
+        p(1,1) = p1;
+        p1step = -p1step;
+    else
+        improvement = true;
+        p1 = p1new;
+        error = errornew;
+    end
+    k1new = k1 + k1step;
+    k = k1new;
+    [tfiir, fveciir] = IIRFilter(z, p, k, fs);
+    errornew = Error(tfiir, tfvalue, fvec);
+
+    if errornew >= error
+        k = k1;
+        k1step = -k1step;
+    else
+        improvement = true;
+        k = k1new;
+    end
+    figure(2)
+    semilogx(fveciir, tfiir)
+    hold on
+    semilogx(fvec, tfvalue)
+    hold off
+    xlim([20, 20000])
+    ylim([-40 0])
+
+    if ~improvement
+        subcount = subcount + 1;
+    end
+    if subcount > 6
+        z2step = z2step / 2;
+        p1step = p1step / 2;
+        p2step = p2step / 2;
+        k1step = k1step / 2;
+        count = count + 1;
+        subcount = 0;
+    end
+end
+
+[b, a] = zp2tf(z, p, k);
+
+
+
+% in parallel
+% Not obvious how the poles and zeros change
+% kcomb = klpf + khsh;
+
+    % Not working as expected - works fine with matlab made filter
+    % responses
+%     fvecnorm = (fvec * 2 * pi) / fs;
+%     [b, a] = invfreqz(tfcomplex, fvecnorm, 2, 2);
+% 
+%     [htest, f] = freqz(b, a, 2048);
+
+
+
+
+
+
+H = zpk(z, p, k);
+
+
+z2 = cell2mat(H.Z);
+p2 = cell2mat(H.P);
+k2 = H.K;
+[b, a] = zp2tf(z, p, k);
+
+H = dfilt.df1(b, a);
+
+tfvalue = filter(H, 1:100);
+
+plot(tfvalue, 1:length(tfvalue))
+
+testValues = zeros(flen, 1);
+
+error = Error(testValues, tfvalue, fvec);
 
 figure(1)
-plot(tvec, ir)
+plot(tvec, irall)
 
 figure(2)
-semilogx(fvec, tf)
+semilogx(fvec, tfall)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

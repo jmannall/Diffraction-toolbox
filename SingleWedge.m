@@ -4,7 +4,7 @@
 
 % All coordinates go x, y, z
 
-function [ir, tf, tvec, fvec] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,fs)
+function [ir, tf, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,fs)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -131,5 +131,6 @@ function [ir, tf, tvec, fvec] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR
     eval(['load ''',inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_tfinteq.mat'''])
     
     F = fft(irdiff,nfft);
+    tfcomplex = F(1:nfft/2,:);
     tf = 20*log10(abs(F(1:nfft/2,:)));
 end
