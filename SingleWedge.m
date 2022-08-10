@@ -11,11 +11,12 @@ function [ir, tf, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,th
     % Create file info
     mFile = mfilename('fullpath');
     [inFilePath,fileStem] = fileparts(mFile);
+    index = DataHash([wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,fs]);
+    fileStem = [fileStem, '_', num2str(index)];
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Input data
-    thetaW = 360 - wedgeIndex;
     wedgeSize = max(radiusS, radiusR);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

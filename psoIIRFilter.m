@@ -21,15 +21,14 @@ set(groot, 'defaultLineMarkerSize', 20)
 
 % Input data
 wedgeLength = 20;
-wedgeIndex = 275.01:10:355.01;
+wedgeIndex = 275.01;
 thetaW = 360 - wedgeIndex;
-thetaS = 10;
-thetaR = wedgeIndex - 40;
+thetaS = 10.01;
+thetaR = 250.01;
 radiusS = 1;
 radiusR = 1;
 zS = 10;
 zR = 10;
-wedgeSize = max(radiusS, radiusR);
 
 fs = 96000;
 
@@ -39,74 +38,104 @@ fs = 96000;
 
 numResults = length(wedgeIndex);
 
-[ir, tfvalue, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex(1),thetaS,thetaR(1),radiusS,radiusR,zS,zR,fs);
+% [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,fs);
 
-%% Problem Definiton
+% SingleWedgeArray function
 
-problem.CostFunction = @(x) FilterError(x, tfvalue, fs);  % Cost Function
+wedgeLength = 20;
+radiusS = 1;
+radiusR = 1;
+zS = 10;
+zR = 10;
+fs = 96000;
+
+step = 20;
+shadowZone = true;
+
+result = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, step, shadowZone);
+
+%% Check for previous attempts
+
+numResults = length(result);
+count = 0;
+
+%% Problem definition
+
 problem.nVar = 5;       % Number of Unknown (Decision) Variables - Return to 5. All filters end up with 0 imaginary anyway?
 problem.VarMin =  -1;  % Lower Bound of Decision Variables
 problem.VarMax =  1;   % Upper Bound of Decision Variables
 
 %% Parameters of PSO
 
-params.MaxIt = 50;        % Maximum Number of Iterations
-params.nPop = 100;           % Population Size (Swarm Size)
-params.w = 0.5;               % Intertia Coefficient
+params.MaxIt = 200;         % Maximum Number of Iterations
+params.nPop = 400;          % Population Size (Swarm Size)
+params.w = 0.5;             % Intertia Coefficient
 params.wdamp = 0.99;        % Damping Ratio of Inertia Coefficient
 params.c1 = 2;              % Personal Acceleration Coefficient
 params.c2 = 2;              % Social Acceleration Coefficient
-params.ShowIterInfo = true; % Flag for Showing Iteration Informatin
+params.ShowIterInfo = true; % Flag for Showing Iteration Information
 
-%% Calling PSO
+for i = 1:numResults
+    index = DataHash(result(i));
+    
+    % Create file info
+    mFile = mfilename('fullpath');
+    [inFilePath,fileStem] = fileparts(mFile);
+    fileStem = [fileStem, '_', num2str(index)];
+    savepath = ['results\', fileStem];
+    loadpath = ['results\', fileStem, '.mat'];
+    
+    test = exist(loadpath, "file");
+    
+    if test == 2
+        load(loadpath, "BestSol", "BestCosts");
+    else
+        %% Problem Definiton - cost function
+        
+        problem.CostFunction = @(x) FilterError(x, result(i).tfmag, fs);  % Cost Function
+        
+        %% Calling PSO
+        
+        out = PSO(problem, params);
+        
+        BestSol = out.BestSol;
+        BestCosts = out.BestCosts;
+    end
+    
+    %% Results
+    
+    [filterStable, tfiir, fveciir, b, a] = psoProcessResults(BestSol, fs);
+    
+    costEnd = length(BestCosts);
 
-out = PSO(problem, params);
+    if filterStable && BestCosts(costEnd) < 0.885
+        save(savepath, "BestSol", "BestCosts");
+        count = count + 1;
+    end
+    
+    figure(1)
+    % plot(BestCosts, 'LineWidth', 2);
+    semilogy(BestCosts);
+    xlabel('Iteration');
+    ylabel('Best Cost');
+    grid on;
+    
+    figure(2)
+    semilogx(fveciir, tfiir)
+    hold on
+    semilogx(result(i).fvec, result(i).tfmag)
+    hold off
+    xlim([20, 20000])
+    ylim([-40 0])
+    
+    ts = 1 / fs;
+    sys = tf(b, a, ts);
+    
+    figure(3)
+    h = pzplot(sys);
+    grid on
 
-BestSol = out.BestSol;
-BestCosts = out.BestCosts;
-
-%% Results
-
-z = [BestSol.Position(1);BestSol.Position(2)];
-p = [BestSol.Position(3);BestSol.Position(4)];
-k = BestSol.Position(5);
-
-[b, a] = zp2tf(z, p, k);
-[tfiir, fveciir] = IIRFilter(z, p, k, fs);
-
-stabilityCheck = abs(p);
-
-if stabilityCheck <= 1
-    filterStable = true;
-    str = 'is';
-else
-    filterStable = false;
-    str = 'is not';
 end
 
-disp(['Filter ' str ' stable.']);
-
-figure(1)
-% plot(BestCosts, 'LineWidth', 2);
-semilogy(BestCosts);
-xlabel('Iteration');
-ylabel('Best Cost');
-grid on;
-
-figure(2)
-semilogx(fveciir, tfiir)
-hold on
-semilogx(fvec, tfvalue)
-hold off
-xlim([20, 20000])
-ylim([-40 0])
-
-ts = 1 / fs;
-sys = tf(b, a, ts);
-
-figure(3)
-h = pzplot(sys);
-grid on
-
-
+disp([num2str(count) ' out of ' num2str(numResults) ' filters found within threshold']);
 

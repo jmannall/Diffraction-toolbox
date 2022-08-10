@@ -21,19 +21,85 @@ clear all
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Input data
 wedgeLength = 20;
-wedgeIndex = 345.01:10:355.01;
-thetaW = 360 - wedgeIndex;
-thetaS = 30;
-thetaR = wedgeIndex - 10;
 radiusS = 1;
 radiusR = 1;
 zS = 10;
 zR = 10;
-wedgeSize = max(radiusS, radiusR);
-
 fs = 96000;
+
+step = 20;
+shadowZone = true;
+
+result = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, step, shadowZone);
+
+% Important input parameters:
+% WedgeIndex, bendingAngle (thetaR-thetaS), minAngle (min(thetaS,
+% wedgeIndex - thetaR)) or thetaS and (wedgeIndex - thetaR)
+
+input = Geometry(step, shadowZone);
+
+% Important input parameters:
+% WedgeIndex, bendingAngle (thetaR-thetaS), minAngle (min(thetaS,
+% wedgeIndex - thetaR)) or thetaS and (wedgeIndex - thetaR)
+
+numInputs = length(input);
+wedgeLength = 20;
+radiusS = 1;
+radiusR = 1;
+zS = 10;
+zR = 10;
+fs = 96000;
+
+% Result template
+rtemplate.ir = [];
+rtemplate.tfmag = [];
+rtemplate.tvec = [];
+rtemplate.fvec = [];
+rtemplate.tfcomplex = [];
+
+result = repmat(rtemplate, 1, 1);
+
+index1 = DataHash(input);
+index2 = DataHash([wedgeLength, radiusS, radiusR, zS, zR, fs]);
+
+index = [index1, index2];
+
+% Create file info
+mFile = mfilename('fullpath');
+[inFilePath,fileStem] = fileparts(mFile);
+fileStem = [fileStem, '_', num2str(index)];
+savepath = ['results\', fileStem];
+loadpath = ['results\', fileStem, '.mat'];
+
+test = exist(loadpath, "file");
+
+if test == 2
+    load(loadpath, "result");
+else
+    for i = 1:numInputs
+        wedgeIndex = input(i).wedge;
+        thetaS = input(i).source + 0.01;
+        thetaR = input(i).receiver - 0.01;
+        if thetaR == 359.99
+            thetaR = 359.98;
+        end
+        if wedgeIndex == 180
+            wedgeIndex = 180.01;
+        elseif wedgeIndex == 360
+            wedgeIndex = 359.99;
+        end
+        [result(i).ir, result(i).tfmag, result(i).tvec, result(i).fvec, result(i).tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,fs);
+    end
+end
+
+save(savepath, "result");
+
+% Input data
+wedgeIndex = 345.01:10:355.01;
+thetaW = 360 - wedgeIndex;
+thetaS = 30;
+thetaR = wedgeIndex - 10;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -41,7 +107,7 @@ fs = 96000;
 
 numResults = length(wedgeIndex);
 
-[ir, tfvalue, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex(1),thetaS,thetaR(1),radiusS,radiusR,zS,zR,fs);
+[ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex(1),thetaS,thetaR(1),radiusS,radiusR,zS,zR,fs);
 
 tlen = length(tvec);
 flen = length(fvec);
@@ -50,7 +116,7 @@ irall = zeros(numResults, tlen);
 tfall = zeros(numResults, flen);
 
 irall(1,:) = ir;
-tfall(1,:) = tfvalue;
+tfall(1,:) = tfmag;
 
 
 % for i = 2:numResults
@@ -142,12 +208,12 @@ subcount = 0;
 while error > 1 && count < 8
     improvement = false;
     [tfiir, ~] = IIRFilter(z, p, k, fs);
-    error = Error(tfiir, tfvalue, fvec);
+    error = Error(tfiir, tfmag, fvec);
     
     z2new = z2 + z2step;
     z(2,1) = z2new;
     [tfiir, ~] = IIRFilter(z, p, k, fs);
-    errornew = Error(tfiir, tfvalue, fvec);
+    errornew = Error(tfiir, tfmag, fvec);
 
     if errornew >= error
         z(2,1) = z2;
@@ -160,7 +226,7 @@ while error > 1 && count < 8
     z1new = z1 + z1step;
     z(1,1) = z1new;
     [tfiir, ~] = IIRFilter(z, p, k, fs);
-    errornew = Error(tfiir, tfvalue, fvec);
+    errornew = Error(tfiir, tfmag, fvec);
 
     if errornew >= error
         z(1,1) = z1;
@@ -173,7 +239,7 @@ while error > 1 && count < 8
     p2new = p2 + p2step;
     p(2,1) = p2new;
     [tfiir, fveciir] = IIRFilter(z, p, k, fs);
-    errornew = Error(tfiir, tfvalue, fvec);
+    errornew = Error(tfiir, tfmag, fvec);
 
     if errornew >= error
         p(2,1) = p2;
@@ -186,7 +252,7 @@ while error > 1 && count < 8
     p1new = p1 + p1step;
     p(1,1) = p1new;
     [tfiir, fveciir] = IIRFilter(z, p, k, fs);
-    errornew = Error(tfiir, tfvalue, fvec);
+    errornew = Error(tfiir, tfmag, fvec);
 
     if errornew >= error
         p(1,1) = p1;
@@ -199,7 +265,7 @@ while error > 1 && count < 8
     k1new = k1 + k1step;
     k = k1new;
     [tfiir, fveciir] = IIRFilter(z, p, k, fs);
-    errornew = Error(tfiir, tfvalue, fvec);
+    errornew = Error(tfiir, tfmag, fvec);
 
     if errornew >= error
         k = k1;
@@ -211,7 +277,7 @@ while error > 1 && count < 8
     figure(2)
     semilogx(fveciir, tfiir)
     hold on
-    semilogx(fvec, tfvalue)
+    semilogx(fvec, tfmag)
     hold off
     xlim([20, 20000])
     ylim([-40 0])
@@ -259,13 +325,13 @@ k2 = H.K;
 
 H = dfilt.df1(b, a);
 
-tfvalue = filter(H, 1:100);
+tfmag = filter(H, 1:100);
 
-plot(tfvalue, 1:length(tfvalue))
+plot(tfmag, 1:length(tfmag))
 
 testValues = zeros(flen, 1);
 
-error = Error(testValues, tfvalue, fvec);
+error = Error(testValues, tfmag, fvec);
 
 figure(1)
 plot(tvec, irall)
