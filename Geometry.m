@@ -1,13 +1,24 @@
 
-function geometry = Geometry(step, shadowZone)
+function geometry = Geometry(step, shadowZone, minw, maxw)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Create geometry function
 
+    check = rem((maxw - minw), step);
+    check = 0;
+
+    if check > 0
+        disp('Step must be an multiple of the wedge range');
+        geometry = 0;
+        return
+    end
+
     % Input data
-    wedgeIndex = 180:step:360;
+    wedgeIndex = minw:step:maxw;
     numWedges = length(wedgeIndex);
+    minsr = step / 2;
+    %minsr = 0;
     
     % Geometry template
     gtemplate.wedge = [];
@@ -22,11 +33,13 @@ function geometry = Geometry(step, shadowZone)
     if shadowZone
         % Shadow zone only
         for i = 1:numWedges
-            numSources = (wedgeIndex(i) - 180 + step) / step;
-            source = 0:step:(wedgeIndex(i) - 180);
+            %numSources = (wedgeIndex(i) - 180 + minsr) / step;
+            source = 0:step:(wedgeIndex(i) / 2);
+            numSources = length(source);
             for j = 1:numSources
-                numReceivers = (wedgeIndex(i) - (source(j) + 180) + step) / step;
+                %numReceivers = (wedgeIndex(i) - (source(j) + 180) + minsr) / step;
                 receiver = (source(j) + 180):step:wedgeIndex(i);
+                numReceivers = length(receiver);
                 for k = 1:numReceivers
                     count = count + 1;
                     geometry(count).wedge = wedgeIndex(i);
@@ -40,11 +53,13 @@ function geometry = Geometry(step, shadowZone)
     else
         % All cases
         for i = 1:numWedges
-            numSources = wedgeIndex(i) / step;
-            source = 0:step:(wedgeIndex(i) - step);
+            %numSources = (wedgeIndex(i) - minsr) / step;
+            source = 0:step:(wedgeIndex(i) / 2);
+            numSources = length(source);
             for j = 1:numSources
-                numReceivers = (wedgeIndex(i) - source(j)) / step;
+                numReceivers = (wedgeIndex(i) - source(j) - minsr) / step;
                 receiver = (source(j) + step):step:wedgeIndex(i);
+                numReceivers = length(receiver);
                 for k = 1:numReceivers
                     count = count + 1;
                     geometry(count).wedge = wedgeIndex(i);

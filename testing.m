@@ -28,10 +28,29 @@ zS = 10;
 zR = 10;
 fs = 96000;
 
-step = 20;
+step = 10;
+minw = 180;
+maxw = 360;
 shadowZone = true;
 
-result = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, step, shadowZone);
+wedgeIndex = 220;
+thetaS = 10;
+thetaR = 30;
+
+thetaS = 190;
+thetaR = 210;
+
+test = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS, zR, fs);
+
+test2 = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS, zR, fs);
+
+result = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, step, shadowZone, minw, maxw);
+
+if result == 0
+    return
+end
+
+return
 
 % Important input parameters:
 % WedgeIndex, bendingAngle (thetaR-thetaS), minAngle (min(thetaS,
@@ -512,3 +531,4 @@ set(g,'FontSize',14)
 g = legend('GA only','Incl. diffr.1');
 set(g,'FontSize',14,'Location','SouthEast')
 axis([20 20000 -8 4])
+

@@ -11,17 +11,17 @@
 % Contact Info: sm.kalami@gmail.com, info@yarpiz.com
 %
 
-function z = FilterError(x, tfvalue, fs)
+function z = FilterErrorConj(x, tfvalue, fs)
     
-%     pole1
-%     pole2
-%     zero1
-%     zero2
+%     Rpole
+%     argpole
+%     Rzero             
+%     argzero
 %     gain
-    
-    p = [x(1); x(2)];
+
+    p = [x(1)*exp(1j*x(5)*pi); x(2)*exp(-1j*x(5)*pi)];
     z = [x(3); x(4)];
-    k = x(5);
+    k = x(6);
 
     [tf, fvec] = IIRFilter(p, z, k, fs);
     z = Error(tf, tfvalue, fvec);
