@@ -19,28 +19,7 @@ set(groot, 'defaultLineMarkerSize', 10)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Input data
-wedgeLength = 20;
-wedgeIndex = 275.01;
-thetaW = 360 - wedgeIndex;
-thetaS = 10.01;
-thetaR = 250.01;
-radiusS = 1;
-radiusR = 1;
-zS = 10;
-zR = 10;
-
-fs = 96000;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% SingleWedge function
-
-numResults = length(wedgeIndex);
-
-% [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,fs);
-
-% SingleWedgeArray function
+% SingleWedgeArray input data
 
 wedgeLength = 20;
 radiusS = 1;
@@ -48,13 +27,11 @@ radiusR = 1;
 zS = 10;
 zR = 10;
 fs = 96000;
+wedge = 190:10:350;
+bendingAngle = 190:10:350;
+minAngle = 0:10:180;
 
-step = 10;
-minw = 180;
-maxw = 360;
-shadowZone = true;
-
-[result, geometry] = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, step, shadowZone, minw, maxw);
+[result, geometry] = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, wedge, bendingAngle, minAngle);
 
 result = rmfield(result,'i');
 
@@ -66,13 +43,12 @@ count = 0;
 %% Problem definition
 
 problem.nVar = 5;       % Number of Unknown (Decision) Variables
-problem.VarMin =  -1;  % Lower Bound of Decision Variables
-problem.VarMax =  1;   % Upper Bound of Decision Variables
-%problem.split = 5;      % 3 if FilterErrorConj / 5 if FilterError
+problem.VarMin =  -0.99;  % Lower Bound of Decision Variables
+problem.VarMax =  0.99;   % Upper Bound of Decision Variables
 
 %% Parameters of PSO
 
-params.MaxIt = 100;         % Maximum Number of Iterations
+params.MaxIt = 200;         % Maximum Number of Iterations
 params.nPop = 200;          % Population Size (Swarm Size)
 params.w = 0.5;             % Intertia Coefficient
 params.wdamp = 0.99;        % Damping Ratio of Inertia Coefficient
@@ -103,7 +79,8 @@ ptemplate.i = [];
 
 pso = repmat(ptemplate, 1, 1);
 
-threshold = 2;
+saveThreshold = 2;
+rerunThreshold = 0.5;
 
 if test == 2
     load(loadpath, "pso");
@@ -113,13 +90,13 @@ else
     for i = 1:numResults
 
         indexi = DataHash(result(i));
+        oldCost = 10e999;   % To prevent count being added twice for new runs below save threshold
         rerun = true;
-        oldCost = threshold;
         
         % Create file info
         saveStemi = [fileStem, '_', num2str(indexi)];
-        savepathi = ['results\psoIIRFilter\', saveStemi];
-        loadpathi = ['results\psoIIRFilter\', saveStemi, '.mat'];
+        savepathi = ['results\psoIIRFilterConstrained\', saveStemi];
+        loadpathi = ['results\psoIIRFilterConstrained\', saveStemi, '.mat'];
         
         test = exist(loadpathi, "file");
 
@@ -130,18 +107,20 @@ else
             oldBestSol = BestSol;
             oldBestCosts = BestCosts;
             oldk = BestSol.Position(5);
-%             if oldCost > 0.5 || oldk < 0
-%                 rerun = true;
-%             end
+            if oldCost > rerunThreshold
+                rerun = true;
+                saveThreshold = oldCost;
+            end
         end
         if rerun
             %% Problem Definiton - cost function
             
             problem.CostFunction = @(x) FilterError(x, result(i).tfmag, fs);  % Cost Function
+            problem.ConstraintFunction = @(x) FilterConstraints(x); % Constraint Function
             
             %% Calling PSO
             
-            out = PSO(problem, params);
+            out = PSOWithIIRConstraints(problem, params);
             
             BestSol = out.BestSol;
             BestCosts = out.BestCosts;
@@ -154,19 +133,7 @@ else
         [z, p, k] = tf2zpk(b, a);
     
         if filterStable
-            if rerun
-                if BestCosts(end) <= oldCost
-                    save(savepathi, "BestSol", "BestCosts");
-                    pso(i).BestSol = BestSol;
-                    pso(i).BestCosts = BestCosts;
-                    pso(i).tfmagiir = tfmagiir;
-                    pso(i).fveciir = fveciir;
-                    pso(i).z = z;
-                    pso(i).p = p;
-                    pso(i).k = k;
-                    count = count + 1;
-                end
-            else
+            if BestCosts(end) <= saveThreshold
                 save(savepathi, "BestSol", "BestCosts");
                 pso(i).BestSol = BestSol;
                 pso(i).BestCosts = BestCosts;
@@ -176,7 +143,10 @@ else
                 pso(i).p = p;
                 pso(i).k = k;
                 count = count + 1;
-           end
+            end
+            if oldCost < BestCosts(end)
+                count = count + 1;
+            end
         end
 
 %         if filterStable
@@ -225,7 +195,7 @@ else
     end
 end
 
-%% Data
+%% Save result
 
 disp([num2str(count) ' out of ' num2str(numResults) ' filters found within threshold']);
 
@@ -233,20 +203,169 @@ if count == numResults
     save(savepath, "pso");
 end
 
-[wedge, ~, iw] = unique([geometry.wedge]);
-[minAngle, ~, imA] = unique([geometry.minAngle]);
-[bendingAngle, ~, ibA] = unique([geometry.bendingAngle]);
+%% Process data
 
-[w, mA, bA] = meshgrid(wedge, minAngle, bendingAngle);
+x = [pso.BestSol];
+resultCost = [x.Cost];
+resultPosition = reshape([x.Position], problem.nVar, numResults);
+worstCost = max(resultCost);
+averageCost = sum(resultCost) / numResults;
+
+z = resultPosition([1,3],:);
+p = resultPosition([2,4],:);
+k = resultPosition(5,:);
+
+[wedge, ~, iw] = unique(geometry.wedge);
+[bendingAngle, ~, ibA] = unique(geometry.bendingAngle);
+[minAngle, ~, imA] = unique(geometry.minAngle);
+
+numWedges = length(wedge);
+numBendingAngles = length(bendingAngle);
+numMinAngles = length(minAngle);
+
+close all
+
+wbA = [geometry.wedge, geometry.bendingAngle];
+[WBA, ~, iwbA] = unique(wbA, 'rows');
+wmA = [geometry.wedge, geometry.minAngle];
+[WMA, ~, iwmA] = unique(wmA, 'rows');
+bAmA = [geometry.bendingAngle, geometry.minAngle];
+[BAMA, ~, ibAmA] = unique(bAmA, 'rows');
+
+%% Define filters used
+
+zAll = [resultPosition(1,:); resultPosition(3,:)];
+pAll = [resultPosition(2,:); resultPosition(4,:)];
+kAll = [resultPosition(5,:)];
+tfmagiirAll = [pso.tfmagiir];
+
+target = tfmagiirAll(1,:) - 3;
+y = (10.^(target / 10) ./ kAll.^2);
+a = (y .* (pAll(2,:).^2 + 1) - zAll(1,:).^2 - 1) ./ (2 .* (pAll(2,:) .* y - zAll(1,:)));
+b = sqrt(1 - a.^2);
+zNum = a+b*1i;
+omegac = angle(zNum);
+fclpf = omegac / (2 * pi) * fs;
+
+target = tfmagiirAll(end / 2,:) - 3;
+y = (10.^(target / 10) ./ kAll.^2);
+a = (y .* (pAll(2,:).^2 + 1) - zAll(1,:).^2 - 1) ./ (2 .* (pAll(2,:) .* y - zAll(1,:)));
+b = sqrt(1 - a.^2);
+zNum = a+b*1i;
+omegac = angle(zNum);
+fchsh = omegac / (2 * pi) * fs;
+
+B0 = (1 - pAll(1,:)) .* (1 + zAll(2,:)) ./ ((1 + pAll(1,:)) .* (1 - zAll(2,:)));
+
+disp('section complete');
+
+%% Regression
+
+w = geometry.wedge;
+bA = geometry.bendingAngle;
+mA = geometry.minAngle;
+w2 = w.^2;
+bA2 = bA.^2;
+mA2 = mA.^2;
+%x = [w, bA, mA, w .* bA, w .* mA, bA .* mA, w .* bA .* mA, w2, bA2, mA2, w2 .* bA, w2 .* mA, bA2 .* w, bA2 .* mA, mA2 .* w, mA2 .* bA, w2 .* bA2, w2 .* mA2, bA2 .* mA2, w2 .*mA2.*bA2];
+
+%x = [w, bA, mA, w.*mA, w.*bA, bA.*mA, mA.^2, bA.^2, w.^2, bA ./ w, mA ./ w, bA ./ (mA + 1), tand(bA+1), tand(mA+1), tand(w+1), cosd(bA), cosd(mA), sind(w), tanh(180 ./ (2 * pi * bA)), cosd(w), bA ./ (w - mA - 180)];
+%x = [w, bA, mA, w.*mA, w.*bA, bA.*mA, mA.^2, bA.^2, w.^2, tanh(1 ./ (2 * pi * (mA + 1))), cosd(mA), tanh(180 ./ (2 * pi * w)), tanh(180 ./ (2 * pi * bA)), bA ./ (w - mA - 180)];
+%x = [w, bA, mA, w.*mA, w.*bA, bA.*mA, tanh(1 ./ (2 * pi * (mA + 1))), tanh(180 ./ (2 * pi * w)), tanh(180 ./ (2 * pi * bA)), bA ./ (w - mA - 180)];
+%x = [w, bA, mA];
+%x = [sind(w), sind(bA), cosd(mA)];
+%x = [w, bA, mA, bA.^2, bA .* mA, w .* mA, w .* mA .* bA, sind(w) .* cos(mA), sind(w) .* sind(bA), sind(bA) .* cosd(mA), sind(w), sind(bA), cosd(mA), tanh(1 ./ (2 * pi * mA + 0.2)), tanh(180 ./ (2 * pi * w)), tanh(180 ./ (2 * pi * bA)), bA ./ (w - mA - 180)];
+%x = [tanh(180 ./ (2 * pi * bA)), tanh(180 ./ (2 * pi * w)), sind(bA), sind(bA) .* cosd(mA), sind(w) .* sind(bA), cosd(mA), bA, sind(w), mA, bA ./ (w - mA - 180), w, bA.^2, bA .* mA, w .* mA, w .* mA .* bA];
+%x = [w, bA, mA, bA.^2, w .* bA, w .* mA, bA .* mA, w .* bA .* mA, sind(w), sind(bA), cosd(mA), tanh(1 ./ (2 * pi * mA + 0.2)), tanh(180 ./ (2 * pi * w)), tanh(180 ./ (2 * pi * bA)), bA ./ (w - mA - 180)];
+x = [w, bA, mA, bA.^2, w ./ bA, bA .* mA, w .* mA, mA .^ 2, w .* bA, sqrt(abs(sind(bA))), tanh(180 ./ (2 * pi * w)), tanh(180 ./ (2 * pi * bA)), bA ./ (w - mA - 180), w .* mA .* bA, sind(bA)];
+
+% w = w * pi / 180;
+% bA = bA * pi / 180;
+% mA = mA * pi / 180;
+% x = [w, bA, mA, bA.^2, w ./ bA, bA .* mA, w .* mA, mA .^ 2, w .* bA, sqrt(abs(sin(bA))), tanh(1 ./ (2 * w)), tanh(1 ./ (2 * bA)), bA ./ (w - mA - pi), w .* mA .* bA, sin(bA)];
 
 
+input = transpose(resultPosition);
+z1 = input(:,1);
+p1 = input(:,2);
+z2 = input(:,3);
+p2 = input(:,4);
+k = input(:,5);
+
+X = [ones(numResults, 1), x];
+Y = input;
+disp('break');
+[beta,Sigma,E,CovB,logL] = mvregress(X,Y);
+%[beta,Sigma,E,CovB,logL] = mvregress(X,Y, 'outputfcn', @(x, y, z) Test(x, y, z, X, [result.tfmag], fs));
+averageError = sum(E.^ 2,1) / length(E);
+worstError = max(E,[],1);
+
+PosE = sum(E,2);
+averagePosError = sum(PosE.^ 2,1)  / length(PosE);
+worstPosError = max(PosE,[],1);
+
+B = beta
+sig = sum(abs(B),2);
+prediction = ([ones(numResults,1),x]*B)';
+
+zPrediction = [prediction(1,:); prediction(3,:)];
+pPrediction = [prediction(2,:); prediction(4,:)];
+kPrediction = [prediction(5,:)];
+
+MSE = ZPKError(B, X, [result.tfmag], fs);
+
+disp('Section complete');
+
+%% Compare filters
+close all
+
+for i = 1:numResults
+        
+        input = zPrediction(i);
+        [tfmagPrediction, fvecPrediction] = IIRFilter(zPrediction(:,i), pPrediction(:,i), kPrediction(i), fs);
+        
+        f2 = figure;
+        movegui(f2, 'northeast')
+        semilogx(pso(i).fveciir, pso(i).tfmagiir)
+        hold on
+        semilogx(result(i).fvec, result(i).tfmag)
+        semilogx(fvecPrediction, tfmagPrediction)
+        hold off
+        xlim([20, 20000])
+        ylim([-40 0])
+        
+        saveas(gcf,['figures/filter_predictions/', 'w_', num2str(geometry.wedge(i)), '_bA_', num2str(geometry.bendingAngle(i)), '_mA_', num2str(geometry.minAngle(i)), '.png'])
+        close all
+end
+
+%% Plot graphs
+
+% Change minAngle
+plotFilterParameters(WBA, iwbA, geometry.minAngle, fclpf, fchsh, B0, 'w', 'bA');
+% Change bendingAngle
+plotFilterParameters(WMA, iwmA, geometry.bendingAngle, fclpf, fchsh, B0, 'w', 'mA');
+% Change wedge
+plotFilterParameters(BAMA, ibAmA, geometry.wedge, fclpf, fchsh, B0, 'bA', 'mA');
+
+%% Plot graphs
+
+% Change minAngle
+plotFilterPZK(WBA, iwbA, geometry.minAngle, z, p, k, 'w', 'bA', zPrediction, pPrediction, kPrediction);
+% Change bendingAngle
+plotFilterPZK(WMA, iwmA, geometry.bendingAngle, z, p, k, 'w', 'mA', zPrediction, pPrediction, kPrediction);
+% Change wedge
+plotFilterPZK(BAMA, ibAmA, geometry.wedge, z, p, k, 'bA', 'mA', zPrediction, pPrediction, kPrediction);
+
+return
+
+%% OLD code
 p = [pso.p];
 z = [pso.z];
 k = [pso.k];
-pole1 = max(p,[],1);
-pole2 = min(p,[],1);
-zero1 = max(z,[],1);
-zero2 = min(z,[],1);
+pole1 = p(1,:);
+pole2 = p(2,:);
+zero1 = z(1,:);
+zero2 = z(2,:);
 gain = k;
 
 [~, ~, Iw] = unique(w);
@@ -407,8 +526,8 @@ for i = 200:numResults
     zeronew = [z1;z2];
     gainnew = k;
 
-    [tfmagiir fveciir] = IIRFilter(pole,zeronew,gainnew,fs);
-    [tfmagiir2 fveciir2] = IIRFilter(pole,zero,gain,fs);
+    [tfmagiir fveciir] = IIRFilter(zeronew,pole,gainnew,fs);
+    [tfmagiir2 fveciir2] = IIRFilter(zero,pole,gain,fs);
 
     f2 = figure(2);
     movegui(f2,'north');
@@ -451,7 +570,7 @@ for i = 200:numResults
     z2 = Z2Function(z2params,[0,0,0],bA,mA,w);
     k = KFunction(kparams,[0,0,0],bA,mA,w);
     
-    [tfmagiir fveciir] = IIRFilter([p1;p2],[z1;z2],k,fs);
+    [tfmagiir fveciir] = IIRFilter([z1;z2],[p1;p2],k,fs);
 
     f2 = figure(2);
     movegui(f2,'north');
@@ -635,4 +754,16 @@ end
 function output = Z2Function(p,xdata,x,y,z)
     mat = (p(1).*x+p(2).*y+p(3).*z+p(4).*x.^2+p(5).*y.^2+p(6).*z.^2+p(7))./(p(8).*x+p(9).*y+p(10).*z+p(11).*x.^2+p(12).*y.^2+p(13).*z.^2+p(14));
     output = reshape(mat,[numel(x),1]);
+end
+
+function Objective = Test(current, input, text, X, tfvalue, fs)
+    disp(['Iteration: ', num2str(input.iteration)]);
+    current = reshape(current, 16, 5);
+    MSE = ZPKError(current, X, tfvalue, fs);
+    disp(['MSE: ', num2str(MSE)])
+    Objective = true;
+    if strcmp(text,'done')
+        disp('Iterations complete');
+        Objective = false;
+    end
 end

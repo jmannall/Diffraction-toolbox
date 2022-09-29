@@ -1,7 +1,7 @@
 function [filterStable, tfiir, fveciir, b, a] = psoProcessResults(BestSol, fs)
 
-    z = [BestSol.Position(1);BestSol.Position(2)];
-    p = [BestSol.Position(3);BestSol.Position(4)];
+    z = [BestSol.Position(1);BestSol.Position(3)];
+    p = [BestSol.Position(2);BestSol.Position(4)];
     k = BestSol.Position(5);
     
     [b, a] = zp2tf(z, p, k);

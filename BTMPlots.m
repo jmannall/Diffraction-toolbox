@@ -5,34 +5,26 @@ close all
 set(groot, 'defaultLineLineWidth', 1)
 
 
-
 wedgeLength = 20;
 radiusS = 1;
 radiusR = 1;
 zS = 10;
 zR = 10;
 fs = 96000;
+wedge = 190:10:350;
+bendingAngle = 190:10:350;
+minAngle = 0:10:180;
 
-step = 10;
-minw = 180;
-maxw = 360;
-shadowZone = true;
-
-[result, geometry] = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, step, shadowZone, minw, maxw);
+[result, geometry] = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, wedge, bendingAngle, minAngle);
 
 result = rmfield(result,'i');
 
 numResults = length(result);
 count = 0;
 
-%% Find unique indexes
-input = transpose([[geometry.wedge]; [geometry.bendingAngle]; [geometry.minAngle]]);
-[input, index, ~] = unique(input, 'rows');
-
-result = result(index);
-
-
 %% Process
+input = [[geometry.wedge], [geometry.bendingAngle], [geometry.minAngle]];
+
 [wedge, vw, iw] = unique(input(:,1));
 [bendingAngle, vbA, ibA] = unique(input(:,2));
 [minAngle, vmA, imA] = unique(input(:,3));

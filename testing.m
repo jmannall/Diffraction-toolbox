@@ -40,11 +40,17 @@ thetaR = 30;
 thetaS = 190;
 thetaR = 210;
 
+wedge = 190:10:360;
+bendingAngle = 190:10:360;
+minAngle = 0:10:180;
+
+result = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, wedge, bendingAngle, minAngle);
+
+
 test = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS, zR, fs);
 
 test2 = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS, zR, fs);
 
-result = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, step, shadowZone, minw, maxw);
 
 if result == 0
     return

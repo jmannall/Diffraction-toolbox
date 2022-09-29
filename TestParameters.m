@@ -18,23 +18,13 @@ minw = 180;
 maxw = 360;
 shadowZone = true;
 
-[result, geometry] = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, step, shadowZone, minw, maxw);
+wedge = 190:20:360;
+bendingAngle = 190:20:360;
+minAngle = 0:20:180;
+
+[result, geometry] = SingleWedgeArray(wedgeLength, radiusS, radiusR, zS, zR, fs, wedge, bendingAngle, minAngle);
 
 result = rmfield(result,'i');
-
-
-%% Find unique indexes
-input = transpose([[geometry.wedge]; [geometry.bendingAngle]; [geometry.minAngle]]);
-
-[input, index, ~] = unique(input, 'rows');
-
-result = result(index);
-geometry = geometry(index);
-
-bAindex = [geometry.bendingAngle] == 180;
-
-result(bAindex) = [];
-geometry(bAindex) = [];
 
 %% Plot
 numResults = length(result);

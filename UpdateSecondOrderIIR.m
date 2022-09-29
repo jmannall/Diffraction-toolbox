@@ -14,7 +14,8 @@ function UpdateSecondOrderIIR(S)
     B0 = Multiply(hB0, S.p) * Multiply(lB0, S.z) / (Multiply(lB0, S.p) * Multiply(hB0, S.z));
     S.B0 = 20*log10(B0);
     
-    y = 1 / (10 ^ 0.3 * S.k ^ 2);
+    ktemp = dc * Multiply(1, S.p(1)) / Multiply(1, S.z(1));
+    y = 1 / (10 ^ 0.3 * ktemp ^ 2);
     a = (y * (S.p(1)^2 + 1) - S.z(1)^2 - 1) / (2 * (S.p(1) * y - S.z(1)));
     b = sqrt(1 - a^2);
     z = a+b*1i;
@@ -26,6 +27,11 @@ function UpdateSecondOrderIIR(S)
 
     hshDCGain = S.k * (Multiply(1, S.z(2)) / Multiply(1, S.p(2)));
     hshNyqGain = S.k * (Multiply(-1, S.z(2)) / Multiply(-1, S.p(2)));
+    
+    omegaHigh = 20000 * 2 * pi / S.fs;
+    z = cos(omegaHigh) + sin(omegaHigh)*1i;
+    highGain = S.k * (Multiply(z, S.z) / Multiply(z, S.p));
+    S.highGain = 20*log10(highGain);
 
     %f1
     y = hshDCGain ^ 2 * 10 ^ 0.3 / S.k ^ 2;
@@ -76,5 +82,7 @@ function UpdateSecondOrderIIR(S)
     SetString(S.pLabel,'Pole',S.p);
     SetString(S.kLabel,'Gain',S.k);
     set(S.LN, 'YData', y);
-
+    set(S.FCy, 'XData', [10, S.fc]);
+    set(S.FCx, 'XData', [S.fc, S.fc]);
+    set(S.gradSlope, 'XData', [S.fc, 20000], 'YData', [-3, S.highGain]);
 end

@@ -1,0 +1,25 @@
+function [tfmag, fvec] = NNIIRFilter(z, p, k, fs)
+
+ztest = extractdata(z);
+ptest = extractdata(p);
+ktest = extractdata(k);
+[btest, atest] = zp2tf(ztest, ptest, ktest);
+
+b = [k, -k * sum(z), k * prod(z)];
+a = [1, -sum(p), prod(p)];
+
+[h, f] = freqz(b, a, 2048);
+
+numFreqs = length(f);
+tfmag = dlarray(zeros(numFreqs,1));
+for i = 1:numFreqs
+    target = cos(f(i)) + sin(f(i)) * 1i;
+    tfmag(i) = Multiply(target, z) ./ Multiply(target, p);
+end
+
+
+%fvec = (f * fs) / (2 * pi);
+ext
+tfmagold = 20*log(abs(h)) / log(10);
+
+end

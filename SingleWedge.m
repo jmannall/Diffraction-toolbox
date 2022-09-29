@@ -1,13 +1,13 @@
 % Requires EDtoolbox by upsvensson, DataHash.m and lgwt.m to run
 
-% Create geometry data for a single wedge in free field
+% Create ir, tf data for a single wedge in free field
 
 % All coordinates go x, y, z
 
 function [ir, tf, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,fs)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     % Create file info
     mFile = mfilename('fullpath');
     [inFilePath,fileName] = fileparts(mFile);
@@ -27,7 +27,7 @@ function [ir, tf, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,th
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         % Input data
-        wedgeSize = max(radiusS, radiusR);
+        wedgeSize = 10 * max(radiusS, radiusR);
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
@@ -53,21 +53,39 @@ function [ir, tf, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,th
             wedgeSize * cosd(wedgeIndex) wedgeSize * sind(wedgeIndex) 0
             0 0 wedgeLength
             wedgeSize 0 wedgeLength
-            wedgeSize * cosd(wedgeIndex) wedgeSize * sind(wedgeIndex) wedgeLength];
+            wedgeSize * cosd(wedgeIndex) wedgeSize * sind(wedgeIndex) wedgeLength
+            wedgeSize -0.0001 0
+            wedgeSize -0.0001 wedgeLength];
         
         planecorners = [1 3 6 4
-            3 2 5 6
+            3 7 8 6
             2 1 4 5
-            4 6 5 0
-            1 2 3 0];
-        
-        planerigid = [1 0 1 0 0];
+            4 6 8 5
+            1 2 7 3
+            2 5 8 7];
+
+        planerigid = [1 0 1 0 0 0];
         
         source = [radiusS * cosd(thetaS), radiusS * sind(thetaS), zS];
         receiver = [radiusR * cosd(thetaR), radiusR * sind(thetaR), zR];
+
+        plane = corners(planecorners',:);
+        
+%         figure(1)
+%         plot3(source(1), source(2), source(3), 'o');
+%         hold on
+%         plot3(receiver(1), receiver(2), receiver(3), 'o');
+%         legend('Source', 'Receiver')
+%         for i = 1:4:length(plane)
+%             planePlot = [plane(i:i + 3,:); plane(i,:)];
+%             plot3(planePlot(:,1), planePlot(:,2), planePlot(:,3))
+%         end
+%         xlim([-1 1])
+%         ylim([-1 1])
+%         grid on
+%         hold off
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
         % Create CAD file
         if ~exist('geometry', 'dir')
            mkdir geometry
@@ -75,10 +93,11 @@ function [ir, tf, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,th
         
         csvFilePath = [inFilePath, filesep, 'geometry', filesep];
         
-        map = 'test';
+        map = num2str(index);
         cadFilePath = [csvFilePath, map, '_geo.cad'];
-        cadfile = fopen(cadFilePath, 'w');
         
+        cadfile = fopen(cadFilePath, 'w');
+
         heading = '%CORNERS';
         fprintf(cadfile, '%s\n', heading);
         count = 1;
@@ -102,7 +121,7 @@ function [ir, tf, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,th
         fclose(cadfile);
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
+
         % Find BTM response
         geofiledata = struct('geoinputfile',cadFilePath);
         Sindata = struct('coordinates',source);
@@ -111,13 +130,14 @@ function [ir, tf, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,th
         controlparameters.difforder = 1;
         controlparameters.savealldifforders = 1;
         filehandlingparameters = struct('outputdirectory',[inFilePath,filesep,'results']);
-        filehandlingparameters.filestem = fileName;
+        filehandlingparameters.filestem = [fileName, index];
         filehandlingparameters.savelogfile = 0;
         filehandlingparameters.showtext = 1;
-        
+        filehandlingparameters.suppressresultrecycling = 1;
+
         EDmain_convex_time(geofiledata,Sindata,Rindata,struct,controlparameters,filehandlingparameters);
         
-        nfft = 4096;
+        nfft = 8192;
         fvec = controlparameters.fs/nfft*[0:nfft/2-1];
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -132,23 +152,34 @@ function [ir, tf, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,th
 
         % Load and save the results
 
-        eval(['load ''',inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_ir.mat'''])
+        %eval(['load ''',inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_ir.mat'''])
+        load([inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_ir.mat'], 'irdirect', 'irgeom', 'irdiff');
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         % Present the results
-        
-        ir = irdiff;
-        ndiff = length(irdiff);
+        template.complete = [];
+        template.direct = [];
+        template.geom = [];
+        template.diff = [];
+
+        [ir, tf, tfcomplex] = deal(repmat(template, 1, 1));
+
+        [ir.complete, tf.complete, tfcomplex.complete] = ComputeWedgeResponses(irdirect + irgeom + irdiff, nfft);
+        [ir.direct, tf.direct, tfcomplex.direct] = ComputeWedgeResponses(irdirect, nfft);
+        [ir.geom, tf.geom, tfcomplex.geom] = ComputeWedgeResponses(irgeom, nfft);
+        [ir.diff, tf.diff, tfcomplex.diff] = ComputeWedgeResponses(irdiff, nfft);
+
+        ndiff = length(ir.complete);
         tvec = 1/controlparameters.fs*[0:ndiff-1];
-        
-        % eval(['load ''',inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_tf.mat'''])
-        % eval(['load ''',inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_tfinteq.mat'''])
-        
-        F = fft(irdiff,nfft);
-        tfcomplex = F(1:nfft/2,:);
-        tf = 20*log10(abs(F(1:nfft/2,:)));
 
         save(savepath, "ir", "tf", "tvec", "fvec", "tfcomplex");
+        delete(cadFilePath);
+        path = [inFilePath,filesep,'results',filesep,filehandlingparameters.filestem];
+        delete([path, '_eddata.mat']);
+        delete([path, '_ir.mat']);
+        delete([path, '_paths.mat']);
+        delete([path, '_Rdata.mat']);
+        delete([path, '_Sdata.mat']);
     end
 end

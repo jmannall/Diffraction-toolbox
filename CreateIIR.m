@@ -14,10 +14,17 @@ function CreateIIR(z, p, k, update, fs)
     S.k   = k;
     [tfmag, fvec] = IIRFilter(S.z, S.p, S.k, S.fs);
     figure(S.fh);
-    S.x   = fvec; 
+    S.x   = fvec;
     S.LN  = semilogx(fvec,tfmag);
+    hold on
+    S.fc = 1000;
+    S.highGain = -80;
+    S.FCy = semilogx([10,S.fc], [-3, -3], '-k');
+    S.FCx = semilogx([S.fc, S.fc], [-3, -80], '-k');
+    S.gradSlope = semilogx([S.fc, 20000], [-3, S.highGain]);
+    hold off
     grid on
-    S.ax.XLim = [0 24000];
+    S.ax.XLim = [20 24000];
     S.ax.YLim = [-80 20];
     set(get(gca,'XLabel'),'String','Frequency (Hz)')
     set(get(gca,'YLabel'),'String','Magnitude (dB)')
