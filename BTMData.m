@@ -1,3 +1,5 @@
+% Create plots of how BTM changes with variables.
+
 %% Create data
 
 disp('Create data');
@@ -86,4 +88,3 @@ toFind = [receiver, wedge];
 index = idx == 1;
 
 rwfc = fc(index);
-

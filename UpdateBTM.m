@@ -1,5 +1,5 @@
 function UpdateBTM(S)
-    [y, ~] = S.fcn(S.w, S.bA, S.mA);   % @(w, bA, mA) BTM(w,bA,mA,fs);
+    [y, ~] = S.fcn(S);   % @(S) BTMInf(S);
     figure(S.fh);
     SetString(S.wLabel,'Wedge',S.w);
     SetString(S.bALabel,'Bending Angle',S.bA);

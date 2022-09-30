@@ -3,12 +3,32 @@ clear all
 
 fs = 48000;
 
-CreateIIR(-0.5, 0.5, 0.5, @UpdateFirstOrderIIR, fs)
-CreateIIR(0.8, 0.4, 0.05, @UpdateFirstOrderIIR, fs)
+% CreateIIR(-0.5, 0.5, 0.5, @UpdateFirstOrderIIR, fs)
+% CreateIIR(0.8, 0.4, 0.05, @UpdateFirstOrderIIR, fs)
+% 
+% CreateIIR([-0.9; 0.8], [0.85; 0.4], 0.05, @UpdateSecondOrderIIR, fs)
 
-CreateIIR([-0.9; 0.8], [0.85; 0.4], 0.05, @UpdateSecondOrderIIR, fs)
+S.z = 0.8;
+S.p = 0.4;
+S.k = 0.05;
 
+plotFcn = @(S) IIRFilter(S);
+sliderFcn = @(S) CreateFirstOrderIIRSliders(S);
+updateFcn = @UpdateFirstOrderIIR;
 
+CreateInteractivePlot(S, plotFcn, sliderFcn, updateFcn, fs);
+
+S.z = [-0.9; 0.8];
+S.p = [0.85; 0.4];
+S.k = 0.05;
+
+plotFcn = @(S) IIRFilter(S);
+sliderFcn = @(S) CreateSecondOrderIIRSliders(S);
+updateFcn = @UpdateSecondOrderIIR;
+
+CreateInteractivePlot(S, plotFcn, sliderFcn, updateFcn, fs);
+
+%% Notes
 % Hsh (zero > pole) gain between DC and fs / 2 determined by distance between zero and
 % pole. Location of fc determied by average position between DC and fs / 2.
 

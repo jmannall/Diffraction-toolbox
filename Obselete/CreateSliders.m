@@ -1,4 +1,4 @@
-function S = CreateSliders(S)
+function S = CreateBTMSliders(S)
     width = 500;
     textwidth = width;
     height = 40;

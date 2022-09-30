@@ -1,3 +1,5 @@
+%% Plot BTM Data
+
 function BTMDataPlot(dVar, iVar1, iVar2, dVarName, gradient, fc)
 
     toFind = [iVar1, iVar2];

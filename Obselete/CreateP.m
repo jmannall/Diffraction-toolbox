@@ -1,4 +1,4 @@
-function S = CreateP(S,numPoles)
+function S = CreateIIRSliders(S,numPoles)
     width = 500 / numPoles;
     textwidth = width;
     height = 40;

@@ -1,3 +1,5 @@
+% Plot BTM repsonses with variables
+
 %% Create result and geometry structs
 
 close all

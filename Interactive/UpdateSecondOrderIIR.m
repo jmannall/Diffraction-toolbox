@@ -1,5 +1,12 @@
 function UpdateSecondOrderIIR(S)
 
+    [y, ~] = S.fcn(S);   % @(S) IIRFilter(S);
+    figure(S.fh);
+    SetString(S.zLabel,'Zero',S.z);
+    SetString(S.pLabel,'Pole',S.p);
+    SetString(S.kLabel,'Gain',S.k);
+    set(S.LN, 'YData', y);
+
     dc = 1;
     S.k = dc * Multiply(1, S.p) / Multiply(1, S.z);
 %     dc = S.k * (Multiply(1, S.z) / Multiply(1, S.p));
@@ -68,21 +75,14 @@ function UpdateSecondOrderIIR(S)
 %     omegac = angle(z);
 %     S.fcH = omegac / (2 * pi) * 48000;
 %     
-    S.dcLabel = uicontrol('Style','text','String',['DC gain: ', num2str(S.dc)],'Position',[1250 760 500 40],'fontsize',20,'HorizontalAlignment','left');
-    S.nyqLabel = uicontrol('Style','text','String',['nyq gain: ', num2str(S.nyq)],'Position',[1250 680 500 40],'fontsize',20,'HorizontalAlignment','left');
-    S.B0Label = uicontrol('Style','text','String',['B0: ', num2str(S.B0)],'Position',[1250 600 500 40],'fontsize',20,'HorizontalAlignment','left');
-    S.fcLabel = uicontrol('Style','text','String',['LPF cut-off frequency: ', num2str(S.fc)],'Position',[1250 520 500 40],'fontsize',20,'HorizontalAlignment','left');
-    S.f1Label = uicontrol('Style','text','String',['Hsh f1: ', num2str(S.f1)],'Position',[1250 440 500 40],'fontsize',20,'HorizontalAlignment','left');
-    S.f2Label = uicontrol('Style','text','String',['Hsh f2: ', num2str(S.f2)],'Position',[1250 360 500 40],'fontsize',20,'HorizontalAlignment','left');
-    S.B1Label = uicontrol('Style','text','String',['Hsh B1: ', num2str(S.B1)],'Position',[1250 280 500 40],'fontsize',20,'HorizontalAlignment','left');
-
-    [y, ~] = S.fcn(S.z, S.p, S.k);   % @(z, p, k) IIRFilter(z,p,k,fs);
-    figure(S.fh);
-    SetString(S.zLabel,'Zero',S.z);
-    SetString(S.pLabel,'Pole',S.p);
-    SetString(S.kLabel,'Gain',S.k);
-    set(S.LN, 'YData', y);
-    set(S.FCy, 'XData', [10, S.fc]);
-    set(S.FCx, 'XData', [S.fc, S.fc]);
-    set(S.gradSlope, 'XData', [S.fc, 20000], 'YData', [-3, S.highGain]);
+    SetString(S.dcLabel, 'DC gain: ', S.dc);
+    SetString(S.nyqLabel, 'nyq gain: ', S.nyq);
+    SetString(S.B0Label, 'B0 gain: ', S.B0);
+    SetString(S.fcLabel, 'LPF cut-off frequency: ', S.fc);
+    SetString(S.f1Label, 'Hsh f1: ', S.f1);
+    SetString(S.f2Label, 'Hsh f2: ', S.f2);
+    SetString(S.B1Label, 'B1 gain: ', S.B1);
+%     set(S.FCy, 'XData', [10, S.fc]);
+%     set(S.FCx, 'XData', [S.fc, S.fc]);
+%     set(S.gradSlope, 'XData', [S.fc, 20000], 'YData', [-3, S.highGain]);
 end

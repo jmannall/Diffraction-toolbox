@@ -8,6 +8,10 @@ function [ir, tf, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,th
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+    if ~exist('results\SingleWedge', 'dir')
+           mkdir results\SingleWedge
+    end
+
     % Create file info
     mFile = mfilename('fullpath');
     [inFilePath,fileName] = fileparts(mFile);
@@ -165,10 +169,15 @@ function [ir, tf, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,th
 
         [ir, tf, tfcomplex] = deal(repmat(template, 1, 1));
 
-        [ir.complete, tf.complete, tfcomplex.complete] = ComputeWedgeResponses(irdirect + irgeom + irdiff, nfft);
-        [ir.direct, tf.direct, tfcomplex.direct] = ComputeWedgeResponses(irdirect, nfft);
-        [ir.geom, tf.geom, tfcomplex.geom] = ComputeWedgeResponses(irgeom, nfft);
-        [ir.diff, tf.diff, tfcomplex.diff] = ComputeWedgeResponses(irdiff, nfft);
+        ir.complete = irdirect + irgeom + irdiff;
+        ir.direct = irdirect;
+        ir.geom = irgeom;
+        ir.diff = irdiff;
+
+        [tf.complete, tfcomplex.complete] = irToTf(ir.complete, nfft);
+        [tf.direct, tfcomplex.direct] = irToTf(irdirect, nfft);
+        [tf.geom, tfcomplex.geom] = irToTf(irgeom, nfft);
+        [tf.diff, tfcomplex.diff] = irToTf(irdiff, nfft);
 
         ndiff = length(ir.complete);
         tvec = 1/controlparameters.fs*[0:ndiff-1];

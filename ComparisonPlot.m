@@ -1,3 +1,5 @@
+% Create plots of BTM against variables
+
 function ComparisonPlot(numxy,ixy,result, control, variable, flip)
     c1 = control.c1;
     c2 = control.c2;
