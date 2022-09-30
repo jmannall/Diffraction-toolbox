@@ -6,6 +6,7 @@ function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, file
     % Combine diffraction orders
     difforder = controlparameters.difforder;
     nir = length(irdirect);
+    ndiff = 0;
     if difforder > 1
         load([inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_irhod.mat'], 'irhod');
         ndiff = length(irhod{2});

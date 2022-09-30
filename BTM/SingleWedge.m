@@ -28,9 +28,11 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
         elseif wedgeIndex <= 180
             error('Wedge is concave');
         end
-        
         if thetaR >= wedgeIndex
             error('Receiver angle exceeds the wedge index');
+        end
+        if thetaS == 0
+            error('Source angle lies on a plane');
         end
                 
         % Create geometry data
@@ -71,7 +73,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
         Rindata = struct('coordinates',receiver);
         controlparameters.savealldifforders = 1;
         filehandlingparameters = struct('outputdirectory',[inFilePath,filesep,'results']);
-        filehandlingparameters.filestem = [fileName, index];
+        filehandlingparameters.filestem = [fileName, '_', index];
         filehandlingparameters.savelogfile = 0;
         filehandlingparameters.showtext = 1;
         filehandlingparameters.suppressresultrecycling = 1;

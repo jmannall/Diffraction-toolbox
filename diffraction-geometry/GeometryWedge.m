@@ -17,15 +17,21 @@ function geometry = GeometryWedge(wedgeIndex, bendingAngle, minAngle, reciprocit
     bA = reshape(BA,[],1);
     mA = reshape(MA,[],1);
 
+    index = mA + bA == 180;
+    bA(index) = bA(index) + 0.001;
+
     if reciprocity
         index = w - bA >= 2 * mA;
     else
         index = w > mA + bA;
     end
+
+
     store = [w, bA, mA];
 
     input = unique(store(index, :),'rows');
     
+
     geometry.wedgeIndex = input(:,1);
     geometry.bendingAngle = input(:,2);
     geometry.minAngle = input(:,3);

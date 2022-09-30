@@ -52,7 +52,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWall(wallHeight,wallThicknes
             PlotGeometry(corners, planeCorners, source, receiver)
         end
         
-        % Create CAD file
+        % Create CAD file   
         cadFilePath = CreateCADFile(inFilePath, index, corners, planeCorners, planeRigid);
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,7 +63,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWall(wallHeight,wallThicknes
         Rindata = struct('coordinates',receiver);
         controlparameters.savealldifforders = 1;
         filehandlingparameters = struct('outputdirectory',[inFilePath,filesep,'results']);
-        filehandlingparameters.filestem = [fileName, index];
+        filehandlingparameters.filestem = [fileName, '_', index];
         filehandlingparameters.savelogfile = 0;
         filehandlingparameters.showtext = 1;
         filehandlingparameters.suppressresultrecycling = 1;
