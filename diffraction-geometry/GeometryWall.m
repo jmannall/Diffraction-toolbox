@@ -1,3 +1,5 @@
+%% Create geometry variable for every combination of the given inputs around walls.
+
 function geometry = GeometryWall(wallThickness, bendingAngle, minAngle, radiusR)
 
     % Geometry template
@@ -15,11 +17,7 @@ function geometry = GeometryWall(wallThickness, bendingAngle, minAngle, radiusR)
     bA = reshape(BA,[],1);
     mA = reshape(MA,[],1);
 
-    source = mA;
-    receiver = mA + bA;
-
-    index = w - receiver >= mA;
-    index = 360 - asind((wallThickness / 2) / (radiusR + wallThickness / 2)) >= receiver;
+    index =  360 - 2 * asind((wallThickness / 2) / (radiusR + wallThickness / 2)) > mA + bA;
     store = [w, bA, mA];
 
     input = unique(store(index, :),'rows');

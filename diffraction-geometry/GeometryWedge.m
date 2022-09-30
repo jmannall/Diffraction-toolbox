@@ -1,4 +1,6 @@
-function geometry = Geometry_SWEEP(wedgeIndex, bendingAngle, minAngle)
+%% Create geometry variable for every combination of the given inputs around wedges.
+
+function geometry = GeometryWedge(wedgeIndex, bendingAngle, minAngle, reciprocity)
 
     % Geometry template
     gtemplate.wedge = [];
@@ -15,7 +17,11 @@ function geometry = Geometry_SWEEP(wedgeIndex, bendingAngle, minAngle)
     bA = reshape(BA,[],1);
     mA = reshape(MA,[],1);
 
-    index = w - bA >= mA;
+    if reciprocity
+        index = w - bA >= 2 * mA;
+    else
+        index = w > mA + bA;
+    end
     store = [w, bA, mA];
 
     input = unique(store(index, :),'rows');

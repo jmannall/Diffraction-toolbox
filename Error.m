@@ -1,6 +1,6 @@
 function error = Error(tfinput, tffit, fvec)
 
-    % Distribute frequencies even across the audible spectrum
+    % Distribute frequencies evenly across the audible spectrum
     errorFreq = logspace(log10(20), log10(20000), 100);
 
     % Create frequency variables

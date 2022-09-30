@@ -1,20 +1,16 @@
 % Requires EDtoolbox by upsvensson, DataHash.m and lgwt.m to run
 
-% Create ir, tf data for a single wedge in free field
+% Create ir, tf data for a single wall in free field
 
 % All coordinates go x, y, z
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters,createPlot)
-
-    if ~exist('results\SingleWedge', 'dir')
-           mkdir results\SingleWedge
-    end
-
+function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWall(wallHeight,wallThickness,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters,createPlot)
+    
     % Create file info
     mFile = mfilename('fullpath');
-    index = DataHash({wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters});
+    index = DataHash({wallHeight,wallThickness,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters});
     [inFilePath, fileName, savePath, loadPath, resultExists] = BTMFileHandling(mFile, index);
 
     if resultExists
@@ -23,43 +19,39 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
     else
         
         % Check for invalid data
-        if wedgeIndex > 360
-            error('Wedge index exceeds 360 degrees');
-        elseif wedgeIndex <= 180
-            error('Wedge is concave');
+        wallIndex = 360 - 2 * asind((wallThickness / 2) / (radiusR + wallThickness / 2));
+        if thetaR >= wallIndex
+            error('Receiver angle exceeds the exterior angle of the wall');
         end
-        
-        if thetaR >= wedgeIndex
-            error('Receiver angle exceeds the wedge index');
-        end
-                
-        % Create geometry data
-        wedgeSize = 10 * max(radiusS, radiusR);
-        corners = [0 0 0
-            wedgeSize 0 0
-            wedgeSize * cosd(wedgeIndex) wedgeSize * sind(wedgeIndex) 0
-            0 0 wedgeLength
-            wedgeSize 0 wedgeLength
-            wedgeSize * cosd(wedgeIndex) wedgeSize * sind(wedgeIndex) wedgeLength
-            wedgeSize -0.0001 0
-            wedgeSize -0.0001 wedgeLength];
-        
-        planeCorners = [1 3 6 4
-            3 7 8 6
-            2 1 4 5
-            4 6 8 5
-            1 2 7 3
-            2 5 8 7];
 
-        planeRigid = [1 0 1 0 0 0];
+        % Create geometry data
+        wallSize = 10 * max(radiusS, radiusR);
+        corners = [0 0 0
+            0 -wallThickness 0
+            wallSize 0 0
+            wallSize -wallThickness 0
+            0 0 wallHeight
+            0 -wallThickness wallHeight
+            wallSize 0 wallHeight
+            wallSize -wallThickness wallHeight];
+
+        planeCorners = [1 3 4 2
+            1 2 6 5
+            1 5 7 3
+            5 6 8 7
+            3 7 8 4
+            2 4 8 6];
+
+        planeRigid = [0 1 1 0 0 1];
         
-        source = [radiusS * cosd(thetaS), radiusS * sind(thetaS), zS];
-        receiver = [radiusR * cosd(thetaR), radiusR * sind(thetaR), zR];
+        source = [radiusS * cosd(thetaS) + wallThickness / 2, radiusS * sind(thetaS) - wallThickness / 2, zS];
+        receiver = [radiusR * cosd(thetaR) + wallThickness / 2, radiusR * sind(thetaR) - wallThickness / 2, zR];
 
         % Plot geometry
         if createPlot
             PlotGeometry(corners, planeCorners, source, receiver)
-        end        
+        end
+        
         % Create CAD file
         cadFilePath = CreateCADFile(inFilePath, index, corners, planeCorners, planeRigid);
         

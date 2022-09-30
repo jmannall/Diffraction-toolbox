@@ -1,4 +1,6 @@
-function geometry = GeometryAll(wedgeIndex, bendingAngle, minAngle)
+%%
+
+function geometry = Geometry_SWEEP(wedgeIndex, bendingAngle, minAngle)
 
     % Geometry template
     gtemplate.wedge = [];
@@ -15,10 +17,7 @@ function geometry = GeometryAll(wedgeIndex, bendingAngle, minAngle)
     bA = reshape(BA,[],1);
     mA = reshape(MA,[],1);
 
-    source = mA;
-    receiver = mA + bA;
-
-    index = w > receiver;
+    index = w - bA >= mA;
     store = [w, bA, mA];
 
     input = unique(store(index, :),'rows');
