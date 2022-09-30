@@ -159,7 +159,7 @@ function [geometry, ginput] = NNGeometry(gParameters, numObservations)
     end
 
     geometry = struct('wedgeLength', wedgeLength, 'wedgeIndex', wedgeIndex, ...
-        'thetaS', thetaS, 'thetaR', thetaR, 'radiusS', radiusS, 'radiusR', radiusR, 'zS', zS, 'zR', zR, 'distribution', 'None');
+        'source', thetaS, 'receiver', thetaR, 'radiusS', radiusS, 'radiusR', radiusR, 'zS', zS, 'zR', zR, 'distribution', 'None');
     
     ginput = struct('wedgeLength', wedgeLength, 'wedgeIndex', wedgeIndex, ...
         'minAngle', minAngle, 'bendingAngle', bendingAngle, 'z1', z1, 'z2', z2, 'deltaZ', deltaZ, 'visible', visible, 'source', minAngle, 'receiver', minAngle + bendingAngle);

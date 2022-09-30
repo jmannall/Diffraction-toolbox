@@ -10,17 +10,7 @@ function [result, geometry] = SingleWallArray(geometry, wallHeight, radiusS, rad
     saveCount = 1;    
     if resultExists
         load(loadPath, "result");
-        count = result(end).i;
-        if length(result) == numInputs
-            saveCount = numSaves;
-            disp('Load array from save');
-        elseif count == numInputs
-            saveCount = floor(count / filesPerSave);
-            disp('Load previous progress from save');
-        else
-            saveCount = floor(count / filesPerSave) + 1;
-            disp('Load previous progress from save');
-        end
+        saveCount = CreateSaveCount(result, numInputs, numSaves);
     end
     if saveCount < numSaves
         wallThicknessi = ReshapeForParfor(geometry.wallThickness, extra, filesPerSave);

@@ -1,4 +1,4 @@
-function result = ProcessArrayResults(fileName, index, savePath, numSaves, geometry)
+function result = ProcessArrayResults(fileName, index, savePath, numSaves, geometry, NNinput)
     
     % Compile saves into a single file
     resultAll = [];
@@ -12,7 +12,11 @@ function result = ProcessArrayResults(fileName, index, savePath, numSaves, geome
     result = resultAll;
 
     % Save results
-    save(savePath, "result", "geometry", '-v7.3')
+    if nargin > 5
+        save(savePath, "result", "geometry", "NNinput", '-v7.3')
+    else
+        save(savePath, "result", "geometry", '-v7.3')
+    end
     disp('Result saved')
 
     % Clear up and delete files
