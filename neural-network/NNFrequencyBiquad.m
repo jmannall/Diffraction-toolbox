@@ -1,3 +1,7 @@
+%% Train a neural network to match IIR filters to input frequency responses.
+%% Based on paper " Direct Design of Biquad Filter Cascades with Deep
+%% Learning by Sampling Random Polynomials" by Joseph T Colonel.
+
 clc;
 clear;
 close all;
@@ -109,11 +113,6 @@ for epoch = 1:numEpochs
         idx = (i-1)*miniBatchSize+1:i*miniBatchSize;
         X = trainingData(:,idx);
         T = targetData(:,idx);
-
-%         T = zeros(numOutputs, miniBatchSize,"single");
-%         for c = 1:numClasses
-%             T(c,inputTraingData(idx)==classes(c)) = 1;
-%         end
 
         % Convert mini-batch of data to a dlarray.
         X = dlarray(single(X), "CB");

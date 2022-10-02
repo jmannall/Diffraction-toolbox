@@ -3,7 +3,7 @@
 function geometry = GeometryWedge(wedgeIndex, bendingAngle, minAngle, reciprocity)
 
     % Geometry template
-    gtemplate.wedge = [];
+    gtemplate.wedgeIndex = [];
     gtemplate.source = [];
     gtemplate.receiver = [];
     gtemplate.bendingAngle = [];

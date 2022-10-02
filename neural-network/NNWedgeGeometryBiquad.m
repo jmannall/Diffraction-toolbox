@@ -21,19 +21,8 @@ if ~exist('result', 'var')
     [geometry, NNinput] = NNGeometryAugment(gParameters, numObservations);
     [result, NNinput] = NNWedgeArray(geometry, NNinput, gParameters, numObservations, fs);
 end
-% numObservations = 274;
-% wedgeIndex = 359;
-% bendingAngle = 5.5:355.5;
-% minAngle = 40.01;
-% 
-% geometry = Geometry(wedgeIndex, bendingAngle, minAngle);
-% 
-% disp('Run')
-% [result, geometry] = SingleWedgeArray(geometry, 20,1,1,10,10,48000);
-% bendingAngle = geometry.bendingAngle;
 
-tfmag = [result.tfmag];
-tfmag = dlarray([tfmagAll.diff]');
+tfmag = dlarray([result.tfmag]');
 tfmag = max(min(tfmag, 128), -128) / 128;
 fvec = result(1).fvec;
 tfmagBTM = extractdata(tfmag);
@@ -64,22 +53,10 @@ trainingData = [NNinput.wedgeIndex(idx,:), NNinput.bendingAngle(idx,:), NNinput.
 targetData = tfmagNBand(idx,:)';
 targetBTM = tfmagBTM(idx,:)';
 
-% const = ones(numObservations, 1);
-% wedgeI = const * wedgeIndex;
-% minA = const * minAngle;
-% bendingA = bendingAngle;
-% trainingData = [wedgeI, bendingA, minA]';
-% targetData = tfmagNBand';
-% targetBTM = tfmagBTM;
-
 idx = num(split + 1:end);
 inputData = [NNinput.wedgeIndex(idx), NNinput.bendingAngle(idx), NNinput.minAngle(idx)]';
 testData = tfmagNBand(idx,:)';
 testBTM = tfmagBTM(idx,:)';
-
-% inputData = [wedgeI, bendingA, minA]';
-% testData = tfmagNBand';
-% testBTM = tfmagBTM;
 
 numInputs = size(trainingData, 1);
 numOutputs = 4 * numBiquads + 1;
@@ -143,8 +120,8 @@ start = tic;
 
 fs = 48000;
 
-lossFunc = @(net, inputData, targetData) NNBiquadLoss(net, inputData, targetData, numBiquads, numFreq, miniBatchSize, fidx);
-lossFunc_Test = @(net, inputData, targetData) NNBiquadLoss_Test(net, inputData, targetData, numBiquads, numFreq, miniBatchSize, fidx);
+lossFunc = @(net, inputData, targetData) NNBiquadLoss(net, inputData, targetData, numBiquads, numFreq, fidx, true);
+lossFunc_Test = @(net, inputData, targetData) NNBiquadLoss(net, inputData, targetData, numBiquads, numFreq, fidx, false);
 losses = zeros(1,numIterationsPerEpoch * numEpochs);
 [epochLosses, testLosses] = deal(zeros(1,numEpochs));
 
@@ -164,11 +141,6 @@ for epoch = 1:numEpochs
         X = trainingData(:,idx);
         T = targetData(:,idx);
 
-%         T = zeros(numOutputs, miniBatchSize,"single");
-%         for c = 1:numClasses
-%             T(c,inputTraingData(idx)==classes(c)) = 1;
-%         end
-
         % Convert mini-batch of data to a dlarray.
         X = dlarray(single(X), "CB");
 
@@ -184,7 +156,6 @@ for epoch = 1:numEpochs
         % modelLoss function.input
         [loss, state, gradients] = dlfeval(lossFunc,net,X,T);
         net.State = state;
-        %loss = lossFunc_Test(net,X,T);
 
         t = 250;
         alpha = min(iteration / t, 1);
@@ -226,11 +197,11 @@ for epoch = 1:numEpochs
             disp(['Loss: ', num2str(loss)]);
         end
     end
-    [testLoss, testLossAll] = NNBiquadLoss_Test(net, dlarray(single(inputData), "CB"), testData, numBiquads, numFreq, numObservations * (1 - percent), fidx);
+    [testLoss, testLossAll] = NNBiquadLoss_Test(net, dlarray(single(inputData), "CB"), testData, numBiquads, numFreq, fidx, false);
     testLosses(epoch) = testLoss;
     idx = randperm(size(trainingData, 2));
     idx = idx(1:round(numObservations * (1 - percent)));
-    [epochLoss, epochLossAll] = NNBiquadLoss_Test(net, dlarray(single(trainingData(:,idx)), "CB"), targetData(:,idx), numBiquads, numFreq, numObservations * (1 - percent), fidx);
+    [epochLoss, epochLossAll] = NNBiquadLoss_Test(net, dlarray(single(trainingData(:,idx)), "CB"), targetData(:,idx), numBiquads, numFreq, fidx, false);
     epochLosses(epoch) = epochLoss;
     idx = numIterationsPerEpoch * epoch;
     D = duration(0,0,toc(start),'Format',"hh:mm:ss");
@@ -311,7 +282,7 @@ disp('Test Network');
 output = predict(net, dlarray(inputData, "CB"));
 
 [zR, zI, pR, pI, k] = CreateZPKFromNNOutput(output, numBiquads);
-[tfmag, fvec] = CreateBiquad(zR, zI, pR, pI, k, numFreq);
+[tfmag, fvec] = CreateBiquad(zR, zI, pR, pI, k, numFreq, fs);
 
 tfmag = extractdata(tfmag)';
 

@@ -3,11 +3,6 @@ clear all
 
 fs = 48000;
 
-% CreateIIR(-0.5, 0.5, 0.5, @UpdateFirstOrderIIR, fs)
-% CreateIIR(0.8, 0.4, 0.05, @UpdateFirstOrderIIR, fs)
-% 
-% CreateIIR([-0.9; 0.8], [0.85; 0.4], 0.05, @UpdateSecondOrderIIR, fs)
-
 S.z = 0.8;
 S.p = 0.4;
 S.k = 0.05;

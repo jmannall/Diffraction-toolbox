@@ -1,3 +1,5 @@
+%% MSE function across logarithmic frequencies
+
 function error = Error(tfinput, tffit, fvec)
 
     % Distribute frequencies evenly across the audible spectrum
