@@ -10,14 +10,15 @@ function [result, geometry] = SingleWallArray(geometry, wallHeight, radiusS, rad
     saveCount = 1;    
     if resultExists
         load(loadPath, "result");
-        saveCount = CreateSaveCount(result, numInputs, numSaves);
+        result = UniformResult(result);
+        saveCount = CreateSaveCount(result, numInputs, numSaves, filesPerSave);
     end
-    if saveCount < numSaves
+    if saveCount <= numSaves
         wallThicknessi = ReshapeForParfor(geometry.wallThickness, extra, filesPerSave);
         thetaSi = ReshapeForParfor(geometry.source, extra, filesPerSave);
         thetaRi = ReshapeForParfor(geometry.receiver, extra, filesPerSave);
         tic
-        parfor j = saveCount:numSaves
+        for j = saveCount:numSaves
             result = repmat(rtemplate, 1, 1);
             count = (j - 1) * filesPerSave;
             start = rem(count, filesPerSave);

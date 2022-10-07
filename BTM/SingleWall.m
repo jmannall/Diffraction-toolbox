@@ -19,7 +19,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWall(wallHeight,wallThicknes
     else
         
         % Check for invalid data
-        wallIndex = 360 - 2 * asind((wallThickness / 2) / (radiusR + wallThickness / 2));
+        wallIndex = 360 - asind((wallThickness / 2) / (radiusR + wallThickness / 2));
         if thetaR >= wallIndex
             error('Receiver angle exceeds the exterior angle of the wall');
         end
@@ -44,6 +44,9 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWall(wallHeight,wallThicknes
 
         planeRigid = [0 1 1 0 0 1];
         
+        radiusR = radiusR + wallThickness / 2;
+        radiusS = radiusS + wallThickness / 2;
+
         source = [radiusS * cosd(thetaS) + wallThickness / 2, radiusS * sind(thetaS) - wallThickness / 2, zS];
         receiver = [radiusR * cosd(thetaR) + wallThickness / 2, radiusR * sind(thetaR) - wallThickness / 2, zR];
 

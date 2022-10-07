@@ -1,9 +1,13 @@
-function PlotSpectogramOfWAV(fileName, limits, nfft)
-    [audio, fs] = audioread(['audio\', fileName]);
+function PlotSpectogramOfWAV(filePath, limits, nfft)
+
+    if ~exist(filePath, 'file')
+        error(['Audio file ', filePath, ' not found'])
+    end
+
+    [audio, fs] = audioread(filePath);
 
     [x, fvec, tvec] = DefaultSpectogram(audio, nfft, fs);
-    x = mag2db(abs(x));
 
-    fileName = extractBefore(fileName, ".");
-    PlotSpectogram(x, fvec, tvec, limits, fileName);
+    fileName = strrep(extractAfter(extractBefore(filePath, '.'), '\'), '_', ' ');
+    PlotSpectogram(x, fvec, tvec, limits, fileName, false);
 end

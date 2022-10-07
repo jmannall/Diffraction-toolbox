@@ -14,6 +14,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
 
     % Create file info
     mFile = mfilename('fullpath');
+    controlparameters.difforder = 1;
     index = DataHash({wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters});
     [inFilePath, fileName, savePath, loadPath, resultExists] = BTMFileHandling(mFile, index);
 

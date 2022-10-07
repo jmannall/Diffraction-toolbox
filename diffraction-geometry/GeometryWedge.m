@@ -1,6 +1,6 @@
 %% Create geometry variable for every combination of the given inputs around wedges.
 
-function geometry = GeometryWedge(wedgeIndex, bendingAngle, minAngle, reciprocity)
+function geometry = GeometryWedge(wedgeIndex, bendingAngle, minAngle, reciprocity, shadowOnly)
 
     % Geometry template
     gtemplate.wedgeIndex = [];
@@ -26,6 +26,10 @@ function geometry = GeometryWedge(wedgeIndex, bendingAngle, minAngle, reciprocit
         index = w > mA + bA;
     end
 
+    if shadowOnly
+        indexTemp = bA > 180;
+        index = index & indexTemp;
+    end
 
     store = [w, bA, mA];
 

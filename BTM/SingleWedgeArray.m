@@ -10,9 +10,10 @@ function [result, geometry] = SingleWedgeArray(geometry, wedgeLength, radiusS, r
     saveCount = 1;
     if resultExists
         load(loadPath, "result");
+        result = UniformResult(result);
         saveCount = CreateSaveCount(result, numInputs, numSaves);
     end
-    if saveCount < numSaves
+    if saveCount <= numSaves
         wedgeIndexi = ReshapeForParfor(geometry.wedgeIndex, extra, filesPerSave);
         thetaSi = ReshapeForParfor(geometry.source, extra, filesPerSave);
         thetaRi = ReshapeForParfor(geometry.receiver, extra, filesPerSave);

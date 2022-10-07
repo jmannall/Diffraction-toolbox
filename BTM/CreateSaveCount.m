@@ -1,8 +1,8 @@
-function saveCount = CreateSaveCount(result, numInputs, numSaves)    
+function saveCount = CreateSaveCount(result, numInputs, numSaves, filesPerSave)    
     
     count = result(end).i;
     if length(result) == numInputs    % When full result loaded
-        saveCount = numSaves;
+        saveCount = numSaves + 1;
         disp('Load array from save');
     elseif count == numInputs         % When all results complete but not compiled yet
         saveCount = floor(count / filesPerSave);
