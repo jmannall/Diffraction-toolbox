@@ -59,9 +59,10 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
         source = [radiusS * cosd(thetaS), radiusS * sind(thetaS), zS];
         receiver = [radiusR * cosd(thetaR), radiusR * sind(thetaR), zR];
 
-        % Plot geometry
+        % Plot geometry 
         if createPlot
-            PlotGeometry(corners, planeCorners, source, receiver)
+            receiverPlot = receiver / controlparameters.Rstart;
+            PlotGeometry(corners, planeCorners, source, receiverPlot)
         end        
         % Create CAD file
         cadFilePath = CreateCADFile(inFilePath, index, corners, planeCorners, planeRigid);
