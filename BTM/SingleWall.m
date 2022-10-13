@@ -13,16 +13,17 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWall(wallHeight,wallThicknes
     index = DataHash({wallHeight,wallThickness,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters});
     [inFilePath, fileName, savePath, loadPath, resultExists] = BTMFileHandling(mFile, index);
 
+    resultExists = false;
     if resultExists
         load(loadPath, "ir", "tfmag", "tvec", "fvec", "tfcomplex");
         disp('IR load from save');
     else
         
         % Check for invalid data
-        wallIndex = 360 - asind((wallThickness / 2) / (radiusR + wallThickness / 2));
-        if thetaR >= wallIndex
-            error('Receiver angle exceeds the exterior angle of the wall');
-        end
+%         wallIndex = 360 - asind((wallThickness / 2) / (radiusR + wallThickness / 2));
+%         if thetaR >= wallIndex
+%             error('Receiver angle exceeds the exterior angle of the wall');
+%         end
 
         % Create geometry data
         wallSize = 10 * max(radiusS, radiusR);
@@ -43,12 +44,12 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWall(wallHeight,wallThicknes
             2 4 8 6];
 
         planeRigid = [0 1 1 0 0 1];
-        
-        radiusR = radiusR + wallThickness / 2;
-        radiusS = radiusS + wallThickness / 2;
 
-        source = [radiusS * cosd(thetaS) + wallThickness / 2, radiusS * sind(thetaS) - wallThickness / 2, zS];
-        receiver = [radiusR * cosd(thetaR) + wallThickness / 2, radiusR * sind(thetaR) - wallThickness / 2, zR];
+%         source = [radiusS * cosd(thetaS) + wallThickness / 2, radiusS * sind(thetaS) - wallThickness / 2, zS];
+%         receiver = [radiusR * cosd(thetaR) + wallThickness / 2, radiusR * sind(thetaR) - wallThickness / 2, zR];
+        source = [radiusS * cosd(thetaS), radiusS * sind(thetaS), zS];
+        receiver = [radiusR * cosd(thetaR), radiusR * sind(thetaR) - wallThickness, zR];
+
 
         % Plot geometry
         if createPlot

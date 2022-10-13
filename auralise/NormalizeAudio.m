@@ -1,4 +1,4 @@
-function [output, fs] = NormalizeAudio(filePath, nfft)
+function [output, fs, savePath] = NormalizeAudio(filePath, nfft)
 
     % Check audio file exists
     if ~exist(filePath, 'file')
@@ -7,7 +7,7 @@ function [output, fs] = NormalizeAudio(filePath, nfft)
 
     % Read audio file
     [audio, fs] = audioread(filePath);
-
+    audio = 0.5 * sum(audio, 2);
     % Run spectogram of file
     x = DefaultSpectogram(audio, nfft, fs);
     x = mag2db(abs(x));

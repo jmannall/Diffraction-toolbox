@@ -1,11 +1,10 @@
 %% Plot a spectogram 
 
-function PlotSpectogram(tfcomplex, f, t, limits, titleText, phase, xLabel)
+function PlotSpectogram(tfcomplex, f, t, limits, titleText, phase, savePlot, xLabel)
 
-    if nargin < 7
+    if nargin < 8
         xLabel = 'Time (s)';
     end
-    
     x = mag2db(abs(tfcomplex));
     x = max(x, limits(1));
     position = [50 50 700 600];
@@ -25,6 +24,7 @@ function PlotSpectogram(tfcomplex, f, t, limits, titleText, phase, xLabel)
         xlabel(xLabel)
         ylabel('Frequency (Hz)')
         xlim([min(t) max(t)])
+        ylim([20 20e3])
         set(gca,'YScale','log')
         set(sh, 'EdgeColor','none')
         clim(limits)
@@ -40,6 +40,7 @@ function PlotSpectogram(tfcomplex, f, t, limits, titleText, phase, xLabel)
         xlabel(xLabel)
         ylabel('Frequency (Hz)')
         xlim([min(t) max(t)])
+        ylim([20 20e3])
         set(gca,'YScale','log')
         set(sh, 'EdgeColor','none')
         clim([-pi pi])
@@ -58,6 +59,7 @@ function PlotSpectogram(tfcomplex, f, t, limits, titleText, phase, xLabel)
         xlabel(xLabel)
         ylabel('Frequency (Hz)')
         xlim([min(t) max(t)])
+        ylim([20 20e3])
         set(gca,'YScale','log')
         set(sh, 'EdgeColor','none')
         clim(limits)
@@ -65,8 +67,10 @@ function PlotSpectogram(tfcomplex, f, t, limits, titleText, phase, xLabel)
         title(titleText)
     end
 
-    if ~exist('figures', 'dir')
-       mkdir figures
+    if savePlot
+        if ~exist('figures', 'dir')
+           mkdir figures
+        end
+        saveas(gcf, ['figures\', titleText, '.png'])
     end
-    saveas(gcf, ['figures\', titleText, '.png'])
 end

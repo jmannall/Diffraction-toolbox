@@ -18,7 +18,7 @@ function [result, geometry] = SingleWallArray(geometry, wallHeight, radiusS, rad
         thetaSi = ReshapeForParfor(geometry.source, extra, filesPerSave);
         thetaRi = ReshapeForParfor(geometry.receiver, extra, filesPerSave);
         tic
-        for j = saveCount:numSaves
+        parfor j = saveCount:numSaves
             result = repmat(rtemplate, 1, 1);
             count = (j - 1) * filesPerSave;
             start = rem(count, filesPerSave);

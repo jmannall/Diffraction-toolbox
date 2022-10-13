@@ -58,4 +58,8 @@ function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, file
     delete([path, '_paths.mat']);
     delete([path, '_Rdata.mat']);
     delete([path, '_Sdata.mat']);
+    if difforder > 1
+        delete([path, '_irhod.mat']);
+        delete([path, '_ed2data.mat']);
+    end
 end

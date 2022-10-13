@@ -4,12 +4,13 @@ function [output, fs, sampleLength] = LoopAudio(filePath, timeLength)
     
     [audio, fs] = audioread(filePath);
 
+    audio = audio(round(2 * end / 3): end);
     audioLength = length(audio);
     sampleLength = floor(timeLength * fs);
     
     numLoops = sampleLength / audioLength;
     
-    output = zeros(sampleLength, 1);
+    output = zeros(1,sampleLength);
     if numLoops < 1
         output = audio(1:sampleLength);
     else
@@ -17,7 +18,7 @@ function [output, fs, sampleLength] = LoopAudio(filePath, timeLength)
             idx = (i - 1) * audioLength + 1:i * audioLength;
             output(idx) = audio;
         end
-        extra = audioLength * rem(numLoops, 1);
+        extra = ceil(audioLength * rem(numLoops, 1));
         idx = i * audioLength + 1:i * audioLength + extra;
         output(idx) = audio(1:extra);
     end

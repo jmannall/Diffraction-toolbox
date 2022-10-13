@@ -12,24 +12,30 @@ function cadFilePath = CreateCADFile(inFilePath, index, corners, planeCorners, p
     cadfile = fopen(cadFilePath, 'w');
 
     % Write CAD file
+    numCorners = length(corners);
     heading = '%CORNERS';
     fprintf(cadfile, '%s\n', heading);
     count = 1;
-    for i = 1:length(corners)
+    for i = 1:numCorners
         fprintf(cadfile, '%d %2.4f %2.4f %2.4f\n', count, corners(i,:));
         count = count + 1;
     end
     
+    [numPlanes, cornersPerPlane] = size(planeCorners);
     heading = '%PLANES';
     fprintf(cadfile, '\n%s\n', heading);
     count = 1;
-    for i = 1:size(planeCorners,1)
+    for i = 1:numPlanes
         if(planeRigid(i) == 0)
             line = ' / /TOTABS';
         else
             line = ' / /RIGID';
         end
-        fprintf(cadfile, ' %d %s\n %d %d %d %d\n \n', count, line, planeCorners(i,:));
+        inputs = blanks(3 * cornersPerPlane);
+        for j = 1:cornersPerPlane
+            inputs(3 * (j - 1) + 1:3 * j) = ' %d';
+        end
+        fprintf(cadfile, [' %d %s\n', inputs, '\n \n'], count, line, planeCorners(i,:));
         count = count + 1;
     end
 
