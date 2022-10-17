@@ -1,4 +1,6 @@
-function [output, fs, savePath] = NormalizeAudio(filePath, nfft)
+%% Normalise audio to peak at 0dB
+
+function [output, fs, savePath] = NormaliseAudio(filePath, nfft)
 
     % Check audio file exists
     if ~exist(filePath, 'file')
@@ -8,8 +10,9 @@ function [output, fs, savePath] = NormalizeAudio(filePath, nfft)
     % Read audio file
     [audio, fs] = audioread(filePath);
     audio = 0.5 * sum(audio, 2);
+
     % Run spectogram of file
-    x = DefaultSpectogram(audio, nfft, fs);
+    x = DefaultSpectrogram(audio, fs, nfft);
     x = mag2db(abs(x));
 
     % Scale audio so the frequency bins peak at 0dB
@@ -17,7 +20,7 @@ function [output, fs, savePath] = NormalizeAudio(filePath, nfft)
     gain = db2mag(gain);
     output = gain * audio;
 
-    savePath = [extractBefore(filePath, '.'), '_Normalised.wav'];
+    savePath = [extractBefore(filePath, '.'), '_normalised.wav'];
     audiowrite(savePath, output, fs)
 end
 

@@ -6,7 +6,7 @@ audioFilePath  = [fileStem, '.wav'];
 exampleLength = 10;
 nfft = 8192;
 
-[audio, fs] = NormalizeAudio(audioFilePath, nfft);
+[audio, fs] = NormaliseAudio(audioFilePath, nfft);
 
 audiowrite([fileStem, '_Normalised.wav'], audio, fs)
 
@@ -38,11 +38,11 @@ numBiquads = 2;
 NNidx = '015b';
 [tfmagNN, tfcomplexNN, b, a,] = ProcessBiquadNNOutputWedgeSweep(NNidx, wedgeIndex, bendingAngle, minAngle, numBiquads, pathLength.diff, c, nfft, fs);
 
-dir = DelayLine(audio, pathLength.dir, validPath.dir, c, samplesPerUpdate, fs);
-spec = DelayLine(audio, pathLength.spec, validPath.spec, c, samplesPerUpdate, fs);
-diffNN = DelayLineBiquad(audio, pathLength.diff, validPath.diff, b, a, numBiquads, c, samplesPerUpdate, fs);
-BTM = ConvolveIR(audio, [ir.diff1], validPath.diff, samplesPerUpdate);
-% BTMcomplete= ConvolveIR(audio, [ir.complete], validPath.diff, samplesPerUpdate);
+dir = DelayLine(audio, pathLength.dir, samplesPerUpdate, validPath.dir, c, fs);
+spec = DelayLine(audio, pathLength.spec, samplesPerUpdate, validPath.spec, c, fs);
+diffNN = DelayLineBiquad(audio, pathLength.diff, samplesPerUpdate, validPath.diff, b, a, numBiquads, c, fs);
+BTM = ConvolveIR(audio, [ir.diff1], samplesPerUpdate, validPath.diff);
+% BTMcomplete= ConvolveIR(audio, [ir.complete], samplesPerUpdate, validPath.diff);
 
 disp('Write audio files')
 audiowrite([fileStem, '_dir.wav'], dir, fs)

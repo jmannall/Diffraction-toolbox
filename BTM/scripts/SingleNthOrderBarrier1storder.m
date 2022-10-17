@@ -19,11 +19,9 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleNthOrderBarrier1storder(barr
         [irAll, tfmagAll, tvecStore{i}, fvec, tfcomplexAll] = SingleWedge(barrierHeight, wedgeIndex(i), thetaS(i), thetaR(i), radiusR, radiusS, zS, zR, controlparameters, createPlot);
 
         nir = max(nir, length(irAll.diff1));
-        irStore{i} = radiusR * irAll.diff1;
-        %tfmag(:,i) = tfmagAll.diff1;
+        irStore{i} = irAll.diff1;
         scale = (1 / sqrt(A(i) * B(i)));
-        tfcomplex(:,i) = radiusR * scale * tfcomplexAll.diff1;
-%         tfcomplex(:,i) = (1 / sqrt(A(i) * B(i))) * tfcomplexAll.diff1;
+        tfcomplex(:,i) = scale * tfcomplexAll.diff1;
     end
 
     % Make all the impulse responses the same length

@@ -1,3 +1,6 @@
+%% Add phase shift based on path length to transfer function
+% Optional phase shift of pi determined by idx
+
 function tfcomplex = PhaseShift(tfcomplex, pathLength, fvec, c, idx)
     
     delay = pathLength / c;

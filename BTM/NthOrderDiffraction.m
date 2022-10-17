@@ -1,13 +1,15 @@
 close all
 clear all
 
+set(0, 'DefaultLineLineWidth', 2);
+
 fs = 96e3;
 nfft = 4096;
 
 barrierRadius = [1, 2];
 radiusS = [1, 2];
 radiusR = [2, 3];
-numEdges = 3;
+numEdges = 2;
 
 barrierHeight = 10;
 thetaS = 30;
@@ -16,8 +18,8 @@ thetaR = 358;
 controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1);
 
 barrierRadius = 1.5;
-radiusS = 1.1;
-radiusR = 1.4;
+radiusS = 1.5;
+radiusR = 1.1;
 
 [irAprx, tfmagAprx, tvecAprx, fvecAprx, tfcomplexAprx] = SingleNthOrderBarrier1storder(barrierRadius, barrierHeight, thetaS, thetaR, radiusS, radiusR, zS, zR, controlparameters, numEdges, true);
 
@@ -39,7 +41,7 @@ PlotSpectogram([tfcomplexAprx(:,end) tfcomplexAprx(:,end)], fvecAprx, [0 10], [-
 % ylim([-100 0])    
 
 figure
-semilogx(fvec, tfmag.diff3)
+semilogx(fvec, tfmag.diff2)
 hold on
 semilogx(fvecAprx, tfmagAprx(:,end))
 for i = 1:numEdges

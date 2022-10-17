@@ -1,6 +1,6 @@
 %% Plot a spectogram 
 
-function PlotSpectogram(tfcomplex, f, t, limits, titleText, phase, savePlot, xLabel)
+function PlotSpectrogram(tfcomplex, f, t, limits, titleText, phase, savePlot, xLabel)
 
     if nargin < 8
         xLabel = 'Time (s)';

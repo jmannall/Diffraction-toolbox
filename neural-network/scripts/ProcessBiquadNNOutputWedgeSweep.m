@@ -1,4 +1,6 @@
-function [tfmag, tfcomplex, b, a] = ProcessBiquadNNOutputWedgeSweep(NN, wedgeIndex, bendingAngle, minAngle, numBiquads, pathLength, c, numFreq, fs)
+%% Calculate frequancy response and fiter coefficients from a trained neural network
+
+function [tfmag, tfcomplex, b, a] = ProcessBiquadNNOutputWedgeSweep(NN, wedgeIndex, bendingAngle, minAngle, numBiquads, pathLength, c, nfft, fs)
     
     load(['data\NeuralNetwork_', NN, '.mat'], 'net')
     
@@ -8,7 +10,7 @@ function [tfmag, tfcomplex, b, a] = ProcessBiquadNNOutputWedgeSweep(NN, wedgeInd
     output = extractdata(predict(net, dlarray([const * wedgeIndex; bendingAngle; const * minAngle], "CB")));
 
     [zR, zI, pR, pI, k] = CreateZPKFromNNOutput(output, numBiquads);
-    [tfmag, fvec, tfcomplex] = CreateBiquad(zR, zI, pR, pI, k, numFreq, fs);
+    [tfmag, fvec, tfcomplex] = CreateBiquad(zR, zI, pR, pI, k, nfft, fs);
     
     idx = bendingAngle < 180 - 2 * minAngle | (180 - minAngle < bendingAngle & bendingAngle < 180);
     tfcomplex = PhaseShift(tfcomplex, pathLength, fvec', c, idx);

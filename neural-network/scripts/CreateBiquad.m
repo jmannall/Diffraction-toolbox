@@ -1,6 +1,6 @@
 %% Create output of biquad filters from ZPK parameters. Traceable by dlgradient
 
-function [tfmag, fvec, tfcomplex] = CreateBiquad(zR, zI, pR, pI, k, numFreq, fs)
+function [tfmag, fvec, tfcomplex] = CreateBiquad(zR, zI, pR, pI, k, nfft, fs)
     
     %% Calculate tfmag
     numObservations = size(zR,2);
@@ -9,9 +9,8 @@ function [tfmag, fvec, tfcomplex] = CreateBiquad(zR, zI, pR, pI, k, numFreq, fs)
     
     [b, a] = BiquadCoefficients(zR, zI, pR, pI, k, numBiquads, numObservations);
     
-    n = numFreq;
-    x = fft(b, n);
-    y = fft(a, n);
+    x = fft(b, nfft);
+    y = fft(a, nfft);
     
     x = squeeze(prod(x,2));
     y = squeeze(prod(y,2));
@@ -27,7 +26,7 @@ function [tfmag, fvec, tfcomplex] = CreateBiquad(zR, zI, pR, pI, k, numFreq, fs)
         fvec = 0;
         disp('No sample rate provided for fvec');
     else
-        [~, f] = freqz(b(:,1), a(:,1), numFreq / 2);
+        [~, f] = freqz(b(:,1), a(:,1), nfft / 2);
         fvec = (f * fs) / (2 * pi);
     end
 end

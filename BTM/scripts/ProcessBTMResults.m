@@ -21,6 +21,14 @@ function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, file
         end
     end
 
+    % Check if modelling source as a plane wave
+    if isfield(controlparameters, 'Rstart')
+        radiusS = controlparameters.Rstart;
+        irdirect = radiusS * irdirect;
+        irgeom = radiusS * irgeom;
+        irdiff = radiusS * irdiff;
+    end
+
     % Create frequency and time vectors
     nfft = controlparameters.nfft;
     fs = controlparameters.fs;

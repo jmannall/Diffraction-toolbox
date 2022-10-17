@@ -5,7 +5,7 @@ wallThickness = 1;
 wallHeight = 10;
 bendingAngle = 5:360;
 minAngle = 30;
-[radiusR, radiusS] = deal(1);
+[radiusR, radiusS] = deal(1 + wallThickness / 2);
 [zS, zR] = deal(wallHeight / 2);
 
 nfft = 4096;

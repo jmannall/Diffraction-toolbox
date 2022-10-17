@@ -61,7 +61,11 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
 
         % Plot geometry 
         if createPlot
-            receiverPlot = receiver / controlparameters.Rstart;
+            if isfield(controlparameters, 'Rstart')
+                receiverPlot = receiver / controlparameters.Rstart;
+            else
+                receiverPlot = receiver;
+            end
             PlotGeometry(corners, planeCorners, source, receiverPlot)
         end        
         % Create CAD file
