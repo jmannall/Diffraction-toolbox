@@ -9,7 +9,7 @@ function [scale, A, B] = KimCorrection(data, numEdges, withCorrection)
     wedgeIndex = data.wedgeIndex;
 
     epsilon = 1e-5;
-    tS = [thetaS, epsilon * ones(numEdges - 1, 1)];
+    tS = [thetaS, epsilon * ones(1, numEdges - 1)];
     tR = [wedgeIndex(1:numEdges - 1) - epsilon, thetaR];
 
     p = zeros(1,numEdges - 1);
@@ -24,7 +24,7 @@ function [scale, A, B] = KimCorrection(data, numEdges, withCorrection)
         p(i) = W(i) * L / ((W(i) + rs) * (W(i) + rr));
     end
     theta = tR - tS;
-    v = wedgeIndex' / 180;
+    v = wedgeIndex / 180;
 
     for i = 1:numEdges
         if theta < 180 - v * 180

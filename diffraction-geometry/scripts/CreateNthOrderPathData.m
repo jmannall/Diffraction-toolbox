@@ -9,12 +9,20 @@ function [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid] =
     % Create edge coordinates
     Q = zeros(numEdges + 1, 3);
     %Q(1,:) = [0, 0.1, 0];
-    arg = [0; cumsum(wedgeIndex)];
+    arg = [0, cumsum(wedgeIndex)];
     for i = 2:numEdges + 2
         vector = W(i - 1) * ([sind(arg(i - 1) + 180 * (i - 3)), cosd(arg(i - 1) + 180 * (i - 3)), 0]);
         Q(i,:) = Q(i - 1,:) + vector;
     end
     
+    if Q(end, 2) > -W(1)
+        Q(1, 2) = Q(end, 2);
+    else
+        scale = -Q(end, 2);
+        Q(end, 2) = 0;
+        Q(end, 1) = Q(end, 1) + scale *(Q(end - 1, 1) - Q(end, 1)) / (Q(end - 1, 2) - Q(end, 2));
+    end
+
     apex = zeros(numEdges, 3);
     epsilon = 1e-3;
     for i = 1:numEdges

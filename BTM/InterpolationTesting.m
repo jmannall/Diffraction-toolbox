@@ -35,40 +35,60 @@ validPath.dir = bendingAngle < 180 + overlap;
 updateRate = 20;
 samplesPerUpdate = fs / updateRate;
 audio = ones(samplesPerUpdate * n, 1);
-[dir, dirIr] = DelayLine(audio, pathLength.dir, validPath.dir, c, samplesPerUpdate, fs);
+[dir, dirIr] = DelayLine(audio, pathLength.dir, samplesPerUpdate, validPath.dir, c, fs);
 %% Audio
 close all
-[~, ~, filePath] = NormalizeAudio('audio/whiteNoise.wav', nfft);
+
+% Load audio
+[~, ~, filePath] = NormaliseAudio('audio/whiteNoise.wav', nfft);
 [audio, fsInput] = LoopAudio(filePath, 13);
 audio = 0.8*resample(audio,fs,fsInput);
 saveStem = 'whiteNoise';
 
 validPath = bendingAngle > 0;
+
+% Find idx of position before shadow boundary
 idx = find(bendingAngle <= 180, 1, 'last');
-tfmagDiff1 = abs([tfcomplex.diff1]);
+
+% Direct and diffracted magnitudes (linear)
+tfmagDiff = abs([tfcomplex.diff1]);
 tfmagDir = abs([tfcomplex.direct]);
-SBdiff = tfmagDiff1(:, idx + 1);
+
+% Direct and diffracted shadow boundary references
+SBdiff = tfmagDiff(:, idx + 1);
 SBinc = tfmagDir(:,idx);
+
+% Create scaled magnitude response in shadow zone
 idx = bendingAngle > 180;
 tfmagScaled = zeros(nfft / 2, sum(idx));
 for i = 1:nfft / 2
-    tfmagScaled(i,:) = SBinc(i) .* tfmagDiff1(i,idx) ./ SBdiff(i);
+    tfmagScaled(i,:) = SBinc(i) .* tfmagDiff(i,idx) ./ SBdiff(i);
 end
 
-%window = linspace(0, 1, sum(idx));
-%scale = (1 - window) .* scale;
-
-store = [tfcomplex.diff1];
-phase = angle(store);
-window = linspace(0, 1, sum(idx));
-interpolated = (1 - window) .* tfmagScaled + window .* abs(store(:,idx));
-scaled = interpolated.*exp(phase(:,idx).*1i);
+% Store correct transfer functions and phase
 direct = [tfcomplex.direct];
-scaled = [direct(:,~idx), scaled];
-PlotSpectogram(scaled, fvec, bendingAngle, limits, 'Continuity', false, true, 'Bending Angle')
-PlotSpectogram([tfcomplex.complete], fvec, bendingAngle, limits, 'Original', false, true, 'Bending Angle')
+tfcomplexDiff = [tfcomplex.diff1];
+phase = angle(tfcomplexDiff);
 
-A = abs(interpolated(:,end)) ./ abs(store(:,end));
+% Interpolate between scaled magnitude (linear) and exact response
+window = linspace(0, 1, sum(idx));
+interpolated = (1 - window) .* tfmagScaled + window .* abs(tfcomplexDiff(:,idx));
+
+% Add phase and combine scaled response and interpolated response with direct component
+interpolated = interpolated .* exp(phase(:,idx).*1i);
+interpolated = [direct(:,~idx), interpolated];
+scaled = tfmagScaled .* exp(phase(:,idx).*1i);
+scaled = [direct(:,~idx), scaled];
+noInterpolation = [direct(:,~idx), tfcomplexDiff(:,idx)];
+
+PlotSpectrogram(noInterpolation, fvec, bendingAngle, limits, 'SB_No interpolation', false, true, 'Bending Angle')
+PlotSpectrogram(interpolated, fvec, bendingAngle, limits, 'SB_Tsingos interpolated response', false, true, 'Bending Angle')
+PlotSpectrogram(scaled, fvec, bendingAngle, limits, 'SB_Tsingos scaled response', false, true, 'Bending Angle')
+PlotSpectrogram([tfcomplex.complete], fvec, bendingAngle, limits, 'SB_BTM Original response', false, true, 'Bending Angle')
+PlotSpectrogram(interpolated ./ [tfcomplex.complete], fvec, bendingAngle, [-10 10], 'SB_BTM vs interpolated error', false, true, 'Bending Angle')
+
+%% Code works up to here to create plots of interpolation
+A = abs(interpolated(:,end)) ./ abs(tfcomplexDiff(:,end));
 
 f = rescale(fvec)';
 nfilt = 10;
@@ -93,7 +113,7 @@ PlotSpectogramOfWAV(['audio\', saveStem, '96k_Continuous.wav'], limits, nfft)
 idx2 = bendingAngle > 180 & bendingAngle < 180 + (max(bendingAngle) - 180) / 2;
 window = sqrt([linspace(0, 1, sum(idx2)), ones(1, sum(idx) - sum(idx2))]);
 tfmagInterpolate = tfmagDir;
-tfmagInterpolate(:,idx) = (1 - window) .* tfmagScaled + window .* tfmagDiff1(:,idx);
+tfmagInterpolate(:,idx) = (1 - window) .* tfmagScaled + window .* tfmagDiff(:,idx);
 
 PlotSpectogram(tfmagInterpolate, fvec, bendingAngle, limits, 'Scaled', false, false, 'Bending Angle')
 PlotSpectogram([tfmag.complete], fvec, bendingAngle, limits, 'Original', false, false, 'Bending Angle')

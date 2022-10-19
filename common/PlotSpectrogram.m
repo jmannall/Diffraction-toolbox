@@ -1,6 +1,6 @@
 %% Plot a spectogram 
 
-function PlotSpectrogram(tfcomplex, f, t, limits, titleText, phase, savePlot, xLabel)
+function PlotSpectrogram(tfcomplex, f, t, limits, fileName, phase, savePlot, xLabel)
 
     if nargin < 8
         xLabel = 'Time (s)';
@@ -8,7 +8,7 @@ function PlotSpectrogram(tfcomplex, f, t, limits, titleText, phase, savePlot, xL
     x = mag2db(abs(tfcomplex));
     x = max(x, limits(1));
     position = [50 50 700 600];
-    titleText = strrep(titleText, '_', ' ');
+    titleText = strrep(fileName, '_', ' ');
     if phase
         y = angle(tfcomplex);
         
@@ -71,6 +71,6 @@ function PlotSpectrogram(tfcomplex, f, t, limits, titleText, phase, savePlot, xL
         if ~exist('figures', 'dir')
            mkdir figures
         end
-        saveas(gcf, ['figures\', titleText, '.png'])
+        saveas(gcf, ['figures\', fileName, '.png'])
     end
 end

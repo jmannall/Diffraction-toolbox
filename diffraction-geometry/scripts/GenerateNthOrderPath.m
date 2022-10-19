@@ -5,9 +5,9 @@ function [source, receiver, Q, apex, corners, planeCorners, planeRigid, data] = 
     
         rS = 3 * rand(1);
         rR = 3 * rand(1);
-        W = 3 * rand(numEdges - 1,1);
+        W = 3 * rand(1, numEdges - 1);
     
-        wedgeIndex = 185 + (355 - 185) * rand(numEdges, 1);
+        wedgeIndex = 185 + (355 - 185) * rand(1, numEdges);
         thetaS = 0.1 + (wedgeIndex(1) - 180) * rand(1);
         thetaR = 180 + (wedgeIndex(end) - 180.1) * rand(1);
 

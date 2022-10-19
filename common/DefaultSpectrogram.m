@@ -1,6 +1,6 @@
 function [x, fvec, tvec] = DefaultSpectrogram(input, fs, nfft)
 
-    if argin < 3
+    if nargin < 3
         nfft = 2048;
     end
     windowSize = 400;
