@@ -47,7 +47,7 @@ function [thetaS, thetaR, A, B, L, rS, rR, wedgeIndex, source, receiver] = Creat
         rS(i) = (radiusS + sum(W(1:i-1))) / L;
         rR(i) = (sum(W(i:end)) + radiusR) / L;
     end
-    for i = 1:numEdges -1
+    for i = 1:numEdges - 1
         rs = radiusS + sum(W(1:i - 1)); % Segment before w segment
         rr = sum(W(i + 1:end)) + radiusR; % Segement after W segment
         p(i) = W(i) * L / ((W(i) + rs) * (W(i) + rr));

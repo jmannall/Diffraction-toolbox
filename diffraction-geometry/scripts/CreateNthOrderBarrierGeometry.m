@@ -21,5 +21,5 @@ function [corners, planeCorners, planeRigid, source, receiver] = CreateNthOrderB
     planeRigid = [ones(1, numDiffEdges + 1), 0, 0, 0, 0];
     
     source = [-radiusS * cosd(thetaS), -radiusS * sind(thetaS) - barrierRadius, zS];
-    receiver = [-radiusR * cosd(thetaR), -radiusR * sind(thetaR) + barrierRadius, zR];
+    receiver = [radiusR * sind(thetaR), -radiusR * cosd(thetaR) + barrierRadius, zR];
 end

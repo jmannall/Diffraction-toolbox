@@ -21,13 +21,19 @@ barrierRadius = 1.5;
 radiusS = 1.5;
 radiusR = 1.1;
 
+thetaS = 45;
+thetaR = 205;
+barrierRadius = 0.89 / 2;
+radiusS = 0.8;
+radiusR = 0.23;
+
 [irAprx, tfmagAprx, tvecAprx, fvecAprx, tfcomplexAprx] = SingleNthOrderBarrier1storder(barrierRadius, barrierHeight, thetaS, thetaR, radiusS, radiusR, zS, zR, controlparameters, numEdges, true);
 
-controlparameters = struct('fs', 48e3, 'nfft', nfft, 'difforder', numEdges);
+controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges);
 
 [ir, tfmag, tvec, fvec, tfcomplex] = SingleNthOrderBarrier(barrierRadius, barrierHeight, thetaS, thetaR, radiusS, radiusR, zS, zR, controlparameters, true);
 
-PlotSpectogram([tfcomplexAprx(:,end) tfcomplexAprx(:,end)], fvecAprx, [0 10], [-70 0], 'BTM approach', true, true)
+PlotSpectrogram([tfcomplexAprx(:,end) tfcomplexAprx(:,end)], fvecAprx, [0 10], [-70 0], 'BTM approach', true, true)
 
 % figure
 % semilogx(fvec, tfmag.diff2)
@@ -52,7 +58,5 @@ legend('BTM hod', 'BTM 1st order')
 xlim([20 20000])
 ylim([-100 0])
 
-geometry = GeometryNthOrderBarrier(barrierRadius, radiusS, radiusR);
 
-[result, geometry] = SingleNthOrderBarrierArray(geometry, barrierHeight, thetaS, thetaR, zS, zR, controlparameters);
 

@@ -52,7 +52,6 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWall(wallHeight,wallThicknes
         source = [radiusS * cosd(thetaS) + wallThickness / 2, radiusS * sind(thetaS) - wallThickness / 2, zS];
         receiver = [radiusR * cosd(thetaR) + wallThickness / 2, radiusR * sind(thetaR) - wallThickness / 2, zR];
 
-
         % Plot geometry
         if createPlot
             PlotGeometry(corners, planeCorners, source, receiver)

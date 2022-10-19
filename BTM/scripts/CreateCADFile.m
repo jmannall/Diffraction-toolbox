@@ -2,8 +2,8 @@
 
 function cadFilePath = CreateCADFile(inFilePath, index, corners, planeCorners, planeRigid)
 
-    if ~exist('geometry', 'dir')
-       mkdir geometry
+    if ~exist([inFilePath, '\geometry\'], 'dir')
+       mkdir([inFilePath, '\geometry\'])
     end
     
     cadFilePath = [inFilePath, '\geometry\', num2str(index), '_geo.cad'];

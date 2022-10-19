@@ -11,12 +11,12 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleNthOrderBarrier1storder(barr
     [irStore, tvecStore] = deal(cell(1, numEdges));
     [tfmag, tfcomplex] = deal(zeros(controlparameters.nfft / 2, numEdges + 1));
 
-    radiusR = 10^6;
-    radiusS = 1;
-    controlparameters.Rstart = radiusR;
+    radiusS = 10^6;
+    radiusR = 1;
+    controlparameters.Rstart = radiusS;
     for i = 1:numEdges
 %         [irAll, tfmagAll, tvecStore{i}, fvec, tfcomplexAll] = SingleWedge(barrierHeight, wedgeIndex(i), thetaS(i), thetaR(i), radiusS(i), radiusR(i), zS, zR, controlparameters, createPlot);
-        [irAll, tfmagAll, tvecStore{i}, fvec, tfcomplexAll] = SingleWedge(barrierHeight, wedgeIndex(i), thetaS(i), thetaR(i), radiusR, radiusS, zS, zR, controlparameters, createPlot);
+        [irAll, tfmagAll, tvecStore{i}, fvec, tfcomplexAll] = SingleWedge(barrierHeight, wedgeIndex(i), thetaS(i), thetaR(i), radiusS, radiusR, zS, zR, controlparameters, createPlot);
 
         nir = max(nir, length(irAll.diff1));
         irStore{i} = irAll.diff1;
