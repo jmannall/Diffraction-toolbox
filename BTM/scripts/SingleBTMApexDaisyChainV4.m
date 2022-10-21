@@ -11,16 +11,18 @@ function [tfmag, fvec, tfcomplex] = SingleBTMApexDaisyChainV4(source, receiver, 
     rR = data.rR;
     W = data.W;
 
-    rS = [rS, W / 2];
-    rR = [W / 2, rR];
+    rS = [rS, 2];
+    rR = [W, rR];
 
+    const = 10^6;
     vCorners = [corners(2:numEdges + 1,1:2), vSource(:,3)];
     vector = vSource - vCorners;
-    vector = rS' .* vector ./ vecnorm(vector, 2, 2);
+    vector = const .* vector ./ vecnorm(vector, 2, 2);
     vSource = vCorners + vector;
+    controlparameters.Rstart = const;
 
     vector = vReceiver - vCorners;
-    vector = rR' .* vector ./ vecnorm(vector, 2, 2);
+    vector = vector ./ vecnorm(vector, 2, 2);
     vReceiver = vCorners + vector;
 
     scale = KimCorrection(data, numEdges, withCorrection);
@@ -32,6 +34,6 @@ function [tfmag, fvec, tfcomplex] = SingleBTMApexDaisyChainV4(source, receiver, 
         [~, ~, ~, fvec, tfcomplexStore] = SingleBTM(vSource(i,:), vReceiver(i,:), corners, planeCorners, vPlaneRigid, controlparameters, createPlot);
         tfcomplex(:,i) = scale(i) * tfcomplexStore.diff1;
     end
-    tfcomplex(:,end) = 0.5^(numEdges - 1) * prod(tfcomplex(:,1:numEdges), 2);
+    tfcomplex(:,end) = 0.5^(numEdges - 1) * (1 / L) * prod(tfcomplex(:,1:numEdges), 2);
     tfmag = mag2db(abs(tfcomplex));
 end

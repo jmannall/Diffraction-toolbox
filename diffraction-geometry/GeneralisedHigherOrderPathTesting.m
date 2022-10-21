@@ -3,6 +3,7 @@ close all
 %% Data
 fs = 96e3;
 nfft = 4096;
+c = 344;
 numEdges = 2;
 
 thetaS = 10;
@@ -14,7 +15,7 @@ radiusR = 0.9;
 height = 20;
 [zS, zR] = deal(height / 2);
 
-controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges);
+controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c);
 
 %% Generate geometry
 
@@ -37,7 +38,7 @@ dtemplate = struct('rS', [], 'rR', [], 'W', [], 'L', [], 'thetaS', [], 'thetaR',
 if generate && n == 1
     data = repmat(dtemplate, numPaths, 1);
 elseif ~generate
-    n = 55;
+    n = 30;
 end
 for i = n:numPaths
     if generate
@@ -75,7 +76,7 @@ for i = n:numPaths
     % 1 / r
     [apexTfmag, fvec, apexTfcomplex] = SingleBTMApexDaisyChain(source, receiver, apex, corners, planeCorners, controlparameters, data(i), false, createPlot);
     % BTM with virtual sources and receivers set at rS + W and W + rR from the
-    % edge
+    % edge and normalised
     [apexTfmagV2, fvec, apexTfcomplexV2] = SingleBTMApexDaisyChainV2(source, receiver, apex, corners, planeCorners, controlparameters, data(i), false, createPlot);
     % BTM with virtual sources and receivers set at apex points
     [apexTfmagV3, fvec, apexTfcomplexV3] = SingleBTMApexDaisyChainV3(source, receiver, apex, corners, planeCorners, controlparameters, data(i), false, createPlot);
@@ -89,15 +90,13 @@ for i = n:numPaths
     
     %% UTD
     
-    always = true;
-    phi = asin(1);
-    c = 344;
+    phii = 90;
     
     % UTD with virtual sources and receivers set at apex points and normalised
     % 1 / r
-    [utdTfmag, fvec, utdTfcomplex] = SingleUTDApexDaisyChain(data(i), phi, always, c, controlparameters, false);
+    [utdTfmag, fvec, utdTfcomplex] = UTDSingleApexDaisyChain(data(i), phii, controlparameters, false);
     % UTD with virtual sources and receivers set at apex points
-    [utdTfmagV2, fvec, utdTfcomplexV2] = SingleUTDApexDaisyChainV2(data(i), phi, always, c, controlparameters, false);
+    [utdTfmagV2, fvec, utdTfcomplexV2] = UTDSingleApexDaisyChainV2(data(i), phii, controlparameters, false);
     
     idx = max(2, idx);
     meanUTD(i) = mean((utdTfmag(idx,end) - tfmagDiff2) .^ 2);
@@ -117,22 +116,22 @@ for i = n:numPaths
     view([0 90])
     xlim([-4 2])
     ylim([-4 2])
-    
-    nexttile([1 3])
-    semilogx(fvec, apexTfmag(:,end))
-    hold on
-    semilogx(fvec, apexTfmagV2(:,end))
-    semilogx(fvec, apexTfmagV3(:,end))
-    semilogx(fvec, apexTfmagV4(:,end))
-    semilogx(fvec, utdTfmag(:,end))
-    semilogx(fvec, utdTfmagV2(:,end))
-    semilogx(fvec, tfmag.diff2)
-    title('Frequency responses')
-    xlabel('Frequency')
-    ylabel('Magnitude')
-    legend('BTM Apex Norm', 'BTM Apex Ext', 'BTM Apex', 'BTM Apex / 2', 'UTD Apex Norm', 'UTD Apex', 'True BTM', 'Location', 'southwest')
-    xlim([20 20000])
-    ylim([-70 0])
+%     
+%     nexttile([1 3])
+%     semilogx(fvec, apexTfmag(:,end))
+%     hold on
+%     semilogx(fvec, apexTfmagV2(:,end))
+%     semilogx(fvec, apexTfmagV3(:,end))
+%     semilogx(fvec, apexTfmagV4(:,end))
+%     semilogx(fvec, utdTfmag(:,end))
+%     semilogx(fvec, utdTfmagV2(:,end))
+%     semilogx(fvec, tfmag.diff2)
+%     title('Frequency responses')
+%     xlabel('Frequency')
+%     ylabel('Magnitude')
+%     legend('BTM Apex Norm', 'BTM Apex Ext', 'BTM Apex', 'BTM Plane', 'UTD Apex Norm', 'UTD Apex', 'True BTM', 'Location', 'southwest')
+%     xlim([20 20000])
+%     ylim([-70 0])
 end
 %% Figures
 
@@ -143,7 +142,7 @@ meanBTMV4Tot = mean(sqrt(meanBTMV4));
 meanUTDTot = mean(sqrt(meanUTD));
 meanUTDV2Tot = mean(sqrt(meanUTDV2));
 
-count = 100 * sum(meanBTM > meanBTMV2) / numPaths;
+count = 100 * sum(meanBTMV3 > meanBTMV4) / numPaths;
 disp('yest')
 [N, edges, bin] = histcounts(sqrt(meanBTM), 50);
 figure
@@ -162,8 +161,8 @@ title('BTM Apex')
 ylim([0 30])
 
 figure
-histogram(sqrt(meanBTMV3), length(N), 'BinEdges',edges)
-title('BTM Apex / 2')
+histogram(sqrt(meanBTMV4), length(N), 'BinEdges',edges)
+title('BTM Plane')
 ylim([0 30])
 
 figure
@@ -193,11 +192,11 @@ withCorrection = false;
 %% UTD
 
 always = true;
-phi = asin(1);
+phii = asin(1);
 c = 344;
 
 withCorrection = false;
-[utdTfmag, fvec, utdTfcomplex] = SingleUTDApexDaisyChain(data, phi, always, c, controlparameters, withCorrection);
+[utdTfmag, fvec, utdTfcomplex] = SingleUTDApexDaisyChain(data, phii, always, c, controlparameters, withCorrection);
 
 % c = 344;
 % wedgeIndex = 340;
