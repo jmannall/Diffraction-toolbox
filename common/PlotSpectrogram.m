@@ -1,4 +1,4 @@
-%% Plot a spectogram 
+%% Plot a spectogram
 
 function PlotSpectrogram(tfcomplex, f, t, limits, fileName, phase, savePlot, xLabel)
 

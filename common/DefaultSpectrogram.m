@@ -1,3 +1,5 @@
+%% Calculate the transfer function, frequency vector and time vector to plot a spectrogram
+
 function [x, fvec, tvec] = DefaultSpectrogram(input, fs, nfft)
 
     if nargin < 3

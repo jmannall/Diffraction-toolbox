@@ -2,10 +2,12 @@ function [source, receiver, Q, apex, corners, planeCorners, planeRigid, data] = 
     
     valid = false;
     while ~valid
-    
-        rS = 3 * rand(1);
-        rR = 3 * rand(1);
-        W = 3 * rand(1, numEdges - 1);
+        
+        shift = 0.1;
+        scale = 3 - shift;
+        rS = shift + scale * rand(1);
+        rR = shift + scale * rand(1);
+        W = shift + scale * rand(1, numEdges - 1);
     
         wedgeIndex = 185 + (355 - 185) * rand(1, numEdges);
         thetaS = 0.1 + (wedgeIndex(1) - 180) * rand(1);

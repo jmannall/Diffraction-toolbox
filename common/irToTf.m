@@ -1,4 +1,4 @@
-%% Calculate magnitude response from impulse response
+%% Calculate the transfer function and magnitude response of an impulse response
 
 function [tfmag, tfcomplex, ir] = IrToTf(ir, nfft)  
     F = fft(ir,nfft);

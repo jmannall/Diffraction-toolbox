@@ -1,23 +1,14 @@
-function [tfmag, fvec, tfcomplex] = UTDSingleApexDaisyChainV2(data, phii, controlparameters, withCorrection)
+function [tfmag, fvec, tfcomplex] = UTDSingleDaisyChain(data, phii, controlparameters, withCorrection)
 
-    numEdges = size(data.wedgeIndex, 1);
-
-    L = data.L;
-    rS = data.rS;
-    rR = data.rR;
-    W = data.W;
-
-    rS = [rS, W];
-    rR = [W, rR];
-    wedgeIndex = data.wedgeIndex';
+    rS = [data.rS, data.W];
+    rR = [data.W, data.rR];
+    wedgeIndex = data.wedgeIndex;
+    numEdges = length(wedgeIndex);
     
-    epsilon = 1e-5;
-    thetaS = [data.thetaS, epsilon * ones(1, numEdges)];
-    thetaR = [wedgeIndex - epsilon, data.thetaR];
-
+    thetaS = [data.thetaS, zeros(1, numEdges)];
+    thetaR = [wedgeIndex, data.thetaR];
+    
     tfcomplex = zeros(controlparameters.nfft / 2, numEdges + 1);
-    controlparameters.difforder = 1;
-
     if withCorrection
         [A, B] = KimCorrection(data, numEdges);    
         for i = 1:numEdges
@@ -26,15 +17,15 @@ function [tfmag, fvec, tfcomplex] = UTDSingleApexDaisyChainV2(data, phii, contro
         end
         c = controlparameters.c;
         k = 2 * pi * fvec/ c;
-        front = exp(-1i .* k .* L)';
+        front = exp(-1i .* k .* data.L);
     else
         for i = 1:numEdges
             [~, fvec, tfcomplexStore] = UTDSingleWedge(thetaS(i), thetaR(i), rS(i), rR(i), wedgeIndex(i), phii, controlparameters);
-            tfcomplex(:,i) = scale(i) * tfcomplexStore;
+            tfcomplex(:,i) = (rS(i) + rR(i)) * tfcomplexStore;
         end
         front = 1;
     end
 
-    tfcomplex(:,end) = front .* 0.5^(numEdges - 1) * prod(tfcomplex(:,1:numEdges), 2);
+    tfcomplex(:,end) = front' .* 0.5^(numEdges - 1) .* (1 / data.L) .* prod(tfcomplex(:,1:numEdges), 2);
     tfmag = mag2db(abs(tfcomplex));
 end

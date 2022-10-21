@@ -1,4 +1,4 @@
-function [scale, A, B] = KimCorrection(data, numEdges, withCorrection)
+function [A, B] = KimCorrection(data, numEdges)
 
     radiusS = data.rS;
     W = data.W;
@@ -42,11 +42,5 @@ function [scale, A, B] = KimCorrection(data, numEdges, withCorrection)
         else
             B(i + 1) = B(i + 1) * p(i);
         end
-    end
-
-    if withCorrection
-        scale = 1 ./ sqrt(A .* B);
-    else
-        scale = ones(1, numEdges);
     end
 end

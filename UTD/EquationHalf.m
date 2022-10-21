@@ -1,6 +1,4 @@
-function output = EquationHalf(beta, n, k, L)
+function output = EquationHalf(beta, n, k, L, B) % 71
 
-    output = EquationQuarter(beta, n, k, L, true) + EquationQuarter(beta, n, k, L, false);
-%     output = cot((pi + beta) / (2 * n)) .* FuncF(k * L * Apm(n, beta, true)) + ...
-%     cot((pi - beta) / (2 * n)) .* FuncF(k * L * Apm(n, beta, false));
+    output = EquationQuarter(beta, n, k, L, true, B) + EquationQuarter(beta, n, k, L, false, B); % 1 + 2 * eqQuarter -> 71
 end
