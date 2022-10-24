@@ -8,14 +8,96 @@ set(groot, 'defaultLineMarkerSize', 10)
 
 %% NN
 
-numInputs = 3;
-numLayers = 3;
-hiddenLayerSize = 12;
-numOutputs = 9;
+% Hyperparamters
+% learnRate = 1e-2;
+% gradDecay = 0.9;
+% sqGradDecay = 0.999;
+% maxGradient = 5;
+
+% x.lR = learnRate;
+% x.gD = gradDecay;
+% x.sGD = sqGradDecay;
+% x.mG = maxGradient;
+% loss = XORNeuralNetwork(x);
+
+learnRate = optimizableVariable('lR',[1e-5 1e-1],'Type','real','Transform','log');
+gradDecay = optimizableVariable('gD',[0.5 1],'Type','real');
+sqGradDecay = optimizableVariable('sGD',[0.8 1],'Type','real');
+maxGradient = optimizableVariable('mG',[0.5 10],'Type','real','Transform','log');
+
+func = @(x)XORNeuralNetwork(x);
+result = bayesopt(func, [learnRate, gradDecay, sqGradDecay, maxGradient], 'UseParallel',true);
+
+xObs = result.XAtMinObjective;
+xEst = result.XAtMinEstimatedObjective;
+
+[lossObs, netObs] = XORNeuralNetwork(xObs);
+[lossEst, netEst] = XORNeuralNetwork(xEst);
+
+%% XOR Network
+    trainingData = ([0 0
+    1 0
+    0 1
+    1 1])';
+
+targetData = [1 0 0 1];
+
+[numInputs, dataSize] = size(trainingData);
+numLayers = 1;
+hiddenLayerSize = 2;
+numOutputs = size(targetData, 1);
 alpha = 0.2;
 
 net = CreateNeuralNetwork(numInputs, numLayers, hiddenLayerSize, numOutputs, alpha);
 learnables = net.Learnables.Value;
+
+miniBatchSize = 4;
+numEpochs = 500;
+numIterationsPerEpoch = floor(dataSize./miniBatchSize);
+
+[lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
+
+averageGrad = [];
+averageSqGrad = [];
+
+iteration = 0;
+start = tic;
+
+lossFunc = @(net, trainingData, targetData) MeanSquaredError(net, trainingData, targetData);
+losses = zeros(1, numEpochs);
+
+tic
+for epoch = 1:numEpochs
+    % Shuffle data.
+    idx = randperm(size(trainingData, 2));
+    targetData = targetData(:,idx);
+    trainingData = trainingData(:,idx);
+    for i = 1:numIterationsPerEpoch
+        iteration = iteration + 1;
+
+        [X, T] = ProcessNNBatchInputData(trainingData, targetData, miniBatchSize, i);
+
+        % Evaluate the model loss and gradients using dlfeval and the
+        % modelLoss function.input
+        [loss, state, gradients] = dlfeval(lossFunc,net,X,T);
+        % Update normalisation paramters
+        net.State = state;
+
+        % Update the network parameters using the Adam optimizer.
+        % Clip gradients
+        gradients = ClipGradients(gradients, maxGradient);
+        [net,averageGrad,averageSqGrad] = adamupdate(net,gradients,averageGrad,averageSqGrad,iteration,learnRate,gradDecay,sqGradDecay);
+        
+        idx = numIterationsPerEpoch * (epoch - 1) + i;
+        loss = double(loss);
+        losses(idx) = loss;
+    end
+
+    UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numIterationsPerEpoch, epoch, start)
+end
+toc
+
+
 
 %% Generate BTM Data
 close all
@@ -210,16 +292,16 @@ for epoch = 1:numEpochs
         sqGradDecay = 0.999;
         % Update the network parameters using the Adam optimizer.
         gradValue = gradients.Value;
-        v = 0.9;
+        maxGradient = 0.9;
         for j = 1:length(gradValue)
             clip = false;
             gradient = gradValue{j};
             for k = 1:size(gradient, 1)
                 g = extractdata(gradient(k,:));
                 gNorm = norm(g);
-                if gNorm > v
+                if gNorm > maxGradient
                     clip = true;
-                    gradient(k,:) = g * v ./ gNorm;
+                    gradient(k,:) = g * maxGradient ./ gNorm;
                 end
             end
             if clip
@@ -270,12 +352,12 @@ save('NeuralNetwork_TestingP003.mat', 'net', 'losses', 'epochLosses', 'testLosse
 
 disp('Plot training losses')
 
-x = 1:numEpochs * numIterationsPerEpoch;
+xObs = 1:numEpochs * numIterationsPerEpoch;
 y = 1:numIterationsPerEpoch:numEpochs * numIterationsPerEpoch;
 
 figure
 C = colororder;
-plot(x, losses, 'Color',C(2,:));
+plot(xObs, losses, 'Color',C(2,:));
 hold on
 plot(y, epochLosses, 'Color',C(1,:));
 plot(y, testLosses, 'Color',C(3,:));

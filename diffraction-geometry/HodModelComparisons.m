@@ -28,14 +28,14 @@ numPaths = 100;
 
 index = DataHash({numPaths, fs, nfft, numEdges, height});
 [loadPath, savePath] = deal(['geometry/NthOrderPaths_', num2str(index), '.mat']);
-restart = true;
+restart = false;
 generate = false;
-plotFigures = true;
+plotFigures = false;
 createPlot = false;
 if restart
     i = 1;
 end
-n = i;
+%n = i;
 
 m = 100;
 freq = logspace(log10(20), log10(12e3), m);
@@ -50,18 +50,18 @@ if generate && n == 1
     data = repmat(dtemplate, numPaths, 1);
 elseif ~generate
     n = 1;
+    load(loadPath, 'data')
 end
 
 if n == 1
-    [meanBtmApex, meanBtmExt, meanBTMV3, meanBTMV4, meanUtd, meanUtdKim] = deal(zeros(numPaths, 1));
+    [meanBtmApex, meanBtmExt, meanBtmPlane, meanUtd, meanUtdKim] = deal(zeros(numPaths, 1));
 end
 
-
+disp('Start')
 for i = n:numPaths
     if generate
         [source, receiver, Q, apex, corners, planeCorners, planeRigid, data(i)] = GenerateNthOrderPath(numEdges, height);
     else
-        load(loadPath, 'data')
         wedgeIndex = data(i).wedgeIndex;
         thetaS = data(i).thetaS;
         thetaR = data(i).thetaR;
@@ -87,10 +87,11 @@ for i = n:numPaths
     % BTM with virtual sources and receivers set at rS + W and W + rR from the
     % edge and normalised
     [btmTfmagExt, ~, btmTfcomplexExt] = SingleBTMExtDaisyChain(source, receiver, apex, corners, planeCorners, controlparameters, data(i));
-
+    [btmTfmagPlane, ~, btmTfcomplexPlane] = SingleBTMPlaneDaisyChain(source, receiver, apex, corners, planeCorners, controlparameters, data(i));
     meanBtmApex(i) = mean((btmTfmagApex(idx,end) - tfmagDiff2) .^ 2);
     meanBtmExt(i) = mean((btmTfmagExt(idx,end) - tfmagDiff2) .^ 2);
-    
+    meanBtmPlane(i) = mean((btmTfmagPlane(idx,end) - tfmagDiff2) .^ 2);
+
     %% UTD
     
     phii = 90;
@@ -125,13 +126,14 @@ for i = n:numPaths
         semilogx(fvec, btmTfmagApex(:,end))
         hold on
         semilogx(fvec, btmTfmagExt(:,end))
+        semilogx(fvec, btmTfmagPlane(:,end))
         semilogx(fvec, utdTfmag(:,end))
         semilogx(fvec, utdTfmagKim(:,end))
         semilogx(fvec, tfmag.diff2)
         title('Frequency responses')
         xlabel('Frequency')
         ylabel('Magnitude')
-        legend('BTM Apex', 'BTM Ext', 'UTD', 'UTD Kim', 'True BTM', 'Location', 'southwest')
+        legend('BTM Apex', 'BTM Ext', 'BTM Plane', 'UTD', 'UTD Kim', 'True BTM', 'Location', 'southwest')
         xlim([20 20000])
         ylim([-70 0])
     end
@@ -146,12 +148,14 @@ close all
 
 meanBtmApexTot = mean(sqrt(meanBtmApex));
 meanBtmExtTot = mean(sqrt(meanBtmExt));
+meanBtmPlaneTot = mean(sqrt(meanBtmPlane));
 meanUtdTot = mean(sqrt(meanUtd));
 meanUtdKimTot = mean(sqrt(meanUtdKim));
 
-countBtm = 100 * sum(meanBtmExt < meanBtmApex) / numPaths;
+countBtmExtApex = 100 * sum(meanBtmExt < meanBtmApex) / numPaths;
 countBtmUtd = 100 * sum(meanBtmExt < meanUtd) / numPaths;
 countBtmUtdKim = 100 * sum(meanBtmExt < meanUtdKim) / numPaths;
+countBtmExtPlane = 100 * sum(meanBtmExt < meanBtmPlane) / numPaths;
 
 [N, edges, bin] = histcounts(sqrt(meanBtmApex), 50);
 
@@ -163,6 +167,11 @@ ylim([0 30])
 figure
 histogram(sqrt(meanBtmExt), length(N), 'BinEdges',edges)
 title('BTM Ext')
+ylim([0 30])
+
+figure
+histogram(sqrt(meanBtmPlane), length(N), 'BinEdges',edges)
+title('BTM Plane')
 ylim([0 30])
 
 figure
