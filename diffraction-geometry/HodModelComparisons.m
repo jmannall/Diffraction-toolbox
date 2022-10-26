@@ -54,7 +54,7 @@ elseif ~generate
 end
 
 if n == 1
-    [meanBtmApex, meanBtmExt, meanBtmPlane, meanUtd, meanUtdKim] = deal(zeros(numPaths, 1));
+    [meanBtmApex, meanBtmExt, meanBtmPlane, meanUtdApex, meanUtdExt] = deal(zeros(numPaths, 1));
 end
 
 disp('Start')
@@ -98,13 +98,13 @@ for i = n:numPaths
     
     % UTD with virtual sources and receivers set at apex points and normalised
     % 1 / r
-    [utdTfmag, ~, utdTfcomplex] = UTDSingleDaisyChain(data(i), phii, controlparameters, false);
+    [utdTfmagApex, ~, utdTfcomplexApex] = SingleUTDApexDaisyChain(data(i), phii, controlparameters, false);
     % UTD with virtual sources and receivers set at apex points and normalised
     % 1 / r with Kim correction
-    [utdTfmagKim, fvec, utdTfcomplexKim] = UTDSingleDaisyChain(data(i), phii, controlparameters, true);
+    [utdTfmagExt, fvec, utdTfcomplexExt] = SingleUTDExtDaisyChain(data(i), phii, controlparameters);
     
-    meanUtd(i) = mean((utdTfmag(idxUtd,end) - tfmagDiff2) .^ 2);
-    meanUtdKim(i) = mean((utdTfmagKim(idxUtd,end) - tfmagDiff2) .^ 2);
+    meanUtdApex(i) = mean((utdTfmagApex(idxUtd,end) - tfmagDiff2) .^ 2);
+    meanUtdExt(i) = mean((utdTfmagExt(idxUtd,end) - tfmagDiff2) .^ 2);
     
     %% Figures
     if plotFigures
@@ -127,13 +127,13 @@ for i = n:numPaths
         hold on
         semilogx(fvec, btmTfmagExt(:,end))
         semilogx(fvec, btmTfmagPlane(:,end))
-        semilogx(fvec, utdTfmag(:,end))
-        semilogx(fvec, utdTfmagKim(:,end))
+        semilogx(fvec, utdTfmagApex(:,end))
+        semilogx(fvec, utdTfmagExt(:,end))
         semilogx(fvec, tfmag.diff2)
         title('Frequency responses')
         xlabel('Frequency')
         ylabel('Magnitude')
-        legend('BTM Apex', 'BTM Ext', 'BTM Plane', 'UTD', 'UTD Kim', 'True BTM', 'Location', 'southwest')
+        legend('BTM Apex', 'BTM Ext', 'BTM Plane', 'UTD Apex', 'UTD Ext', 'True BTM', 'Location', 'southwest')
         xlim([20 20000])
         ylim([-70 0])
     end
@@ -149,12 +149,12 @@ close all
 meanBtmApexTot = mean(sqrt(meanBtmApex));
 meanBtmExtTot = mean(sqrt(meanBtmExt));
 meanBtmPlaneTot = mean(sqrt(meanBtmPlane));
-meanUtdTot = mean(sqrt(meanUtd));
-meanUtdKimTot = mean(sqrt(meanUtdKim));
+meanUtdApexTot = mean(sqrt(meanUtdApex));
+meanUtdExtTot = mean(sqrt(meanUtdExt));
 
 countBtmExtApex = 100 * sum(meanBtmExt < meanBtmApex) / numPaths;
-countBtmUtd = 100 * sum(meanBtmExt < meanUtd) / numPaths;
-countBtmUtdKim = 100 * sum(meanBtmExt < meanUtdKim) / numPaths;
+countBtmUtdApex = 100 * sum(meanBtmExt < meanUtdApex) / numPaths;
+countBtmUtdExt = 100 * sum(meanBtmExt < meanUtdExt) / numPaths;
 countBtmExtPlane = 100 * sum(meanBtmExt < meanBtmPlane) / numPaths;
 
 [N, edges, bin] = histcounts(sqrt(meanBtmApex), 50);
@@ -175,11 +175,11 @@ title('BTM Plane')
 ylim([0 30])
 
 figure
-histogram(sqrt(meanUtd), length(N), 'BinEdges',edges)
-title('UTD')
+histogram(sqrt(meanUtdApex), length(N), 'BinEdges',edges)
+title('UTD Apex')
 ylim([0 30])
 
 figure
-histogram(sqrt(meanUtdKim), length(N), 'BinEdges',edges)
-title('UTD Kim')
+histogram(sqrt(meanUtdExt), length(N), 'BinEdges',edges)
+title('UTD Ext')
 ylim([0 30])

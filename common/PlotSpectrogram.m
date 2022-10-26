@@ -52,15 +52,17 @@ function PlotSpectrogram(tfcomplex, f, t, limits, fileName, phase, savePlot, xLa
         % Create figure
         figure("Position", position);
         sh = surf(t, f, x);
+        colormap("hot")
         grid on
         c = colorbar;
         view([0 90])
         axis tight
         xlabel(xLabel)
         ylabel('Frequency (Hz)')
-        xlim([min(t) max(t)])
-        ylim([20 20e3])
-        set(gca,'YScale','log')
+        %xlim([min(t) max(t)])
+        %ylim([20 20e3])
+        %ylim([-10 10])
+        %set(gca,'YScale','log')
         set(sh, 'EdgeColor','none')
         clim(limits)
         c.Label.String = 'Magnitude (dB)';
