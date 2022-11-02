@@ -11,5 +11,5 @@ function PlotSpectrogramOfWAV(filePath, limits, nfft)
     [x, fvec, tvec] = DefaultSpectrogram(audio, fs, nfft);
 
     fileName = strrep(extractAfter(extractBefore(filePath, '.'), '\'), '_', ' ');
-    PlotSpectogram(x, fvec, tvec, limits, fileName, false, true);
+    PlotSpectrogram(x, fvec, tvec, limits, fileName, false, false);
 end

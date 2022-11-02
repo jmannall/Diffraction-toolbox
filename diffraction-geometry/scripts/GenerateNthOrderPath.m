@@ -4,7 +4,7 @@ function [source, receiver, Q, apex, corners, planeCorners, planeRigid, data] = 
     while ~valid
         
         shift = 0.1;
-        scale = 1 - shift;
+        scale = 3 - shift;
         rS = shift + scale * rand(1);
         rR = shift + scale * rand(1);
         W = shift + scale * rand(1, numEdges - 1);

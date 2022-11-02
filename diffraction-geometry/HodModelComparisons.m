@@ -27,7 +27,7 @@ controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c
 numPaths = 100;
 
 index = DataHash({numPaths, fs, nfft, numEdges, height});
-[loadPath, savePath] = deal(['geometry/NthOrderPaths_10cmTo1m_', num2str(index), '.mat']);
+[loadPath, savePath] = deal(['geometry/NthOrderPaths_10cmTo3m_', num2str(index), '.mat']);
 restart = true;
 generate = false;
 plotFigures = true;
@@ -62,13 +62,22 @@ for i = n:numPaths
     if generate
         [source, receiver, Q, apex, corners, planeCorners, planeRigid, data(i)] = GenerateNthOrderPath(numEdges, height);
     else
+%         height = 3;
+%         data(i).wedgeIndex = [200 200 200 200 200];
+%         data(i).thetaS = 5;
+%         data(i).thetaR = 195;
+%         data(i).rS = 0.5;
+%         data(i).rR = 0.5;
+%         data(i).W = [0.2 0.2 0.2 0.2];
+%         controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 5, 'c', c);
+
         height = 3;
-        data(i).wedgeIndex = [200 200 200 200 200];
-        data(i).thetaS = 5;
-        data(i).thetaR = 195;
-        data(i).rS = 0.5;
-        data(i).rR = 0.5;
-        data(i).W = [0.2 0.2 0.2 0.2];
+        data(i).wedgeIndex = [270 270];
+        data(i).thetaS = 85;
+        data(i).thetaR = 185;
+        data(i).rS = 1.4;
+        data(i).rR = 1.4;
+        data(i).W = 0.5 / 3.5;
 
         wedgeIndex = data(i).wedgeIndex;
         thetaS = data(i).thetaS;
@@ -76,9 +85,8 @@ for i = n:numPaths
         radiusS = data(i).rS;
         radiusR = data(i).rR;
         W = data(i).W;
-        controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 5, 'c', c);
+        data(i).L = radiusS + sum(W) + radiusR;
 
-        
         [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid] = CreateNthOrderPathData(wedgeIndex, thetaS, thetaR, radiusS, radiusR, W, height);
     end
     
@@ -188,24 +196,24 @@ countBtmExtPlane = 100 * sum(meanBtmExt < meanBtmPlane) / numPaths;
 figure
 histogram(sqrt(meanBtmApex), length(N), 'BinEdges',edges)
 title('BTM Apex')
-ylim([0 30])
+ylim([0 60])
 
 figure
 histogram(sqrt(meanBtmExt), length(N), 'BinEdges',edges)
 title('BTM Ext')
-ylim([0 30])
+ylim([0 60])
 
 figure
 histogram(sqrt(meanBtmPlane), length(N), 'BinEdges',edges)
 title('BTM Plane')
-ylim([0 30])
+ylim([0 60])
 
 figure
 histogram(sqrt(meanUtdApex), length(N), 'BinEdges',edges)
 title('UTD Apex')
-ylim([0 30])
+ylim([0 60])
 
 figure
 histogram(sqrt(meanUtdExt), length(N), 'BinEdges',edges)
 title('UTD Ext')
-ylim([0 30])
+ylim([0 60])

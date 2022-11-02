@@ -55,7 +55,7 @@ function PlotSpectrogram(tfcomplex, f, t, limits, fileName, phase, savePlot, xLa
         figure("Position", position);
         sh = surf(t, f, x);
         %sh.FaceColor = 'interp';
-        colormap("hot")
+        %colormap("hot")
         grid on
         c = colorbar;
         view([0 90])

@@ -9,8 +9,8 @@ function [tfmag, fvec, tfcomplex] = SingleUTDExtDaisyChain(data, phii, controlpa
     wedgeIndex = data.wedgeIndex;
     numEdges = length(wedgeIndex);
     
-    thetaS = [data.thetaS, zeros(1, numEdges)];
-    thetaR = [wedgeIndex, data.thetaR];
+    thetaS = [data.thetaS, zeros(1, numEdges - 1)];
+    thetaR = [wedgeIndex(1:end - 1), data.thetaR];
     
     tfcomplex = zeros(4, numEdges + 1);
 

@@ -8,14 +8,13 @@ n = 500;
 wedgeLength = 20;
 wedgeIndex = 350;
 minAngle = 30;
-minBendingAngle = 5;
+minBendingAngle = 120;
 
 [rS, rR] = deal(0.5);
 [zS, zR] = deal(wedgeLength / 2);
 controlparameters = struct('nfft', nfft, 'fs', fs, 'difforder', 1);
 
 [result, geometry, pathLength, validPath] = CreateWedgeSweep(wedgeIndex, minAngle, minBendingAngle, rS, rR, controlparameters, n);
-
 
 bendingAngle = geometry.bendingAngle;
 source = geometry.source;
@@ -40,10 +39,10 @@ audio = ones(samplesPerUpdate * n, 1);
 close all
 
 % Load audio
-[~, ~, filePath] = NormaliseAudio('audio/whiteNoise.wav', nfft);
+[~, ~, filePath] = NormaliseAudio('audio/whiteNoise96k.wav', nfft);
 [audio, fsInput] = LoopAudio(filePath, 13);
 audio = 0.8*resample(audio,fs,fsInput);
-saveStem = 'whiteNoise';
+saveStem = 'whiteNoise96k';
 
 validPath = bendingAngle > 0;
 
@@ -76,7 +75,7 @@ interpolated = (1 - window) .* tfmagScaled + window .* abs(tfcomplexDiff(:,idx))
 
 % Add phase and combine scaled response and interpolated response with direct component
 interpolated = interpolated .* exp(phase(:,idx).*1i);
-interpolated = [direct(:,~idx), interpolated];
+interpolated = [direct(:,~idx), interpolated] + [tfcomplex.geom];
 scaled = tfmagScaled .* exp(phase(:,idx).*1i);
 scaled = [direct(:,~idx), scaled];
 noInterpolation = [direct(:,~idx), tfcomplexDiff(:,idx)];
@@ -86,6 +85,55 @@ PlotSpectrogram(interpolated, fvec, bendingAngle, limits, 'SB_Tsingos interpolat
 PlotSpectrogram(scaled, fvec, bendingAngle, limits, 'SB_Tsingos scaled response', false, true, 'Bending Angle')
 PlotSpectrogram([tfcomplex.complete], fvec, bendingAngle, limits, 'SB_BTM Original response', false, true, 'Bending Angle')
 PlotSpectrogram(interpolated ./ [tfcomplex.complete], fvec, bendingAngle, [-10 10], 'SB_BTM vs interpolated error', false, true, 'Bending Angle')
+
+
+%% Test
+
+x = audio;
+yInterpolated = ConvolveTfcomplex(audio, interpolated, n);
+yNoInterpolation = ConvolveTfcomplex(audio, noInterpolation, n);
+yBtm = ConvolveTfcomplex(audio, [tfcomplex.complete], n);
+
+%% Save audio
+audiowrite('audio/whiteNoise96k_Interpolated.wav', yInterpolated, fs);
+audiowrite('audio/whiteNoise96k_NoInterpolation.wav', yNoInterpolation, fs);
+audiowrite('audio/whiteNoise96k_Btm.wav', yBtm, fs);
+
+close all
+PlotSpectrogramOfWAV('audio/whiteNoise_Normalised.wav', [-70 0], nfft)
+PlotSpectrogramOfWAV('audio/whiteNoise96k_Interpolated.wav', [-70 0], nfft)
+PlotSpectrogramOfWAV('audio/whiteNoise96k_NoInterpolation.wav', [-70 0], nfft)
+PlotSpectrogramOfWAV('audio/whiteNoise96k_Btm.wav', [-70 0], nfft)
+PlotSpectrogram(interpolated, fvec, bendingAngle, [-70 0], 'Interpolated Response', false, false)
+PlotSpectrogram([tfcomplex.complete], fvec, bendingAngle, limits, 'BTM response', false, true, 'Bending Angle')
+
+% Code to plot X(n)
+    subplot(3,1,1);
+stem(x(1:n1),'black');
+grid on;
+title('X(n)');
+xlabel('n--->');
+ylabel('Amplitude --->');
+%Code to plot H(n)
+subplot(3,1,2);
+stem(h(1:n2),'red');
+grid on;
+title('H(n)');
+xlabel('n--->');
+ylabel('Amplitude --->');
+%Code to plot the Convolved Signal
+subplot(3,1,3);
+disp(y(1:N));
+stem(y(1:N));
+grid on;
+title('Convolved Singal');
+xlabel('n--->');
+ylabel('Amplitude --->');
+% Add title to the Overall Plot
+ha = axes ('Position',[0 0 1 1],'Xlim',[0 1],'Ylim',[0 1],'Box','off','Visible','off','Units','normalized', 'clipping' , 'off');
+text (0.5, 1,'\bf Block Convolution using Overlap Add Method ','HorizontalAlignment','center','VerticalAlignment', 'top')
+
+
 
 %% Code works up to here to create plots of interpolation
 A = abs(interpolated(:,end)) ./ abs(tfcomplexDiff(:,end));
