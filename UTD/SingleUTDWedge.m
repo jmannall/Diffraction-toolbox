@@ -9,7 +9,7 @@ function [tfmag, fvec, tfcomplex] = SingleUTDWedge(thetaS, thetaR, radiusS, radi
     c = controlparameters.c;
     nfft = controlparameters.nfft;
     fs = controlparameters.fs;
-    fvec = fs / nfft * (0:nfft / 2 - 1);
+    fvec = [125 500 2000 11050];
     k = 2 * pi * fvec/ c; % Precompute
     n = wedgeIndex / pi; % 1
 

@@ -1,8 +1,9 @@
-function [tfmag, fvec, tfcomplex] = SingleDiffractionGrating(numPillars, gratingWidth, pillarHeight, receiver, controlparameters, createPlot)
+function [tfmag, fvec, tfcomplex] = SingleDiffractionGrating(numPillars, gratingWidth, pillarWidth, pillarHeight, receiver, controlparameters, createPlot)
 
+    receiver(2) = abs(receiver(2));
     % Create file info
     mFile = mfilename('fullpath');
-    index = DataHash({numPillars, gratingWidth, pillarHeight, receiver, controlparameters});
+    index = DataHash({numPillars, gratingWidth, pillarWidth, pillarHeight, receiver, controlparameters});
     [inFilePath, fileName, savePath, loadPath, resultExists] = BTMFileHandling(mFile, index);
     
     if resultExists
@@ -10,7 +11,7 @@ function [tfmag, fvec, tfcomplex] = SingleDiffractionGrating(numPillars, grating
         disp('IR load from save');
     else
 
-        [corners, planeCorners, source, receiver] = CreateDiffractionGratingGeometry(numPillars, gratingWidth, pillarHeight, receiver);
+        [corners, planeCorners, source, receiver] = CreateDiffractionGratingGeometry(numPillars, gratingWidth, pillarWidth, pillarHeight, receiver);
 
         % Plot geometry
         if createPlot
@@ -44,9 +45,26 @@ function [tfmag, fvec, tfcomplex] = SingleDiffractionGrating(numPillars, grating
         % [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, filehandlingparameters, controlparameters, cadFilePath, savePath);
     
         load([inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_tfinteq.mat'], 'tfinteqdiff');
-    
-        tfcomplex = tfinteqdiff;
-        tfmag = mag2db(abs(tfcomplex));
+        load([inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_tf.mat'], 'tfdirect', 'tfgeom', 'tfdiff');
+
+        % Create template
+        template.complete = [];
+        template.direct = [];
+        template.geom = [];
+        template.diff1 = [];
+        template.diffHod = [];
+        [tfmag, tfcomplex] = deal(repmat(template, 1, 1));
+        tfcomplex.complete = tfdirect + tfgeom + tfdiff + tfinteqdiff;
+        tfcomplex.direct = tfdirect;
+        tfcomplex.geom = tfgeom;
+        tfcomplex.diff1 = tfdiff;
+        tfcomplex.diffHod = tfinteqdiff;
+
+        tfmag.complete = mag2db(abs(tfcomplex.complete));
+        tfmag.direct = mag2db(abs(tfcomplex.direct));
+        tfmag.geom = mag2db(abs(tfcomplex.geom));
+        tfmag.diff1 = mag2db(abs(tfcomplex.diff1));
+        tfmag.diffHod = mag2db(abs(tfcomplex.diffHod));
                 
         save(savePath, "tfmag", "fvec", "tfcomplex");
         disp('Result saved')

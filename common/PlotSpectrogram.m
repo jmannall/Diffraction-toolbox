@@ -17,6 +17,7 @@ function PlotSpectrogram(tfcomplex, f, t, limits, fileName, phase, savePlot, xLa
         tl = tiledlayout(1, 2);
         nexttile
         sh = surf(t, f, x);
+        sh.FaceColor = 'interp';
         grid on
         c = colorbar;
         view([0 90])
@@ -33,6 +34,7 @@ function PlotSpectrogram(tfcomplex, f, t, limits, fileName, phase, savePlot, xLa
 
         nexttile
         sh = surf(t, f, y);
+        sh.FaceColor = 'interp';
         grid on
         c = colorbar;
         view([0 90])
@@ -52,6 +54,7 @@ function PlotSpectrogram(tfcomplex, f, t, limits, fileName, phase, savePlot, xLa
         % Create figure
         figure("Position", position);
         sh = surf(t, f, x);
+        %sh.FaceColor = 'interp';
         colormap("hot")
         grid on
         c = colorbar;

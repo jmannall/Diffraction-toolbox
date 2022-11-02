@@ -8,7 +8,7 @@ function [tfmag, fvec, tfcomplex] = SingleUTDApexDaisyChain(data, phii, controlp
     thetaS = [data.thetaS, zeros(1, numEdges)];
     thetaR = [wedgeIndex, data.thetaR];
     
-    tfcomplex = zeros(controlparameters.nfft / 2, numEdges + 1);
+    tfcomplex = zeros(4, numEdges + 1);
     if withCorrection
         [A, B] = KimCorrection(data, numEdges);    
         for i = 1:numEdges

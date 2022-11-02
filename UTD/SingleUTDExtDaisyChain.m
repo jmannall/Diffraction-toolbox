@@ -12,7 +12,7 @@ function [tfmag, fvec, tfcomplex] = SingleUTDExtDaisyChain(data, phii, controlpa
     thetaS = [data.thetaS, zeros(1, numEdges)];
     thetaR = [wedgeIndex, data.thetaR];
     
-    tfcomplex = zeros(controlparameters.nfft / 2, numEdges + 1);
+    tfcomplex = zeros(4, numEdges + 1);
 
     for i = 1:numEdges
         [~, fvec, tfcomplexStore] = SingleUTDWedge(thetaS(i), thetaR(i), cumRs(i), cumRr(i), wedgeIndex(i), phii, controlparameters);

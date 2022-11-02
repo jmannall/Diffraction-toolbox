@@ -1,50 +1,41 @@
 close all
+clear all
 
 fs = 96e3;
 nfft = 4096;
 controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 3);
 
-numX = 199;
-numY = 199;
+numX = 50;
+numY = 50;
 numReceivers = numX * numY;
-x = linspace(-10, 10, numX)';
-y = linspace(-10, 10, numY)';
+epsilon = 1e-4;
+x = linspace(-1.5 + epsilon, 1.5 - epsilon, numX)';
+y = linspace(-1.5 + epsilon, 1.5 - epsilon, numY)';
 
 count = 0;
 receiver = zeros(numReceivers, 3);
 for i = 1:numX
     for j = 1:numY
         count = count + 1;
-        receiver(count,:) = [x(i) y(j) 5];
+        receiver(count,:) = [x(i) y(j) 1.5];
     end
 end
 numPillars = 13;
-gratingWidth = 0.5;
-pillarHeight = 10;
-createPlot = true;
+gratingWidth = 0.3 / 3.5;
+pillarWidth = 0.5 / 3.5;
+pillarHeight = 3;
+createPlot = false;
 
-n = (numPillars - 1) / 2;
-pillarCenters = 3 * gratingWidth * [-fliplr(1:n), 0, 1:n];
-xDist = min(abs(receiver(:,1) - pillarCenters), [], 2) <= gratingWidth;
-yDist = abs(receiver(:,2)) <= gratingWidth;
-inPillar = xDist & yDist;
-count = sum(inPillar);
-toCalculate = numReceivers - count;
-parfor i = 1:numReceivers
-    if inPillar(i)
-        test = receiver(i,:);
-        [tfmag(:,i), fvec(:,i), tfcomplex(:,i)] = deal(zeros(3, 1));
-    else
-        [tfmag(:,i), fvec(:,i), tfcomplex(:,i)] = SingleDiffractionGrating(numPillars, gratingWidth, pillarHeight, receiver(i,:), controlparameters, createPlot);
-    end
-end
-fvec = fvec(:,1);
+[result, geometry] = SingleDiffractionGratingArray(numPillars, gratingWidth, pillarWidth, pillarHeight, receiver, controlparameters, createPlot);
 
-tfcomplex = reshape(tfcomplex, 3, [], numX);
-%% Figure
-PlotSpectrogram(squeeze(tfcomplex(1,:,:))', x, y, [-70 0], [num2str(fvec(1)), ' Hz'], false, false, 'x')
-PlotSpectrogram(squeeze(tfcomplex(2,:,:))', x, y, [-70 0], [num2str(fvec(2)), ' Hz'], false, false, 'x')
-PlotSpectrogram(squeeze(tfcomplex(3,:,:))', x, y, [-70 0], [num2str(fvec(3)), ' Hz'], false, false, 'x')
+fvec = result(1).fvec;
+tfcomplex = [result.tfcomplex];
+
+tfcomplex = reshape([tfcomplex.complete], 3, [], numX);
+
+PlotSpectrogram(squeeze(tfcomplex(1,:,:)), y, x, [-70 0], [num2str(fvec(1)), ' Hz'], false, false, 'x')
+PlotSpectrogram(squeeze(tfcomplex(2,:,:)), y, x, [-70 0], [num2str(fvec(2)), ' Hz'], false, false, 'x')
+PlotSpectrogram(squeeze(tfcomplex(3,:,:)), y, x, [-70 0], [num2str(fvec(3)), ' Hz'], false, false, 'x')
 
 
 

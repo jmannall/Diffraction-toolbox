@@ -18,8 +18,10 @@ function result = ProcessArrayResults(fileName, index, savePath, numSaves, geome
         save(savePath, "result", "geometry", '-v7.3')
     end
     disp('Result saved')
-
-    result = UniformResult(result);
+    
+    if ~isempty([result.ir])
+        result = UniformResult(result);
+    end
     % Clear up and delete files
     for i = 1:numSaves
         loadpathI = [loadStem, num2str(i), '.mat'];

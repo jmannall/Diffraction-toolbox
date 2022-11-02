@@ -62,22 +62,20 @@ for i = n:numPaths
     if generate
         [source, receiver, Q, apex, corners, planeCorners, planeRigid, data(i)] = GenerateNthOrderPath(numEdges, height);
     else
-        height = 3;
-        data(i).wedgeIndex = [200 200 200 200 200];
-        data(i).thetaS = 5;
-        data(i).thetaR = 195;
-        data(i).rS = 0.5;
-        data(i).rR = 0.5;
-        data(i).W = [0.2 0.2 0.2 0.2];
-
         wedgeIndex = data(i).wedgeIndex;
         thetaS = data(i).thetaS;
         thetaR = data(i).thetaR;
         radiusS = data(i).rS;
         radiusR = data(i).rR;
         W = data(i).W;
-        controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 5, 'c', c);
 
+
+        wedgeIndex = [270 270];
+        thetaS = 87;
+        thetaR = 183;
+        radiusS = 1;
+        radiusR = 1;
+        W = [0.5 / 3.5];
         
         [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid] = CreateNthOrderPathData(wedgeIndex, thetaS, thetaR, radiusS, radiusR, W, height);
     end
@@ -112,22 +110,59 @@ for i = n:numPaths
     % UTD with virtual sources and receivers set at apex points and normalised
     % 1 / r with Kim correction
     [utdTfmagExt, fvecUTD, utdTfcomplexExt] = SingleUTDExtDaisyChain(data(i), phii, controlparameters);
+    
+    freqIdx = fvecBTM(idx);
+    numUtdFreq = length(utdTfmagApex);
+    idxUtd = numUtdFreq * ones(1,m);
+    idxUtdInterp = numUtdFreq * ones(1,nfft / 2);
+    k = 1;
+    n = 1;
+    for j = 1:numUtdFreq
+        while freqIdx(k) < fvecUTD(j)
+            idxUtd(k) = j;
+            k = k + 1;
+        end
+        trueUtdForMean(j) = k - 1;
+        while fvec(n) < fvecUTD(j)
+            idxUtdInterp(n) = j;
+            n = n + 1;
+        end
+        trueUTDForBtm(j) = n - 1;
+    end
+
+    utdTfmagApex2 = utdTfmagApex(idxUtd,:);
+    utdTfmagExt2 = utdTfmagExt(idxUtd,:);
+
+    utdTfmagApexInterp = utdTfmagApex(idxUtdInterp,:);
+    utdTfmagExtInterp = utdTfmagExt(idxUtdInterp,:);
+
+    for j = 1:numUtdFreq - 1
+        idxStart = trueUtdForMean(j);
+        idxEnd = trueUtdForMean(j + 1);
+        numIdx = idxEnd - idxStart + 1;
+        for k = 1:numEdges + 1
+            utdTfmagApex2(idxStart:idxEnd,k) = linspace(utdTfmagApex(j,k), utdTfmagApex(j + 1,k), numIdx);
+            utdTfmagExt2(idxStart:idxEnd,k) = linspace(utdTfmagExt(j,k), utdTfmagExt(j + 1,k), numIdx);
+        end
+        idxStart = trueUTDForBtm(j);
+        idxEnd = trueUTDForBtm(j + 1);
+        numIdx = idxEnd - idxStart + 1;
+        for k = 1:numEdges + 1
+            utdTfmagApexInterp(idxStart:idxEnd,k) = linspace(utdTfmagApex(j,k), utdTfmagApex(j + 1,k), numIdx);
+            utdTfmagExtInterp(idxStart:idxEnd,k) = logspace(log(utdTfmagExt(j,k)), log(utdTfmagExt(j + 1,k)), numIdx);
+        end
+    end
 
     x = log10([fvecBTM(2), fvecUTD, fvecBTM(end)]);
     xq = log10(fvecBTM);
-
-    for k = 1:numEdges + 1
-        utdTfmagApexInterp(:,k) = interp1(x, [utdTfmagApex(1,k); utdTfmagApex(:,k); utdTfmagApex(end,k)], xq);
-        utdTfmagExtInterp(:,k) = interp1(x, [utdTfmagExt(1,k); utdTfmagExt(:,k); utdTfmagExt(end,k)], xq);
-    end
+    utdTfmagApexInterp(:,end) = interp1(x, [utdTfmagApex(1,end); utdTfmagApex(:,end); utdTfmagApex(end,end)], xq);
+    utdTfmagExtInterp(:,end) = interp1(x, [utdTfmagExt(1,end); utdTfmagExt(:,end); utdTfmagExt(end,end)], xq);
 
     xq = log10(fvecBTM(idx));
     xq(1:3) = log10(fvecBTM(2));
 
-    for k = 1:numEdges + 1
-        utdTfmagApex2(:,k) = interp1(x, [utdTfmagApex(1,k); utdTfmagApex(:,k); utdTfmagApex(end,k)], xq);
-        utdTfmagExt2(:,k) = interp1(x, [utdTfmagExt(1,k); utdTfmagExt(:,k); utdTfmagExt(end,k)], xq);
-    end
+    utdTfmagApex2(:,end) = interp1(x, [utdTfmagApex(1,end); utdTfmagApex(:,end); utdTfmagApex(end,end)], xq);
+    utdTfmagExt2(:,end) = interp1(x, [utdTfmagExt(1,end); utdTfmagExt(:,end); utdTfmagExt(end,end)], xq);
 
     meanUtdApex(i) = mean((utdTfmagApex2(:,end) - tfmagDiff2) .^ 2);
     meanUtdExt(i) = mean((utdTfmagExt2(:,end) - tfmagDiff2) .^ 2);
