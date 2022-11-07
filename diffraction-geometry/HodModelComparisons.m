@@ -17,7 +17,7 @@ radiusR = 0.9;
 height = 20;
 [zS, zR] = deal(height / 2);
 
-controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c);
+controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c, 'saveFiles', true);
 
 %% Generate geometry
 
@@ -28,15 +28,15 @@ numPaths = 100;
 
 index = DataHash({numPaths, fs, nfft, numEdges, height});
 [loadPath, savePath] = deal(['geometry/NthOrderPaths_10cmTo3m_', num2str(index), '.mat']);
-restart = true;
+restart = false;
 generate = false;
-plotFigures = false;
+plotFigures = true;
 createPlot = false;
 if restart
     i = 1;
 end
-n = i;
-
+%n = i;
+%% BTM is very wrong for i = 9. Issue with extra visible paths increasing level and causing comb filtering. - Need to fix and responsible for edge case extreme errors in BTM
 m = 100;
 freq = logspace(log10(20), log10(12e3), m);
 idx = zeros(1, m);
@@ -49,7 +49,7 @@ dtemplate = struct('rS', [], 'rR', [], 'W', [], 'L', [], 'thetaS', [], 'thetaR',
 if generate && n == 1
     data = repmat(dtemplate, numPaths, 1);
 elseif ~generate
-    n = 1;
+    n = 9;
     load(loadPath, 'data')
 end
 
@@ -71,13 +71,13 @@ for i = n:numPaths
 %         data(i).W = [0.2 0.2 0.2 0.2];
 %         controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 5, 'c', c);
 
-        height = 3;
-        data(i).wedgeIndex = [270 270];
-        data(i).thetaS = 85;
-        data(i).thetaR = 185;
-        data(i).rS = 1.4;
-        data(i).rR = 1.4;
-        data(i).W = 0.5 / 3.5;
+%         height = 3;
+%         data(i).wedgeIndex = [270 270];
+%         data(i).thetaS = 85;
+%         data(i).thetaR = 185;
+%         data(i).rS = 1.4;
+%         data(i).rR = 1.4;
+%         data(i).W = 0.5 / 3.5;
 
         wedgeIndex = data(i).wedgeIndex;
         thetaS = data(i).thetaS;
@@ -124,6 +124,9 @@ for i = n:numPaths
     x = log10([fvecBTM(2), fvecUTD, fvecBTM(end)]);
     xq = log10(fvecBTM);
 
+    input = [1; zeros(1e3, 1)];
+    [~, utdTfmagApexLR] = ConvolveLRFilter(input, utdTfmagApex(:,end), fs, nfft);
+    [~, utdTfmagExtLR] = ConvolveLRFilter(input, utdTfmagExt(:,end), fs, nfft);
     for k = 1:numEdges + 1
         utdTfmagApexInterp(:,k) = interp1(x, [utdTfmagApex(1,k); utdTfmagApex(:,k); utdTfmagApex(end,k)], xq);
         utdTfmagExtInterp(:,k) = interp1(x, [utdTfmagExt(1,k); utdTfmagExt(:,k); utdTfmagExt(end,k)], xq);
@@ -137,8 +140,8 @@ for i = n:numPaths
         utdTfmagExt2(:,k) = interp1(x, [utdTfmagExt(1,k); utdTfmagExt(:,k); utdTfmagExt(end,k)], xq);
     end
 
-    meanUtdApex(i) = mean((utdTfmagApex2(:,end) - tfmagDiff2) .^ 2);
-    meanUtdExt(i) = mean((utdTfmagExt2(:,end) - tfmagDiff2) .^ 2);
+    meanUtdApex(i) = mean((utdTfmagApexLR(idx) - tfmagDiff2) .^ 2);
+    meanUtdExt(i) = mean((utdTfmagExtLR(idx) - tfmagDiff2) .^ 2);
     
     %% Figures
     if plotFigures
@@ -160,20 +163,19 @@ for i = n:numPaths
         semilogx(fvecBTM, btmTfmagApex(:,end))
         hold on
         semilogx(fvecBTM, btmTfmagExt(:,end))
-        semilogx(fvecBTM, btmTfmagPlane(:,end))
-        semilogx(fvecBTM, utdTfmagApexInterp(:,end))
-        semilogx(fvecBTM, utdTfmagExtInterp(:,end))
+        semilogx(fvecBTM, utdTfmagApexLR)
+        semilogx(fvecBTM, utdTfmagExtLR)
         semilogx(fvecBTM, tfmag.diff2)
         title('Frequency responses')
         xlabel('Frequency')
         ylabel('Magnitude')
-        legend('BTM Apex', 'BTM Ext', 'BTM Plane', 'UTD Apex', 'UTD Ext', 'True BTM', 'Location', 'southwest')
+        legend('BTM Apex', 'BTM Ext', 'UTD Apex', 'UTD Ext', 'True BTM', 'Location', 'southwest')
         xlim([20 20000])
         ylim([-70 0])
     end
 end
 
-save(savePath, 'data')
+%save(savePath, 'data')
 
 disp('Complete')
 
