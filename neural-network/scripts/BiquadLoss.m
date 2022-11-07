@@ -1,13 +1,12 @@
 %% Biquad loss function
 
-function [loss, delloss] = BiquadLoss(output, target, numBiquads, numFreq, fidx)
+function loss = BiquadLoss(output, target, numBiquads, numFreq, fs, fidx)
     
     [zR, zI, pR, pI, k] = CreateZPKFromNNOutput(output, numBiquads);
 
-    [tfmag, ~] = CreateBiquad(zR, zI, pR, pI, k, numFreq);
+    [tfmag, ~] = CreateBiquad(zR, zI, pR, pI, k, numFreq, fs);
     
-    tfmagNBand = CreateNBandMagnitude(tfmag', fidx);
+    tfmagNBand = CreateNBandMagnitude(tfmag, fidx);
 
-    loss = (tfmagNBand - 128 * target).^2 / (numel(tfmagNBand));
-    delloss = dlgradient(sum(loss, "all"), output);
+    loss = sum((tfmagNBand - target).^2, 'all')  / numel(tfmagNBand);
 end

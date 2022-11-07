@@ -23,10 +23,10 @@ function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, file
 
     % Check if modelling source as a plane wave
     if isfield(controlparameters, 'Rstart')
-        radiusS = controlparameters.Rstart;
-        irdirect = radiusS * irdirect;
-        irgeom = radiusS * irgeom;
-        irdiff = radiusS * irdiff;
+        r = controlparameters.Rstart;
+        irdirect = r * irdirect;
+        irgeom = r * irgeom;
+        irdiff = r * irdiff;
     end
 
     % Create frequency and time vectors
@@ -55,8 +55,10 @@ function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, file
     end
 
     % Save results
-    save(savePath, "ir", "tfmag", "tvec", "fvec", "tfcomplex");
-    disp('Result saved')
+    if controlparameters.saveFiles
+        save(savePath, "ir", "tfmag", "tvec", "fvec", "tfcomplex");
+        disp('Result saved')
+    end
 
     % Clear up and delete files
     delete(cadFilePath);

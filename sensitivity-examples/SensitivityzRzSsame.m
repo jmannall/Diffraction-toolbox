@@ -1,18 +1,20 @@
 function SensitivityzRzSsame(fs)
-    wedgeLength = 10;
+    wedgeLength = 20;
     wedgeIndex = 270;
     thetaS = 10;
     thetaR = 260;
     radiusS = 1;
     radiusR = 1;
-    zR = -6:3;
+    zR = linspace(18,22,10);
     zR(zR == 0) = 0.001;
-    zS = zR + 5;
+    zS = zR;
     zS(zS == 0) = 0.001;
     
+    controlparameters = struct('fs', fs, 'nfft', 4096, 'difforder', 1);
+
     result = struct();
     for i = 1:length(zR)
-        [result(i).ir, result(i).tfmag, result(i).tvec, result(i).fvec] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS(i), zR(i), fs);
+        [result(i).ir, result(i).tfmag, result(i).tvec, result(i).fvec] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS(i), zR(i), controlparameters, false);
     end
     
     %% Process data
@@ -23,7 +25,7 @@ function SensitivityzRzSsame(fs)
     
     %% Plot
     figure
-    semilogx(fvec, tfmag)
+    semilogx(fvec, [tfmag.diff1])
     l = legend(string(round(zR,2)),'Location','eastoutside');
     title(l, 'zR')
     title(['fs: ', num2str(fs)])
@@ -35,7 +37,7 @@ function SensitivityzRzSsame(fs)
     
     figure
     for i = 1:length(ir)
-        plot(tvec{i}, ir{i})
+        plot(tvec{i}, [ir{i}.diff1])
         hold on
     end
     hold off

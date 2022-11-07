@@ -8,6 +8,11 @@ SensitivityRadius(96000)
 SensitivityRadius(128000)
 SensitivityRadius(256000)
 
+% No shape change after around 10m. Overall amplitude keeps decreasing
+% slightly up to (and probably past) 50m. Less than 1dB difference between 50m
+% and 100m so probably safe to take 50m as an upper limit. (1dB between 25m
+% and 50m)
+
 %% Wedge length example (+ change with fs)
 close all
 
@@ -17,6 +22,8 @@ SensitivityWedgeLength(48000)
 SensitivityWedgeLength(96000)
 SensitivityWedgeLength(128000)
 SensitivityWedgeLength(256000)
+
+% Basically flat at 10cm. Lower limit 10cm and upperlimit 10m
 
 %% zR example
 close all
@@ -72,4 +79,4 @@ Find the min / max values of each to be considered (either where no change
 happens or level negilible) - look up a dB value where magnitude can be
 perceptually considered neglible.
 
-}%
+%}

@@ -1,9 +1,7 @@
 function [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, extra, rtemplate] = BTMArrayFileHandling(file, index, numInputs)
 
     % Create result directory if it doesn't exist
-    if ~exist('results', 'dir')
-           mkdir results
-    end
+    CheckFileDir('results')
 
     % Create file info
     [~,fileName] = fileparts(file);
@@ -12,9 +10,7 @@ function [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, ex
     loadPath = ['results\', fileName, filesep, fileStem, '.mat'];
 
     % Create save directory if doesn't exist
-    if ~exist(['results\', fileName], 'dir')
-           mkdir(['results\' fileName])
-    end
+    CheckFileDir(['results\', fileName])
 
     % Check if previous complete result exists
     output = exist(loadPath, "file");

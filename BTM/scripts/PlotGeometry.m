@@ -14,12 +14,13 @@ function PlotGeometry(corners, planeCorners, source, receiver, vSources, interse
     idx2 = 2:numCornersPerPlane:numCorners;
     idx3 = 3:numCornersPerPlane:numCorners;
     normals = normr(cross(plane(idx1,:) - plane(idx3,:), plane(idx1,:) - plane(idx2,:)));
-    
+    direct = [source; receiver];
     % Plot figure
     figure
     plot3(source(:,1), source(:,2), source(:,3), 'o')
     hold on
     plot3(receiver(:,1), receiver(:,2), receiver(:,3), 'o')
+    plot3(direct(:,1), direct(:,2), direct(:,3))
     if nargin > 4
         plot3(vSources(:,1), vSources(:,2), vSources(:,3), 'o')
         numVSources = size(vSources, 1);

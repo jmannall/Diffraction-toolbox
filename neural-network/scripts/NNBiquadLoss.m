@@ -1,6 +1,6 @@
 %% Biquad loss function for training neural networks
 
-function [loss, state, gradients] = NNBiquadLoss(net, inputData, targetData, numBiquads, numFreq, fidx, training)
+function [loss, state, gradients] = NNBiquadLoss(net, inputData, targetData, numBiquads, numFreq, fs, fidx, training)
 
     if training
         [output, state] = forward(net, inputData);
@@ -9,5 +9,6 @@ function [loss, state, gradients] = NNBiquadLoss(net, inputData, targetData, num
         state = 0;
     end
     
-    [loss, gradients] = BiquadLoss(output, targetData, numBiquads, numFreq, fidx);
+    loss = BiquadLoss(output, targetData, numBiquads, numFreq, fs, fidx);
+    gradients = dlgradient(loss, net.Learnables);
 end

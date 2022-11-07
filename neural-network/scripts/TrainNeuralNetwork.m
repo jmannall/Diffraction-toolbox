@@ -1,4 +1,4 @@
-function [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x)
+function [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc)
     
     learnRate = x.lR;
     gradDecay = x.gD;
@@ -15,6 +15,10 @@ function [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEp
 
     tic
     for epoch = 1:numEpochs
+        if nargin > 8
+            rng(epoch)
+            [trainingData, targetData] = dataFunc();
+        end
         % Shuffle data.
         idx = randperm(size(trainingData, 2));
         targetData = targetData(:,idx);

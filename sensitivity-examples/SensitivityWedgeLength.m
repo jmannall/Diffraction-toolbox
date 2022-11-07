@@ -8,9 +8,11 @@ function SensitivityWedgeLength(fs)
     zS = wedgeLength / 2;
     zR = wedgeLength / 2;
     
+    controlparameters = struct('fs', fs, 'nfft', 4096, 'difforder', 1);
+
     result = struct();
     for i = 1:length(wedgeLength)
-        [result(i).ir, result(i).tfmag, result(i).tvec, result(i).fvec] = SingleWedge(wedgeLength(i), wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS(i), zR(i), fs);
+        [result(i).ir, result(i).tfmag, result(i).tvec, result(i).fvec] = SingleWedge(wedgeLength(i), wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS(i), zR(i), controlparameters, false);
     end
     
     %% Process data
@@ -21,7 +23,7 @@ function SensitivityWedgeLength(fs)
     
     %% Plot    
     figure
-    semilogx(fvec, tfmag)
+    semilogx(fvec, [tfmag.diff1])
     l = legend(string(round(wedgeLength,2)),'Location','eastoutside');
     title(l, 'Wedge Length')
     title(['fs: ', num2str(fs)])
@@ -33,7 +35,7 @@ function SensitivityWedgeLength(fs)
     
     figure
     for i = 1:length(ir)
-        plot(tvec{i}, ir{i})
+        plot(tvec{i}, [ir{i}.diff1])
         hold on
     end
     hold off

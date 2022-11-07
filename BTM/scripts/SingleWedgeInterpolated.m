@@ -1,6 +1,8 @@
 function [tfmag, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS, zR, controlparameters, createPlot)
     
-    controlparameters.Rstart = radiusS;
+    if isfield(controlparameters, 'Rstart')
+        controlparameters.Rstart = controlparameters.Rstart - 1 / controlparameters.fs * 344;
+    end
     epsilon = 1e-10;
     if thetaR - thetaS > 180
         % Generate true response
@@ -8,6 +10,7 @@ function [tfmag, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedgeIn
         
         % Generate reference boundary responses
         [~, tfmagDiffRef, ~, ~, ~] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaS + 180 + epsilon, radiusR, radiusS, zS, zR, controlparameters, createPlot);
+        controlparameters.difforder = 0;
         [~, tfmagDirRef, ~, ~, ~] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaS + 180 - epsilon, radiusR, radiusS, zS, zR, controlparameters, createPlot);
         
         % Create scaled response
@@ -15,7 +18,7 @@ function [tfmag, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedgeIn
         DirRef = tfmagDirRef.direct;
         shift = DirRef - DiffRef;
         scaledResponse = tfmag.diff1 + shift;
-        truth = 10;
+        truth = 0;
 
         % Interpolate between the true and scaled responses
         i = min(1, (thetaR - thetaS - 180) / (wedgeIndex - thetaS - 180 - truth));

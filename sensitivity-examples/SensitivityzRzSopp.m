@@ -1,21 +1,26 @@
 function SensitivityzRzSopp(fs)
-    wedgeLength = 10;
+    wedgeLength = 20;
     wedgeIndex = 270;
     thetaS = 10;
     thetaR = 260;
     radiusS = 1;
     radiusR = 1;
-    zR = -5:5;
+    zR = wedgeLength / 2 + linspace(4, 35, 10);
     zR(zR == 0) = 0.001;
     zS = wedgeLength-zR;
     
+    controlparameters = struct('fs', fs, 'nfft', 16384, 'difforder', 1);
+
     result = struct();
     for i = 1:length(zR)
-        [result(i).ir, result(i).tfmag, result(i).tvec, result(i).fvec] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS(i), zR(i), fs);
+        [result(i).ir, result(i).tfmag, result(i).tvec, result(i).fvec, result(i).tfcomplex] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS(i), zR(i), controlparameters, false);
+        L = 2 * sqrt(radiusR ^ 2 + (zR(i) - wedgeLength / 2) ^ 2);
+        result(i).tfcomplex.diff1 = L .* result(i).tfcomplex.diff1;
     end
     
     %% Process data
-    tfmag = [result.tfmag];
+    tfcomplex = [result.tfcomplex];
+    tfmag = mag2db(abs([tfcomplex.diff1]));
     ir = {result.ir};
     fvec = [result(1).fvec];
     tvec = {result.tvec};
@@ -34,7 +39,7 @@ function SensitivityzRzSopp(fs)
     
     figure
     for i = 1:length(ir)
-        plot(tvec{i}, ir{i})
+        plot(tvec{i}, [ir{i}.diff1])
         hold on
     end
     hold off

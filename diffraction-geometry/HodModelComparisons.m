@@ -30,7 +30,7 @@ index = DataHash({numPaths, fs, nfft, numEdges, height});
 [loadPath, savePath] = deal(['geometry/NthOrderPaths_10cmTo3m_', num2str(index), '.mat']);
 restart = true;
 generate = false;
-plotFigures = true;
+plotFigures = false;
 createPlot = false;
 if restart
     i = 1;
@@ -93,9 +93,9 @@ for i = n:numPaths
     % Expand to include z variation. Requires calculating all the apex points.
     
     %% 2nd order BTM
-    
+
     [ir, tfmag, tvec, ~, tfcomplex] = SingleBTM(source, receiver, corners, planeCorners, planeRigid, controlparameters, createPlot);
-    
+
     tfmagDiff2 = tfmag.diff2(idx);
     %% BTM Daisy Chains
     
