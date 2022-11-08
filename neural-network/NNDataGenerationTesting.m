@@ -5,7 +5,27 @@ rng(1)
 fs = 96e3;
 nfft = 8192;
 batchSize = 200;
-controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1);
+controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'saveFiles', true);
+
+wedgeLength = 10;
+radiusS = 0.02;
+radiusR = 0.03;
+thetaS = 10;
+thetaR = 179.9999 + thetaS;
+wedgeIndex = 320;
+zS = 5;
+zR = 5;
+
+[ir, tfmag, ~, ~, ~] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS, zR, controlparameters, false);
+dirRef = tfmag.direct;
+dirIr = ir.direct;
+input = [zeros(10, 1); 1; zeros(44, 1)];
+windowLength = 11;
+pathLength = (radiusS + radiusR) * ones(1, length(input) / windowLength);
+validPath = ones(size(pathLength));
+c = 344;
+[output, ir] = DelayLine(input, pathLength, windowLength, validPath, c, fs);
+tfmag = IrToTf(ir, nfft);
 [trainingData, targetData, fvec, fNBand, fidx] = CreateBtmTrainingData(batchSize, controlparameters);
 
 figure

@@ -17,7 +17,7 @@ radiusR = 0.9;
 height = 20;
 [zS, zR] = deal(height / 2);
 
-controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c);
+controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c, 'saveFiles', true);
 
 %% Generate geometry
 
@@ -27,16 +27,16 @@ controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c
 numPaths = 100;
 
 index = DataHash({numPaths, fs, nfft, numEdges, height});
-[loadPath, savePath] = deal(['geometry/NthOrderPaths_', num2str(index), '.mat']);
+[loadPath, savePath] = deal(['geometry/NthOrderPaths_10cmTo3m_', num2str(index), '.mat']);
 restart = true;
 generate = false;
-plotFigures = true;
+plotFigures = false;
 createPlot = false;
 if restart
     i = 1;
 end
 n = i;
-
+%% BTM is very wrong for i = 9. Issue with extra visible paths increasing level and causing comb filtering. - Need to fix and responsible for edge case extreme errors in BTM
 m = 100;
 freq = logspace(log10(20), log10(12e3), m);
 idx = zeros(1, m);
@@ -71,13 +71,13 @@ for i = n:numPaths
 %         data(i).W = [0.2 0.2 0.2 0.2];
 %         controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 5, 'c', c);
 
-        height = 3;
-        data(i).wedgeIndex = [270 270];
-        data(i).thetaS = 80;
-        data(i).thetaR = 190;
-        data(i).rS = 0.5;
-        data(i).rR = 0.5;
-        data(i).W = 0.5 / 3.5;
+%         height = 3;
+%         data(i).wedgeIndex = [270 270];
+%         data(i).thetaS = 85;
+%         data(i).thetaR = 185;
+%         data(i).rS = 1.4;
+%         data(i).rR = 1.4;
+%         data(i).W = 0.5 / 3.5;
 
         wedgeIndex = data(i).wedgeIndex;
         thetaS = data(i).thetaS;
@@ -85,7 +85,7 @@ for i = n:numPaths
         radiusS = data(i).rS;
         radiusR = data(i).rR;
         W = data(i).W;
-        data(i).L = radiusS + W + radiusR;
+        data(i).L = radiusS + sum(W) + radiusR;
 
         [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid] = CreateNthOrderPathData(wedgeIndex, thetaS, thetaR, radiusS, radiusR, W, height);
     end
@@ -93,9 +93,9 @@ for i = n:numPaths
     % Expand to include z variation. Requires calculating all the apex points.
     
     %% 2nd order BTM
-    
+
     [ir, tfmag, tvec, ~, tfcomplex] = SingleBTM(source, receiver, corners, planeCorners, planeRigid, controlparameters, createPlot);
-    
+
     tfmagDiff2 = tfmag.diff2(idx);
     %% BTM Daisy Chains
     
@@ -124,6 +124,9 @@ for i = n:numPaths
     x = log10([fvecBTM(2), fvecUTD, fvecBTM(end)]);
     xq = log10(fvecBTM);
 
+    input = [1; zeros(1e3, 1)];
+    [~, utdTfmagApexLR] = ConvolveLRFilter(input, utdTfmagApex(:,end), fs, nfft);
+    [~, utdTfmagExtLR] = ConvolveLRFilter(input, utdTfmagExt(:,end), fs, nfft);
     for k = 1:numEdges + 1
         utdTfmagApexInterp(:,k) = interp1(x, [utdTfmagApex(1,k); utdTfmagApex(:,k); utdTfmagApex(end,k)], xq);
         utdTfmagExtInterp(:,k) = interp1(x, [utdTfmagExt(1,k); utdTfmagExt(:,k); utdTfmagExt(end,k)], xq);
@@ -137,11 +140,9 @@ for i = n:numPaths
         utdTfmagExt2(:,k) = interp1(x, [utdTfmagExt(1,k); utdTfmagExt(:,k); utdTfmagExt(end,k)], xq);
     end
 
-    meanUtdApex(i) = mean((utdTfmagApex2(:,end) - tfmagDiff2) .^ 2);
-    meanUtdExt(i) = mean((utdTfmagExt2(:,end) - tfmagDiff2) .^ 2);
+    meanUtdApex(i) = mean((utdTfmagApexLR(idx) - tfmagDiff2) .^ 2);
+    meanUtdExt(i) = mean((utdTfmagExtLR(idx) - tfmagDiff2) .^ 2);
     
-    L = (radiusS + W + radiusR);
-    test = mag2db(0.5 * (1 / L) * abs(btmTfcomplexExt(:,1) .* btmTfcomplexExt(:,2)));
     %% Figures
     if plotFigures
         figure('Position',[50 100 1820 800])
@@ -162,20 +163,19 @@ for i = n:numPaths
         semilogx(fvecBTM, btmTfmagApex(:,end))
         hold on
         semilogx(fvecBTM, btmTfmagExt(:,end))
-        semilogx(fvecBTM, btmTfmagPlane(:,end))
-        semilogx(fvecBTM, utdTfmagApexInterp(:,end))
-        semilogx(fvecBTM, utdTfmagExtInterp(:,end))
+        semilogx(fvecBTM, utdTfmagApexLR)
+        semilogx(fvecBTM, utdTfmagExtLR)
         semilogx(fvecBTM, tfmag.diff2)
         title('Frequency responses')
         xlabel('Frequency')
         ylabel('Magnitude')
-        legend('BTM Apex', 'BTM Ext', 'BTM Plane', 'UTD Apex', 'UTD Ext', 'True BTM', 'Location', 'southwest')
+        legend('BTM Apex', 'BTM Ext', 'UTD Apex', 'UTD Ext', 'True BTM', 'Location', 'southwest')
         xlim([20 20000])
         ylim([-70 0])
     end
 end
 
-save(savePath, 'data')
+%save(savePath, 'data')
 
 disp('Complete')
 
@@ -193,22 +193,22 @@ countBtmUtdApex = 100 * sum(meanBtmExt < meanUtdApex) / numPaths;
 countBtmUtdExt = 100 * sum(meanBtmExt < meanUtdExt) / numPaths;
 countBtmExtPlane = 100 * sum(meanBtmExt < meanBtmPlane) / numPaths;
 
-[N, edges, bin] = histcounts(sqrt(meanBtmApex), 50);
+[N, edges, bin] = histcounts(sqrt(meanUtdApex), 50);
 
 figure
 histogram(sqrt(meanBtmApex), length(N), 'BinEdges',edges)
 title('BTM Apex')
-ylim([0 30])
+ylim([0 20])
 
 figure
 histogram(sqrt(meanBtmExt), length(N), 'BinEdges',edges)
 title('BTM Ext')
-ylim([0 30])
+ylim([0 20])
 
 figure
 histogram(sqrt(meanBtmPlane), length(N), 'BinEdges',edges)
 title('BTM Plane')
-ylim([0 30])
+ylim([0 20])
 
 figure
 histogram(sqrt(meanUtdApex), length(N), 'BinEdges',edges)

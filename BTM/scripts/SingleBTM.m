@@ -6,7 +6,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleBTM(source, receiver, corner
     [inFilePath, fileName, savePath, loadPath, resultExists] = BTMFileHandling(mFile, index);
     
     if resultExists
-        load(loadPath, "ir", "tfmag", "tvec", "fvec", "tfcomplex");
+        load([cd filesep loadPath], "ir", "tfmag", "tvec", "fvec", "tfcomplex");
         disp('IR load from save');
     else
 

@@ -28,14 +28,14 @@ numPaths = 100;
 
 index = DataHash({numPaths, fs, nfft, numEdges, height});
 [loadPath, savePath] = deal(['geometry/NthOrderPaths_10cmTo3m_', num2str(index), '.mat']);
-restart = false;
+restart = true;
 generate = false;
-plotFigures = true;
+plotFigures = false;
 createPlot = false;
 if restart
     i = 1;
 end
-%n = i;
+n = i;
 %% BTM is very wrong for i = 9. Issue with extra visible paths increasing level and causing comb filtering. - Need to fix and responsible for edge case extreme errors in BTM
 m = 100;
 freq = logspace(log10(20), log10(12e3), m);
@@ -49,7 +49,7 @@ dtemplate = struct('rS', [], 'rR', [], 'W', [], 'L', [], 'thetaS', [], 'thetaR',
 if generate && n == 1
     data = repmat(dtemplate, numPaths, 1);
 elseif ~generate
-    n = 9;
+    n = 1;
     load(loadPath, 'data')
 end
 
@@ -193,29 +193,30 @@ countBtmUtdApex = 100 * sum(meanBtmExt < meanUtdApex) / numPaths;
 countBtmUtdExt = 100 * sum(meanBtmExt < meanUtdExt) / numPaths;
 countBtmExtPlane = 100 * sum(meanBtmExt < meanBtmPlane) / numPaths;
 
-[N, edges, bin] = histcounts(sqrt(meanBtmApex), 50);
+% [N, edges, bin] = histcounts(sqrt(meanUtdApex), 50);
 
+edges = linspace(0, 7, 50);
 figure
 histogram(sqrt(meanBtmApex), length(N), 'BinEdges',edges)
 title('BTM Apex')
-ylim([0 60])
+ylim([0 30])
 
 figure
 histogram(sqrt(meanBtmExt), length(N), 'BinEdges',edges)
 title('BTM Ext')
-ylim([0 60])
+ylim([0 30])
 
 figure
 histogram(sqrt(meanBtmPlane), length(N), 'BinEdges',edges)
 title('BTM Plane')
-ylim([0 60])
+ylim([0 30])
 
 figure
 histogram(sqrt(meanUtdApex), length(N), 'BinEdges',edges)
 title('UTD Apex')
-ylim([0 60])
+ylim([0 30])
 
 figure
 histogram(sqrt(meanUtdExt), length(N), 'BinEdges',edges)
 title('UTD Ext')
-ylim([0 60])
+ylim([0 30])

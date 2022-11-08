@@ -13,10 +13,5 @@ function [inFilePath, fileName, savePath, loadPath, resultExists] = BTMFileHandl
     CheckFileDir(['results\', fileName])
 
     % Check if previous result exists
-    output = exist(loadPath, "file");
-    if output == 2
-        resultExists = true;
-    else
-        resultExists = false;
-    end
+    resultExists = isfile(loadPath);
 end
