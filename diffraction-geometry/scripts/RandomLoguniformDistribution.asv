@@ -7,8 +7,8 @@ function output = RandomLoguniformDistribution(input, numOutputs)
     % Create a log uniformly distributed random set of 'numOutputs' numbers for the given range
     lower = input(1);
     upper = input(2);
-    % pd = makedist('Loguniform', 'Lower', lower, 'Upper', upper);
+    pd = makedist('Loguniform', 'Lower', lower, 'Upper', upper);
     pd = makedist('Uniform', 'Lower', 0, 'Upper', 1);
-    y = random(pd, numOutputs, 1);
-    output = 10 .^ (y * (log10(upper) - log10(lower)) + log10(lower));
+    output = random(pd, numOutputs, 1);
+    (output - )
 end

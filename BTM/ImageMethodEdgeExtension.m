@@ -1,6 +1,16 @@
 clear all
 close all
 
+output = RandomLoguniformDistribution([1 100], 20e3);
+
+[~,edges] = histcounts(log10(output));
+figure
+histogram(output,10.^edges)
+set(gca, 'xscale','log')
+title('output')
+
+x = makedist('Loguniform', 'Lower', 1, 'Upper', 4)
+
 wedgeLength = 1;
 wedgeIndex = 320;
 thetaS = 20;
