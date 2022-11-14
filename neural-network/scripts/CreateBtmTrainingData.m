@@ -1,7 +1,9 @@
 function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtmTrainingData(numInputs, controlparameters, index)
 
+    disp('Checkpoint1');
     [geometry, trainingData] = RandomGeometryWedge(numInputs);
 
+    disp('Checkpoint2')
     % Create file info
     mFile = mfilename('fullpath');
     if nargin < 3
