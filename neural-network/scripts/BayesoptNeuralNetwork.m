@@ -10,7 +10,6 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     
     epochSize = 20e3;
 
-    currentFolder = pwd
     saveDir = 'runningFiles';
     CheckFileDir(saveDir);
     disp(['Save path ', saveDir]);
@@ -39,7 +38,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     else
         disp('Start Optimisation')
         result = bayesopt(func, [learnRate, gradDecay, sqGradDecay, maxGradient, numLayers], ...
-        'UseParallel', true, 'MaxTime', 86400, 'MaxObjectiveEvaluations', 10, ...
+        'UseParallel', true, 'MaxTime', 86400, 'MaxObjectiveEvaluations', 30, ...
         'SaveFileName', saveResult, 'OutputFcn', @saveToFile);
     end
     
