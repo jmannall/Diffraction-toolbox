@@ -4,13 +4,13 @@ hrtfData = permute(double(hrtfData),[2,3,1]);
 
 sourcePosition = sourcePosition(:,[1,2]);
 
-n = 100;
-durationPerPosition = 0.2;
+n = 10;
+durationPerPosition = 3;
 %durationPerPosition = 1;
 desiredAz = [-120;-60;0;60;120;0;-120;120];
-desiredAz = linspace(90,90,n)';
+desiredAz = linspace(0,0,n)';
 desiredEl = [-90;90;45;0;-45;0;45;45];
-desiredEl = linspace(0,180,n)';
+desiredEl = linspace(-90,90,n)';
 
 desiredPosition = [desiredAz desiredEl];
 

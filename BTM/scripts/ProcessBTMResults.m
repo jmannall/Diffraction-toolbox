@@ -55,9 +55,13 @@ function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, file
     end
 
     % Save results
-    if controlparameters.saveFiles
-        save(savePath, "ir", "tfmag", "tvec", "fvec", "tfcomplex");
-        disp('Result saved')
+
+    if controlparameters.saveFiles >= 1
+        binary = fliplr(dec2bin(controlparameters.saveFiles));
+        if binary(1) == '1'
+            save(savePath, "ir", "tfmag", "tvec", "fvec", "tfcomplex");
+            disp('Result saved')
+        end
     end
 
     % Clear up and delete files

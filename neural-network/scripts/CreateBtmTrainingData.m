@@ -1,13 +1,13 @@
-function [trainingData, targetData, fvec, fc, fidx] = CreateBtmTrainingData(numInputs, controlparameters)
+function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtmTrainingData(numInputs, controlparameters, index)
+
     [geometry, trainingData] = RandomGeometryWedge(numInputs);
 
     % Create file info
     mFile = mfilename('fullpath');
-    index = DataHash({geometry, controlparameters});
+    if nargin < 3
+        index = DataHash({geometry, controlparameters});
+    end
     [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, extra, rtemplate] = BTMArrayFileHandling(mFile, index, numInputs);
-    
-    % Test run to generate files
-    % [~] = SingleWedgeInterpolated(10,350,10,320,1,1,5,5,controlparameters,false);
 
     saveCount = 1;
     if resultExists
@@ -49,7 +49,7 @@ function [trainingData, targetData, fvec, fc, fidx] = CreateBtmTrainingData(numI
             ParforSaveArray(savepathI, result, geometry);
         end
         toc
-        result = ProcessArrayResults(fileName, index, savePath, numSaves, geometry);
+        result = ProcessArrayResults(fileName, index, savePath, numSaves, controlparameters, geometry);
     end
     tfmag = [result.tfmag];
     tfmag = max(min(tfmag, 128), -128);

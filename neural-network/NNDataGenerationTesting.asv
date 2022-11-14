@@ -2,7 +2,7 @@ close all
 clear all
 
 rng(1)
-fs = 48e3;
+fs = 96e3;
 nfft = 8192;
 c = 344;
 batchSize = 200;
@@ -19,13 +19,9 @@ zR = 5;
 
 receiverPath = [-4 2 1.6
     1 2 1.6
-    -2 2 1.6
-    1 2 1.6
-    2 -2 1.6
     8 -4 1.6];
 source = [1 -2 1.6];
 vSource = [-1 -2 1.6];
-apex = [0 0 1.6];
 
 updateRate = 100;
 windowLength = 2 * fs / updateRate;
@@ -53,22 +49,22 @@ m = radiusR / arg;
 numReceivers = length(receivers);
 time = numReceivers / updateRate;
 
-[desiredAzDir, desiredElDir] = CalculateAzimuthElevation(receiverDirection, receivers, source);
-[desiredAzGeom, desiredElGeom] = CalculateAzimuthElevation(receiverDirection, receivers, vSource);
-[desiredAzDiff, desiredElDiff] = CalculateAzimuthElevation(receiverDirection, receivers, apex);
-
 for i = 1:numReceivers
     pathLengthDir = norm(receivers(i,:) - source);
     pathLengthDiff = sqrt((radiusS + radiusR(i)) ^ 2 + (zR(i) - zS) ^ 2);
     pathLengthDir2 = sqrt(l ^ 2 + m(i) ^ 2 - 2 * l * m(i) * cosd(thetaR(i) - thetaS));
-    [tfmagI(:,i), fvecI, tfcomplexI(:,i)] = SingleWedgeInterpolated(wedgeLength, wedgeIndex, thetaS, thetaR(i), radiusS, radiusR(i), zS, zR(i), controlparameters, createPlot);
+    [tfmagI(:,i), fvecI, tfcomplexI(:,i)] = SingleWedgeInterpolated(wedgeLength, wedgeIndex, thetaS, thetaR(i), radiusS, radiusR(i), zS, zR(i), controlparameters, createPlot, pathLengthDir);
     [ir(:,i), tfmag(:,i), tvec, fvec, tfcomplex(:,i)] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR(i), radiusS, radiusR(i), zS, zR(i), controlparameters, createPlot);
     result(i).ir= ir(:,i);
     result(i).tfmag = tfmag(:,i);
     result(i).tfcomplex = tfcomplex(:,i);
     result(i).tvec = tvec;
     result(i).fvec = fvec;
-    [tfmagStore, fvecUtd, tfcomplexStoreUtd] = SingleUTDWedgeInterpolated(thetaS, thetaR(i), radiusS, radiusR(i), wedgeIndex, phii, controlparameters);
+    [tfmagStore, fvecUtd, tfcomplexStoreUtd] = SingleUTDWedgeInterpolated(thetaS, thetaR(i), radiusS, radiusR(i), wedgeIndex, phii, controlparameters, pathLengthDir);
+    
+    sourceDirectionDiff(i) = acosd(dot(receiverDirection(i,:), (receivers(i,:) / radiusR(i))));
+    sourceDirectionDir(i) = acosd(dot(receiverDirection(i,:), (receivers(i,:) - source) / pathLengthDir));
+    sourceDirectionGeom(i) = acosd(dot(receiverDirection(i,:), (receivers(i,:) - vSource) / norm(receivers(i,:) - vSource)));
 
     if thetaR - thetaS < 180
         pathLength = pathLengthDir;
@@ -82,7 +78,6 @@ for i = 1:numReceivers
     [~, tfmagUtd(:,i), tfcomplexUtd(:,i)] = DelayLineLRFilter(input, tfmagStore, pathLength, windowLength, 1, c, fs, nfft);
 end
 
-
 tfdiffI = tfcomplexI;
 tfdiff = [tfcomplex.diff1];
 tfdir = [tfcomplex.direct];
@@ -95,10 +90,10 @@ ir = [result.ir];
 %% Process data
 
 figure
-plot(1:numReceivers, desiredAzDir)
+plot(1:numReceivers, sourceDirectionDir)
 hold on
-plot(1:numReceivers, desiredAzGeom)
-plot(1:numReceivers, desiredAzDiff)
+plot(1:numReceivers, sourceDirectionDiff)
+
 
 %% audio
 % NormaliseAudio('audio\whiteNoise96k.wav', nfft);
@@ -130,10 +125,15 @@ hrtfData = permute(double(hrtfData),[2,3,1]);
 sourcePosition = sourcePosition(:,[1,2]);
 
 durationPerPosition = 1 / updateRate;
+%durationPerPosition = 1;
+desiredAzDir = 360 - sourceDirectionDir;
+desiredAzGeom = 360 - sourceDirectionGeom;
+desiredAzDiff = 360 - sourceDirectionDiff;
+desiredEl = linspace(0,0,numReceivers)';
 
-desiredPositionDir = [desiredAzDir desiredElDir];
-desiredPositionGeom = [desiredAzGeom desiredElGeom];
-desiredPositionDiff = [desiredAzDiff desiredElDiff];
+desiredPositionDir = [desiredAzDir desiredEl];
+desiredPositionGeom = [desiredAzGeom desiredEl];
+desiredPositionDiff = [desiredAzDiff desiredEl];
 
 interpolatedIRDir  = interpolateHRTF(hrtfData,sourcePosition,desiredPositionDir);
 interpolatedIRGeom  = interpolateHRTF(hrtfData,sourcePosition,desiredPositionGeom);
@@ -141,20 +141,14 @@ interpolatedIRDiff  = interpolateHRTF(hrtfData,sourcePosition,desiredPositionDif
 
 leftIRDir = squeeze(interpolatedIRDir(:,1,:));
 rightIRDir = squeeze(interpolatedIRDir(:,2,:));
-leftIRGeom = squeeze(interpolatedIRGeom(:,1,:));
-rightIRGeom = squeeze(interpolatedIRGeom(:,2,:));
-leftIRDiff = squeeze(interpolatedIRDiff(:,1,:));
-rightIRDiff = squeeze(interpolatedIRDiff(:,2,:));
 
-btmDirAudioL = ConvolveIR(btmDirAudio, leftIRDir', windowLength);
-btmDirAudioR = ConvolveIR(btmDirAudio, rightIRDir', windowLength);
-btmGeomAudioL = ConvolveIR(btmGeomAudio, leftIRGeom', windowLength);
-btmGeomAudioR = ConvolveIR(btmGeomAudio, rightIRGeom', windowLength);
-btmDiffAudioL = ConvolveIR(btmDiffAudio, leftIRDiff', windowLength);
-btmDiffAudioR = ConvolveIR(btmDiffAudio, rightIRDiff', windowLength);
+btmAudioL = ConvolveTfcomplex(btmDirAudio, fft(leftIRDir), numReceivers);
+btmAudioL = ConvolveTfcomplex(btmDirAudio, fft(leftIRDir), numReceivers);
 
-%% Audio
-btmAudio = [btmDirAudioL + btmGeomAudioL + btmDiffAudioL btmDirAudioR + btmGeomAudioR + btmDiffAudioR];
+btmAudioL = ConvolveIR(audio, leftIRDir, windowLength, validPathDir);
+btmAudioR = ConvolveIR(audio, rightIRDir, windowLength, validPathDir);
+
+btmAudio = [btmAudioL btmAudioR];
 btmIAudio = ConvolveTfcomplex(audio, tfdiffI, numReceivers);
 utdAudio = ConvolveTfcomplex(audio, tfcomplexUtd, numReceivers);
 

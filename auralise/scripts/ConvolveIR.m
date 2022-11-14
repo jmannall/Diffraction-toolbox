@@ -12,7 +12,7 @@ function output = ConvolveIR(audio, ir, windowLength, validPath)
     output = zeros(length(audio), 1);
     
     % Default validPath
-    if argin < 4
+    if nargin < 4
         validPath  = ones(1, numBuffers);
     end
 

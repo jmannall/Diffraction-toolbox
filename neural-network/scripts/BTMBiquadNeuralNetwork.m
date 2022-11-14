@@ -27,6 +27,5 @@ function [loss, net] = BTMBiquadNeuralNetwork(x, trainingData, targetData, fidx,
     dataFunc = @() CreateBtmTrainingData(epochSize, controlparameters);
 
     % Train network
-    [net, loss] = CreateNeuralNetwork(trainingData, targetData, numLayers, hiddenLayerSize, alpha, numEpochs, miniBatchSize, lossFunc, x);
-    %[net, loss] = CreateNeuralNetwork(trainingData, targetData, numLayers, hiddenLayerSize, alpha, numEpochs, miniBatchSize, lossFunc, x, dataFunc);
+    [net, loss] = CreateNeuralNetwork(trainingData, targetData, numLayers, hiddenLayerSize, alpha, numEpochs, miniBatchSize, lossFunc, x, dataFunc);
 end

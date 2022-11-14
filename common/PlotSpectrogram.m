@@ -62,10 +62,10 @@ function PlotSpectrogram(tfcomplex, f, t, limits, fileName, phase, savePlot, xLa
         axis tight
         xlabel(xLabel)
         ylabel('Frequency (Hz)')
-        %xlim([min(t) max(t)])
-        %ylim([20 20e3])
+        xlim([min(t) max(t)])
+        ylim([20 20e3])
         %ylim([-10 10])
-        %set(gca,'YScale','log')
+        set(gca,'YScale','log')
         set(sh, 'EdgeColor','none')
         clim(limits)
         c.Label.String = 'Magnitude (dB)';

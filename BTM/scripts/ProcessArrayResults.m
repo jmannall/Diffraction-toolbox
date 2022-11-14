@@ -1,4 +1,4 @@
-function result = ProcessArrayResults(fileName, index, savePath, numSaves, geometry, NNinput)
+function result = ProcessArrayResults(fileName, index, savePath, numSaves, controlparameters, geometry, NNinput)
     
     % Compile saves into a single file
     resultAll = [];
@@ -12,12 +12,17 @@ function result = ProcessArrayResults(fileName, index, savePath, numSaves, geome
     result = resultAll;
 
     % Save results
-    if nargin > 5
-        save(savePath, "result", "geometry", "NNinput", '-v7.3')
-    else
-        save(savePath, "result", "geometry", '-v7.3')
+    if controlparameters.saveFiles >= 2
+        binary = fliplr(dec2bin(controlparameters.saveFiles));
+        if binary(2) == '1'
+            if nargin > 6
+                save(savePath, "result", "geometry", "NNinput", '-v7.3')
+            else
+                save(savePath, "result", "geometry", '-v7.3')
+            end
+            disp('Result saved')
+        end
     end
-    disp('Result saved')
     
     if ~isempty([result.ir])
         result = UniformResult(result);

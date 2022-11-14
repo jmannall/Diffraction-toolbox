@@ -35,6 +35,6 @@ function [result, geometry] = SingleWedgeArray(geometry, wedgeLength, radiusS, r
             ParforSaveArray(savepathI, result, geometry);
         end
         toc
-        result = ProcessArrayResults(fileName, index, savePath, numSaves, geometry);
+        result = ProcessArrayResults(fileName, index, savePath, numSaves, controlparameters, geometry);
     end 
 end

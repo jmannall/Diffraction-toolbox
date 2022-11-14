@@ -45,6 +45,6 @@ function [result, NNinput] = NNWedgeArray(geometry, NNinput, gParameters, numObs
             ParforSaveNNArray(savepathI, result, geometry, NNinput);
         end
         toc        
-        result = ProcessArrayResults(fileName, index, savePath, numSaves, geometry);
+        result = ProcessArrayResults(fileName, index, savePath, numSaves, controlparameters, geometry);
     end 
 end

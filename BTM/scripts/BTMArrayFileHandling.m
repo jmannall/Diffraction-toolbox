@@ -13,7 +13,7 @@ function [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, ex
     CheckFileDir(['results\', fileName])
 
     % Check if previous complete result exists
-    output = exist(loadPath, "file");
+    output = exist([cd filesep loadPath], "file");
 
     % Loop through to check for previous unifinished attempts
     i = 0;
@@ -21,19 +21,19 @@ function [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, ex
     filesPerSave = 50;
     numSaves = ceil(numInputs / filesPerSave);
     if output ~= 2
-        test = 2;
+        test = true;
         loadPath = loadPath(1:end-4);
         while test == 2 && i <= numSaves
             i = i + 1;
             loadpathI = [loadPath, '_', num2str(i), '.mat'];
-            test = exist(loadpathI, "file");
+            test = exist([cd filesep loadpathI], "file");
         end
+        % Check if previous result exists
         loadPath = [loadPath, '_', num2str(max(1,i - 1)), '.mat'];
-        output = exist(loadPath, "file");
+        output = exist([cd filesep loadPath], "file");
         extra = filesPerSave - rem(numInputs, filesPerSave);
     end
 
-    % Check if previous result exists
     if output == 2
         resultExists = true;
     else

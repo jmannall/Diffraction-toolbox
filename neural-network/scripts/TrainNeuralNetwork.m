@@ -13,10 +13,10 @@ function [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEp
 
     [lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
 
+    disp('Start training')
     tic
     for epoch = 1:numEpochs
-        if nargin > 8
-            rng(epoch)
+        if nargin > 8 && epoch > 1
             [trainingData, targetData] = dataFunc();
         end
         % Shuffle data.

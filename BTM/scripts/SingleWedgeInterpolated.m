@@ -6,6 +6,7 @@ function [tfmag, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedgeIn
     if isfield(controlparameters, 'Rstart')
         controlparameters.Rstart = controlparameters.Rstart - 1 / fs * c;
     end
+    input = [1; zeros(5, 1)];
     epsilon = 1e-10;
     if thetaR - thetaS > 180
         % Generate true response
@@ -13,9 +14,9 @@ function [tfmag, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedgeIn
         
         % Generate reference boundary responses
         [~, tfmagDiffRef, ~, ~, ~] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaS + 180 + epsilon, radiusR, radiusS, zS, zR, controlparameters, createPlot);
-        controlparameters.difforder = 0;
-        input = [1; zeros(5, 1)];
-        pathLength = sqrt((radiusS + radiusR) ^ 2 + (zR - zS) ^ 2);
+        
+        zA = CalculateApex(radiusS, radiusR, zS, zR, wedgeLength);
+        pathLength = sqrt(radiusS ^ 2 + (abs(zA - zS) ^ 2)) + sqrt(radiusR ^ 2 + (abs(zA - zR) ^ 2));
         [~, dirIr] = DelayLine(input, pathLength, 3, 1, c, fs);
         %[~, tfmagDirRef, ~, ~, ~] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaS + 180 - epsilon, radiusR, radiusS, zS, zR, controlparameters, createPlot);
         
@@ -35,8 +36,11 @@ function [tfmag, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedgeIn
         tfcomplex = PolarToComplex(10.^(tfmag / 20), phase);
     else
         % Remove diffracted sound if not in the shadow zone 
-        [~, tfmag, ~, fvec, tfcomplex] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusR, radiusS, zS, zR, controlparameters, createPlot);
-        tfcomplex = tfcomplex.direct;
-        tfmag = tfmag.direct;
+        [~, dirIr] = DelayLine(input, pathLength, 3, 1, c, fs);
+        [tfmag, tfcomplex] = IrToTf(dirIr, nfft);
+        fvec = fs/nfft*[0:nfft/2-1];
+%         [~, tfmag, ~, fvec, tfcomplex] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusR, radiusS, zS, zR, controlparameters, createPlot);
+%         tfcomplex = tfcomplex.direct;
+%         tfmag = tfmag.direct;
     end
 end
