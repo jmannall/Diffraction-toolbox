@@ -36,15 +36,23 @@ zS = -zS;
 tfcomplexAll(:,4) = tfcomplex.diff1;
 
 %% Bundled paths
-wedgeLength = 2 * wedgeLength;
-zS = zS + wedgeLength;
-zR = zR + wedgelength;
+newWedgeLength = 2 * wedgeLength;
+zS = -zS + wedgeLength;
+zR = -zR + wedgeLength;
+
 % Direct and sp-ed-sp
-[ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS, zR, controlparameters, false);
-tfcomplexBundle
+[ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(newWedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS, zR, controlparameters, false);
+tfcomplexBundle(:,1) = tfcomplex.diff1;
+
+% sp-ed and ed-sp
+zS = zS - wedgeLength;
+[ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(newWedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS, zR, controlparameters, false);
+tfcomplexBundle(:,2) = tfcomplex.diff1;
 
 %% Figure
 
 disp('Plot')
 figure
 semilogx(fvec, mag2db(abs(sum(tfcomplexAll, 2))))
+hold on
+semilogx(fvec, mag2db(abs(sum(tfcomplexBundle, 2))), '--')
