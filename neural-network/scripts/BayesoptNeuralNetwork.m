@@ -10,9 +10,10 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     
     epochSize = 20e3;
 
+    currentFolder = pwd
     saveDir = 'runningFiles';
     CheckFileDir(saveDir);
-    disp(saveDir);
+    disp(['Save path ', saveDir]);
     saveSeed = [saveDir, '\Seed.mat'];
     saveResult = [saveDir, '\BayesoptResults.mat'];
     restarting = isfile(saveSeed);
