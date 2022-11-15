@@ -8,7 +8,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     maxGradient = optimizableVariable('mG',[0.5 10],'Type','real','Transform','log');
     numLayers = optimizableVariable('nL',[2 min(20, maxLayers)],'Type','integer');
     
-    epochSize = 20e3;
+    epochSize = 200;
 
     saveDir = 'runningFiles';
     CheckFileDir(saveDir);
@@ -28,7 +28,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     [~, ~, ~, ~, ~, idx, saveData] = CreateBtmTrainingData(epochSize, controlparameters);
     dataFunc = @() CreateBtmTrainingData(epochSize, controlparameters, idx);
 
-    numEpochs = 100;
+    numEpochs = 50;
     func = @(x)CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs);
     restarting = isfile(saveResult);
     if restarting
@@ -38,7 +38,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     else
         disp('Start Optimisation')
         result = bayesopt(func, [learnRate, gradDecay, sqGradDecay, maxGradient, numLayers], ...
-        'UseParallel', true, 'MaxTime', 86400, 'MaxObjectiveEvaluations', 30, ...
+        'UseParallel', false, 'MaxTime', 86400, 'MaxObjectiveEvaluations', 10, ...
         'SaveFileName', saveResult, 'OutputFcn', @saveToFile);
     end
     

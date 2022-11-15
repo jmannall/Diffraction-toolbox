@@ -17,7 +17,7 @@ function [geometry, input] = RandomGeometryWedge(numObservations)
 
     const = ones(numObservations, 1);
 
-    wedgeIndex = [181, 360];
+    wedgeIndex = [181, 360 - epsilon];
     wI = [RandomTriangularDistribution(wedgeIndex, false, numTriObservations); RandomUniformDistribution(wedgeIndex, numUniObservations)];
     
     wedgeIndex = [wI, (360 - epsilon) * const];

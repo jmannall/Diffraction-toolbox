@@ -1,16 +1,13 @@
-function [tfmag, fvec] = CreateIIRFilter(z, p, k, fs)
-    
-    b = [k, -k * sum(z), k * prod(z)];
-    a = [1, -sum(p), prod(p)];
-    
-    [~, f] = freqz(b, a, 2048);
-    b = stripdims(b);
-    a = stripdims(a);
-    x = fft(b, 4096);
-    y = fft(a, 4096);
+%% Create output of IIR filters from ZPK parameters. Traceable by dlgradient
 
-    tfmag = (20 * log(abs(x ./ y)) / log(10))';
-    tfmag = tfmag(1:end / 2);
+function [tfmag, fvec, tfcomplex] = CreateIIRFilter(z, p, k, nfft, fs)
     
-    fvec = (f * fs) / (2 * pi);   
+    %% Calculate tfmag
+    numObservations = size(z,2);
+
+    numIIRFilters = size(z,1);
+    
+    [b, a] = IIRFilterCoefficients(z, p, k, numIIRFilters, numObservations);
+    
+    [tfmag, fvec, tfcomplex] = CalculateFilterResponse(b, a, nfft, fs);
 end
