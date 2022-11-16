@@ -10,7 +10,8 @@ function [loss, net] = CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize
     [trainingData, targetData] = dataFunc();
 
     numLayers = x.nL;
-    hiddenLayerSize = floor(sqrt(networkSize / numLayers));
+    gx = 5;
+    hiddenLayerSize = round((-gx + sqrt(gx ^ 2 - 4 * (-networkSize / numLayers))) / 2);
 
     % Train network
     [net, loss] = CreateNeuralNetwork(trainingData, targetData, numLayers, hiddenLayerSize, numOutputs, alpha, numEpochs, miniBatchSize, lossFunc, x, dataFunc);

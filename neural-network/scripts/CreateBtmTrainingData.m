@@ -44,6 +44,9 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
 
                 L = sqrt((rS + rR) ^ 2 + (zR - zS) ^ 2);
                 controlparametersi.Rstart = L;
+%                 disp(num2str(wedgeIndex))
+%                 disp(num2str(thetaS))
+%                 disp(num2str(thetaR))
                 [result(i).tfmag, result(i).fvec, result(i).tfcomplex] = SingleWedgeInterpolated(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
                 result(i).i = (j - 1) * filesPerSave + i;
             end

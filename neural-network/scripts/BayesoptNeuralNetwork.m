@@ -8,7 +8,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     maxGradient = optimizableVariable('mG',[0.5 10],'Type','real','Transform','log');
     numLayers = optimizableVariable('nL',[2 min(20, maxLayers)],'Type','integer');
     
-    epochSize = 200;
+    epochSize = 20e3;
 
     saveDir = 'runningFiles';
     CheckFileDir(saveDir);
@@ -28,7 +28,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     [~, ~, ~, ~, ~, idx, saveData] = CreateBtmTrainingData(epochSize, controlparameters);
     dataFunc = @() CreateBtmTrainingData(epochSize, controlparameters, idx);
 
-    numEpochs = 50;
+    numEpochs = 100;
     func = @(x)CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs);
     restarting = isfile(saveResult);
     if restarting
@@ -38,7 +38,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     else
         disp('Start Optimisation')
         result = bayesopt(func, [learnRate, gradDecay, sqGradDecay, maxGradient, numLayers], ...
-        'UseParallel', false, 'MaxTime', 86400, 'MaxObjectiveEvaluations', 10, ...
+        'UseParallel', true, 'MaxTime', 86400, 'MaxObjectiveEvaluations', 10, ...
         'SaveFileName', saveResult, 'OutputFcn', @saveToFile);
     end
     
@@ -52,7 +52,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     
     %% Save
     
-    save(['BayesoptResult_NNSize_', num2str(networkSize), '.mat'], "result", "xObs", "xEst", "lossObs", "netObs", "lossEst", "netEst")
+    save(['BayesoptResult_Size_', num2str(networkSize), '_Filter_', controlparameters.filterType, '.mat'], "result", "xObs", "xEst", "lossObs", "netObs", "lossEst", "netEst")
     
     %% Delete data save
     delete([saveData, '.mat'])

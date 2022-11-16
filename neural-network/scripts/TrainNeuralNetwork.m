@@ -32,8 +32,8 @@ function [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEp
             % modelLoss function.input
             [loss, state, gradients] = dlfeval(lossFunc,net,X,T);
             % Update normalisation paramters
-            x = state.Value(2);
-            y = extractdata(x{1})
+%             x = state.Value(2);
+%             y = extractdata(x{1})
             net.State = state;
     
             % Update the network parameters using the Adam optimizer.

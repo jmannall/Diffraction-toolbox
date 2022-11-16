@@ -20,5 +20,4 @@ function [b, a] = BiquadCoefficients(zR, zI, pR, pI, k, numBiquads, numObservati
         b = stripdims(b);
         a = stripdims(a);
     end
-
 end
