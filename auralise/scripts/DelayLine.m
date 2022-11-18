@@ -2,6 +2,7 @@
 
 function [output, ir] = DelayLine(audio, pathLength, windowLength, validPath, c, fs)
 
+
     [delay, fracDelay, amplitude] = CalculateDelay(pathLength, c, fs);
 
     [buffer, read, write, window, overlap, numBuffers, inputBuffer, output, windowLength, audio] = InitialiseBuffers(delay, windowLength, audio, pathLength);

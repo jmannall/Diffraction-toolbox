@@ -1,9 +1,9 @@
 close all
-clear all
+% clear all
 
 %% Data
 fs = 96e3;
-nfft = 4096;
+nfft = 8192*2;
 c = 344;
 numEdges = 2;
 fvec = fs / nfft * (0:nfft / 2 - 1);
@@ -27,9 +27,9 @@ controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c
 numPaths = 100;
 
 index = DataHash({numPaths, fs, nfft, numEdges, height});
-[loadPath, savePath] = deal(['geometry/NthOrderPaths_10cmTo3m_', num2str(index), '.mat']);
-restart = true;
-generate = false;
+[loadPath, savePath] = deal(['geometry/NthOrderPaths_3mTo10m_', num2str(index), '.mat']);
+restart = false;
+generate = true;
 plotFigures = false;
 createPlot = false;
 if restart
@@ -125,8 +125,11 @@ for i = n:numPaths
     xq = log10(fvecBTM);
 
     input = [1; zeros(1e3, 1)];
-    [~, utdTfmagApexLR] = ConvolveLRFilter(input, utdTfmagApex(:,end), fs, nfft);
-    [~, utdTfmagExtLR] = ConvolveLRFilter(input, utdTfmagExt(:,end), fs, nfft);
+    updateRate = 100;
+    windowLength = 2 * fs / updateRate;
+    pathLength = data(i).rS + sum(data(i).W) + data(i).rR;
+    [~, utdTfmagApexLR] = DelayLineLRFilter(input, utdTfmagApex(:,end), pathLength, windowLength, 1, c, fs, nfft);
+    [~, utdTfmagExtLR] = DelayLineLRFilter(input, utdTfmagExt(:,end), pathLength, windowLength, 1, c, fs, nfft);
     for k = 1:numEdges + 1
         utdTfmagApexInterp(:,k) = interp1(x, [utdTfmagApex(1,k); utdTfmagApex(:,k); utdTfmagApex(end,k)], xq);
         utdTfmagExtInterp(:,k) = interp1(x, [utdTfmagExt(1,k); utdTfmagExt(:,k); utdTfmagExt(end,k)], xq);
@@ -175,7 +178,7 @@ for i = n:numPaths
     end
 end
 
-%save(savePath, 'data')
+save(savePath, 'data')
 
 disp('Complete')
 
@@ -193,7 +196,7 @@ countBtmUtdApex = 100 * sum(meanBtmExt < meanUtdApex) / numPaths;
 countBtmUtdExt = 100 * sum(meanBtmExt < meanUtdExt) / numPaths;
 countBtmExtPlane = 100 * sum(meanBtmExt < meanBtmPlane) / numPaths;
 
-% [N, edges, bin] = histcounts(sqrt(meanUtdApex), 50);
+[N, edges, bin] = histcounts(sqrt(meanUtdApex), 50);
 
 edges = linspace(0, 7, 50);
 figure

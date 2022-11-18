@@ -1,34 +1,32 @@
-function [azimuth, elevation] = CalculateAzimuthElevation(direction, position, target)
-    numPositions = size(direction, 1);
-    const = ones(numPositions, 2);
-
-    % Calculate horizontal rotation to find azimuth
-    z = direction(:,3);
-    positionProj = [position(:,1:2) z];
-    targetProj = [const .* target(1:2) z];
-    dirVector = positionProj - targetProj;
-    magDirVector = vecnorm(dirVector, 2, 2);
-    dirVector = dirVector ./ magDirVector;
-    aDot = dot(direction, dirVector, 2);
-    aSign = cross(direction, dirVector, 2);
-    azimuth = 180 - acosd(aDot);
+function [azimuth, elevation] = CalculateAzimuthElevation(heading, receiverPosition, sourcePosition)
     
-    azimuth(aSign(:,3) > 0) = 360 - azimuth(aSign(:,3) > 0);
-    azimuth(magDirVector == 0) = 0;
-    
-    const = ones(numPositions, 1);
+    structInput = isstruct(sourcePosition);
 
-    % Calculate vertical rotation to find elevation
-    x = direction(:, 1:2);
-    positionProj = [x position(:,3)];
-    targetProj = [x const .* target(3)];
-    dirVector = positionProj - targetProj;
-    magDirVector = vecnorm(dirVector, 2, 2);  
-    dirVector = dirVector ./ magDirVector;
-    aDot = dot(direction, dirVector, 2);
-    aSign = cross(direction, dirVector, 2);
-    elevation = 180 - acosd(aDot);
+    if structInput
+        fields = fieldnames(sourcePosition);
+        numFields = length(fields);
+        for i = 1:numFields
+            field = fields{i};
+            
+            sourceToReceiver = sourcePosition.(field) - receiverPosition;
+            sourceAzimuth = CalculateAzimuth(sourceToReceiver(:,1), sourceToReceiver(:,2));
+            headingAzimuth = CalculateAzimuth(heading(:,1), heading(:,2));
 
-    elevation(aSign(:,1) > 0) = 360 - elevation(aSign(:,1) > 0);
-    elevation(magDirVector == 0) = 0;
+            idx = sourceAzimuth >= headingAzimuth;
+            azimuth.(field) = 360 + sourceAzimuth - headingAzimuth;
+            azimuth.(field)(idx) = sourceAzimuth(idx) - headingAzimuth(idx);
+
+            elevation.(field) = CalculateElevation(sourceToReceiver(:,1), sourceToReceiver(:,2), sourceToReceiver(:,3));
+        end
+    else
+        sourceToReceiver = sourcePosition - receiverPosition;
+        sourceAzimuth = CalculateAzimuth(sourceToReceiver(:,1), sourceToReceiver(:,2));
+        headingAzimuth = CalculateAzimuth(heading(:,1), heading(:,2));
+
+        idx = sourceAzimuth >= headingAzimuth;
+        azimuth = 360 + sourceAzimuth - headingAzimuth;
+        azimuth(idx) = sourceAzimuth(idx) - headingAzimuth(idx);
+
+        elevation = CalculateElevation(sourceToReceiver(:,1), sourceToReceiver(:,2), sourceToReceiver(:,3));
+    end
 end
