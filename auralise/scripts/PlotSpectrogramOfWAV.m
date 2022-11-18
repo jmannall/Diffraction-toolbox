@@ -8,8 +8,11 @@ function PlotSpectrogramOfWAV(filePath, limits, nfft)
 
     [audio, fs] = audioread(filePath);
 
-    [x, fvec, tvec] = DefaultSpectrogram(audio, fs, nfft);
-
-    fileName = strrep(extractAfter(extractBefore(filePath, '.'), '\'), '_', ' ');
-    PlotSpectrogram(x, fvec, tvec, limits, fileName, false, false);
+    numChannels = size(audio, 2);
+    for i = 1:numChannels
+        [x, fvec, tvec] = DefaultSpectrogram(audio(:,i), fs, nfft);
+    
+        fileName = strrep(extractAfter(extractBefore(filePath, '.'), '\'), '_', ' ');
+        PlotSpectrogram(x, fvec, tvec, limits, fileName, false, false);
+    end
 end

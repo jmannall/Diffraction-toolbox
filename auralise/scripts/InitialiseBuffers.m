@@ -5,7 +5,8 @@ function [buffer, read, write, window, overlap, numBuffers, inputBuffer, output,
     numBuffers = length(pathLength);    % Is delay the same length
     overlap = floor(windowLength / 2);
     inputBuffer = zeros(2, 1);
-    output = zeros(length(audio), 1);
+    outputLength = (numBuffers + 1) * windowLength / 2 + 1;
+    output = zeros(outputLength, 1);
     bufferLength = max(max(delay), windowLength) + overlap;
     buffer = zeros(bufferLength, 1);
     read = 0;
@@ -17,5 +18,6 @@ function [buffer, read, write, window, overlap, numBuffers, inputBuffer, output,
         audio = [audio; zeros(windowLength - length(audio), 1)];
    else
         window = [hanning(windowLength); 0];
+        audio = [audio; zeros(outputLength - length(audio), 1)];
     end
 end

@@ -31,7 +31,8 @@ function [tfmag, fvec, tfcomplex] = SingleUTDWedgeInterpolated(thetaS, thetaR, r
         phase = angle(tfcomplex);
         tfcomplex = PolarToComplex(10.^(tfmag / 20), phase);
     else
-        % Direct sound if not in the shadow zone 
+        % Direct sound if not in the shadow zone
+        pathLength = 1;
         tfcomplex = exp(-1i * k * pathLength) / pathLength;
         tfmag = mag2db(abs(tfcomplex));
     end

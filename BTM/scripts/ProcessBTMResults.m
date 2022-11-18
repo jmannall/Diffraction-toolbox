@@ -1,8 +1,10 @@
 function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, filehandlingparameters, controlparameters, cadFilePath, savePath)
     
+
     % Load BTM results
     load([inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_ir.mat'], 'irdirect', 'irgeom', 'irdiff');
-    
+    numReceivers = size(irdirect, 2);
+
     % Combine diffraction orders
     difforder = controlparameters.difforder;
     nir = length(irdirect);
@@ -10,14 +12,14 @@ function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, file
     if difforder > 1
         load([inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_irhod.mat'], 'irhod');
         maxdifforder = length(irhod);
-        ndiff = length(irhod{2});
-        padding = zeros(ndiff - nir, 1);
+        ndiff = size(irhod{2}, 1);
+        padding = zeros(ndiff - nir, numReceiers, 1);
         irdirect = [irdirect; padding];
         irgeom = [irgeom; padding];
         irdiff = [irdiff; padding];
 %         irdiff = [irdiff; padding, zeros(ndiff, difforder - 1)];
         for i = 2:maxdifforder
-            irdiff(:,i) = irhod{i};
+            irdiff(:,:,i) = irhod{i};
         end
     end
 
@@ -46,12 +48,12 @@ function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, file
     [ir, tfmag, tfcomplex] = deal(repmat(template, 1, 1));
     
     % Calculate frequency responses from the impulse responses
-    [tfmag.complete, tfcomplex.complete, ir.complete] = IrToTf(irdirect + irgeom + sum(irdiff, 2), nfft);
+    [tfmag.complete, tfcomplex.complete, ir.complete] = IrToTf(irdirect + irgeom + sum(irdiff, 3), nfft);
     [tfmag.direct, tfcomplex.direct, ir.direct] = IrToTf(irdirect, nfft);
     [tfmag.geom, tfcomplex.geom, ir.geom] = IrToTf(irgeom, nfft);
     for i = 1:difforder
         idx = ['diff', num2str(i)];
-        [tfmag.(idx), tfcomplex.(idx), ir.(idx)] = IrToTf(irdiff(:,i), nfft);
+        [tfmag.(idx), tfcomplex.(idx), ir.(idx)] = IrToTf(irdiff(:,:,i), nfft);
     end
 
     % Save results

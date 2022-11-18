@@ -13,7 +13,7 @@ function [output, tfmag, tfcomplex] = DelayLineLRFilter(audio, freqResponse, pat
         'SampleRate', fs);
     [y1,y2,y3,y4] = crossFilt(audio);
 
-    freqResponse = pathLength * 10 .^ (freqResponse / 20);
+    freqResponse = pathLength .* 10 .^ (freqResponse / 20);
     output = freqResponse(1) * y1 + freqResponse(2) * y2 + freqResponse(3) * y3 + freqResponse(4) * y4;
     if nargin < 4
         nfft = 2048;

@@ -9,7 +9,9 @@ function output = ConvolveIR(audio, ir, windowLength, validPath)
     window = hanning(windowLength);
     overlap = floor(windowLength / 2);
     numBuffers = size(ir, 2);
-    output = zeros(length(audio), 1);
+    outputLength = (numBuffers + 1) * windowLength / 2 + 1;
+    output = zeros(outputLength, 1);
+    audio = [audio; zeros(outputLength - length(audio), 1)];
     
     % Default validPath
     if nargin < 4

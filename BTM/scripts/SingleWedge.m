@@ -37,7 +37,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
         end
                 
         % Create geometry data
-        wedgeSize = 10 * max(radiusS, radiusR);
+        wedgeSize = 10 * max(max(radiusS), max(radiusR));
         x = wedgeSize * cosd(wedgeIndex);
         y = wedgeSize * sind(wedgeIndex);
         corners = [0 0 0
@@ -59,7 +59,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
         planeRigid = [1 0 1 0 0 0];
         
         source = [radiusS * cosd(thetaS), radiusS * sind(thetaS), zS];
-        receiver = [radiusR * cosd(thetaR), radiusR * sind(thetaR), zR];
+        receiver = [radiusR .* cosd(thetaR), radiusR .* sind(thetaR), zR];
 
         % Plot geometry 
         if createPlot
