@@ -1,0 +1,59 @@
+
+close all
+clear all
+
+fs = 96e3;
+nfft = 4096;
+c = 344;
+epochSize = 20e3;
+miniBatchSize = 256;
+alpha = 0.2;
+
+controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'saveFiles', 2);
+
+% Create loss function
+numFilters = 2;
+nBands = 12;
+[~, tfmag, ~, fvec, ~] = DefaultBTM(controlparameters);
+[~, ~, fidx] = CreateFrequencyNBands(tfmag, fvec, nBands);
+biquad = true;
+if biquad
+    filterFunc = @(output, target) BiquadLoss(output, target, numFilters, nfft, fs, fidx);
+    numOutputs = 4 * numFilters + 1;
+    controlparameters.filterType = 'Biquad';
+else
+    filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
+    numOutputs = 2 * numFilters + 1;
+    controlparameters.filterType = 'IIR';
+end
+lossFunc = @(net, trainingData, targetData) NNFilterLoss(net, trainingData, targetData, filterFunc, true);
+
+load ('BayesoptResult_Size_700_Filter_IIR.mat', 'xEst', 'xObs');
+x = [xEst; xObs];
+
+%[trainingData, targetData, fvec, fc, fidx] = CreateBtmTrainingData(epochSize, controlparameters);
+
+%[numInputs, dataSize] = size(trainingData);
+numInputs = 8;
+numNetworks = size(x, 1);
+networkSize = [700, 700];
+numLayers = x.nL;
+gx = 5;
+hiddenLayerSize = round((-gx + sqrt(gx ^ 2 - 4 * (-networkSize ./ numLayers))) / 2); % (-b + sqrt(b^2 - 4ac)) / 2a
+
+for i = 1:numNetworks
+    net(i) = InitialiseNeuralNetwork(numInputs, numLayers(i), hiddenLayerSize(i), numOutputs, alpha);
+    net(i).Name = []
+end
+
+for epoch = 1:numEpochs
+    [trainingData, targetData, fvec, fc, fidx, dataPath] = CreateBtmTrainingData(epochSize, controlparameters);
+
+    parfor i = 1:numNetworks
+    
+        [net(i), losses(i,:)] = ParTrainNeuralNetwork(net(i), trainingData, targetData, epoch, miniBatchSize, numIterationsPerEpoch, lossfunc, x(i,:));
+    
+    end
+    delete(dataPath)
+    save(savePath, 'net', 'losses')
+end

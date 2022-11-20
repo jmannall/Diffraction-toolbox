@@ -1,4 +1,4 @@
-function [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc)
+function [net, epochLosses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc)
     
     learnRate = x.lR;
     gradDecay = x.gD;
@@ -7,7 +7,9 @@ function [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEp
 
     averageGrad = [];
     averageSqGrad = [];
-    losses = zeros(1, numEpochs);
+    losses = zeros(1, numEpochs * numIterationsPerEpoch);
+    iterationLosses = zeros(1, numIterationsPerEpoch);
+    epochLosses = zeros(1, numIterationsPerEpoch);
     iteration = 0;
     start = tic;
 
@@ -44,8 +46,9 @@ function [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEp
             idx = numIterationsPerEpoch * (epoch - 1) + i;
             loss = double(loss);
             losses(idx) = loss;
+            iterationLosses(i) = loss;
         end
-    
+        epochLosses(epoch) = mean(iterationLosses);
         UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numIterationsPerEpoch, epoch, start)
     end
     toc
