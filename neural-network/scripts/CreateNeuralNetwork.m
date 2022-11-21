@@ -11,5 +11,6 @@ function [net, loss] = CreateNeuralNetwork(trainingData, targetData, numLayers, 
     else
         [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x);
     end
+    disp(losses)
     loss = losses(end);
 end
