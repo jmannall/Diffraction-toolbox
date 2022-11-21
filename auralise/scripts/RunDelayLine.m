@@ -5,7 +5,7 @@ function [output, ir] = RunDelayLine(audio, pathLength, windowLength, validPath,
     [buffer, read, write, window, overlap, numBuffers, inputBuffer, output, windowLength, audio] = InitialiseBuffers(delay, windowLength, audio, pathLength);
     ir = zeros(length(buffer), numBuffers);
     
-    disp('Process delay line')
+    % disp('Process delay line')
     for k = 1:numBuffers
         ir(delay(k), k) = validPath(k) * amplitude(k) * (1 - fracDelay(k));
         ir(delay(k) + 1, k) = validPath(k) * amplitude(k) * fracDelay(k);

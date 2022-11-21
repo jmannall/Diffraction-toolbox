@@ -44,15 +44,15 @@ audio = resample(audio,fs,audioFs)';
 [zA.ed, ~] = CalculateApex(rS, rR, zS, zR, wedgeLength);
 [zA.sped, ~] = CalculateApex(vRS(2), rR, vZS(2), zR, wedgeLength);
 [zA.edsp, ~] = CalculateApex(vRS(2), rR, vZS(2) + wedgeLength, zR + wedgeLength, wedgeLength);
-zA.edsp(:,3) = zA.edsp(:,3) - wedgeLength;
+zA.edsp = zA.edsp - wedgeLength;
 [zA.spedsp, ~] = CalculateApex(rS, rR, zS + wedgeLength, zR + wedgeLength, wedgeLength);
-zA.spedsp(:,3) = zA.spedsp(:,3) - wedgeLength;
+zA.spedsp = zA.spedsp - wedgeLength;
 
 % NN and UTD paths
 [zA.NN, phii] = CalculateApex(rS, rR, zS + wedgeLength,zR + wedgeLength, 2 * wedgeLength);
-zA.NN(:,3) = zA.NN(:,3) - wedgeLength;
+zA.NN = zA.NN - wedgeLength;
 [zA.vNN, vPhii] = CalculateApex(vRS(2), rR, vZS(2) + wedgeLength,zR + wedgeLength, 2 * wedgeLength);
-zA.vNN(:,3) = zA.vNN(:,3) - wedgeLength;
+zA.vNN = zA.vNN - wedgeLength;
 
 %% Calculate azimuths and elevations for each path
 
@@ -65,23 +65,6 @@ zA.vNN(:,3) = zA.vNN(:,3) - wedgeLength;
 % Specular paths
 [azimuth.wallRef, elevation.wallRef] = CalculateAzimuthElevation(receiverDirection, receivers, vSources(1,:));
 [azimuth.floorRef, elevation.floorRef] = CalculateAzimuthElevation(receiverDirection, receivers, vSources(2,:));
-
-x = thetaR - thetaS;
-figure
-plot(x, azimuth.dir)
-hold on
-plot(x, azimuth.wallRef)
-plot(x, azimuth.ed)
-legend('direct', 'specular', 'diffraction')
-title('azimuth')
-
-% figure
-% plot(x, elevation.dir)
-% hold on
-% plot(x, elevation.wallRef)
-% plot(x, elevation.ed)
-% legend('direct', 'specular', 'diffraction')
-% title('elevation')
 
 %% Calculate path lengths
 
@@ -197,24 +180,25 @@ diffracted = [audioOut.ed.L audioOut.ed.R];
 specularDiffracted = [audioOut.sped.L + audioOut.edsp.L + audioOut.spedsp.L audioOut.sped.R + audioOut.edsp.R + audioOut.spedsp.R];
 utd = [audioOut.utd.L + audioOut.vUtd.L audioOut.utd.R + audioOut.vUtd.R];
 
-audiowrite('audio\bRBtm.wav', direct + specular + diffracted + specularDiffracted, fs);
+audiowrite('audio\bRBtm.wav', direct + specularWall + diffracted, fs);
 audiowrite('audio\bRBtmDir.wav', direct, fs);
-audiowrite('audio\bRBtmSpec.wav', direct + specular, fs);
-audiowrite('audio\bRBtmDiff.wav', direct + specular + diffracted, fs);
+audiowrite('audio\bRBtmSpec.wav', specularWall, fs);
+audiowrite('audio\bRBtmDiff.wav', diffracted, fs);
+audiowrite('audio\bRBtmSpecDiff.wav', specularDiffracted, fs);
 audiowrite('audio\bRUtd.wav', direct + specular + utd, fs);
 audiowrite('audio\bRUtdDiff.wav', utd, fs);
 
 direct = delayedAudio.dir;
 specular = delayedAudio.wallRef + delayedAudio.floorRef;
-specularWall = delayedAudio.wallRef;
 diffracted = audioPath.ed;
 specularDiffracted = audioPath.sped + audioPath.edsp + audioPath.spedsp;
 utd = audioPath.utd + audioPath.vUtd;
 
-audiowrite('audio\Btm.wav', direct + specular + diffracted + specularDiffracted, fs);
+audiowrite('audio\Btm.wav', direct + specularWall + diffracted, fs);
 audiowrite('audio\BtmDir.wav', direct, fs);
-audiowrite('audio\BtmSpec.wav', direct + specular, fs);
-audiowrite('audio\BtmDiff.wav', direct + specular + diffracted, fs);
+audiowrite('audio\BtmSpec.wav', specularWall, fs);
+audiowrite('audio\BtmDiff.wav', diffracted, fs);
+audiowrite('audio\BtmSpecDiff.wav', specularDiffracted, fs);
 audiowrite('audio\Utd.wav', direct + specular + utd, fs);
 audiowrite('audio\UtdDiff.wav', utd, fs);
 
@@ -229,13 +213,15 @@ PlotSpectrogramOfWAV('audio\bRBtm.wav', [-70 0], nfft);
 PlotSpectrogramOfWAV('audio\bRBtmDir.wav', [-70 0], nfft);
 PlotSpectrogramOfWAV('audio\bRBtmSpec.wav', [-70 0], nfft);
 PlotSpectrogramOfWAV('audio\bRBtmDiff.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\bRUtd.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\bRUtdDiff.wav', [-70 0], nfft);
+%PlotSpectrogramOfWAV('audio\bRBtmSpecDiff.wav', [-70 0], nfft);
+%PlotSpectrogramOfWAV('audio\bRUtd.wav', [-70 0], nfft);
+%PlotSpectrogramOfWAV('audio\bRUtdDiff.wav', [-70 0], nfft);
 
 PlotSpectrogramOfWAV('audio\Btm.wav', [-70 0], nfft);
 PlotSpectrogramOfWAV('audio\BtmDir.wav', [-70 0], nfft);
 PlotSpectrogramOfWAV('audio\BtmSpec.wav', [-70 0], nfft);
 PlotSpectrogramOfWAV('audio\BtmDiff.wav', [-70 0], nfft);
+PlotSpectrogramOfWAV('audio\BtmSpecDiff.wav', [-70 0], nfft);
 PlotSpectrogramOfWAV('audio\Utd.wav', [-70 0], nfft);
 PlotSpectrogramOfWAV('audio\UtdDiff.wav', [-70 0], nfft);
 

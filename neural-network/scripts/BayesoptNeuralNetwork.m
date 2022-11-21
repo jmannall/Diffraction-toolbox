@@ -8,7 +8,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     maxGradient = optimizableVariable('mG',[0.5 10],'Type','real','Transform','log');
     numLayers = optimizableVariable('nL',[2 min(20, maxLayers)],'Type','integer');
     
-    epochSize = 20e3;
+    epochSize = 2e3;
 
     saveDir = 'runningFiles';
     CheckFileDir(saveDir);

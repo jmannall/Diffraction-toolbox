@@ -83,7 +83,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
         filehandlingparameters = struct('outputdirectory',[inFilePath,filesep,'results']);
         filehandlingparameters.filestem = [fileName, '_', index];
         filehandlingparameters.savelogfile = 0;
-        filehandlingparameters.showtext = 1;
+        filehandlingparameters.showtext = 0;
         filehandlingparameters.suppressresultrecycling = 1;
     
         EDmain_convex_time(geofiledata,Sindata,Rindata,struct,controlparameters,filehandlingparameters);
