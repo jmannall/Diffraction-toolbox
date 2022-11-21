@@ -24,6 +24,8 @@ function [net, losses] = ParTrainNeuralNetwork(net, trainingData, targetData, ep
         % Update normalisation paramters
 %             x = state.Value(2);
 %             y = extractdata(x{1})
+        isVariance = strcmp(state.Parameter, "TrainedVariance");
+        state.Value(isVariance) = cellfun(@(x) max(x, 1e-10), state.Value(isVariance), 'UniformOutput', false);
         net.State = state;
 
         % Update the network parameters using the Adam optimizer.
