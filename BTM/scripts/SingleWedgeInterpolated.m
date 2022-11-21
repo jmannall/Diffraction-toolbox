@@ -16,6 +16,7 @@ function [tfmag, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedgeIn
         [~, tfmagDiffRef, ~, ~, ~] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaS + 180 + epsilon, radiusR, radiusS, zS, zR, controlparameters, createPlot);
         
         zA = CalculateApex(radiusS, radiusR, zS, zR, wedgeLength);
+        zA = zA(3);
         pathLength = sqrt(radiusS ^ 2 + (abs(zA - zS) ^ 2)) + sqrt(radiusR ^ 2 + (abs(zA - zR) ^ 2));
         [~, dirIr] = DelayLine(input, pathLength, 3, 1, c, fs);
         %[~, tfmagDirRef, ~, ~, ~] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaS + 180 - epsilon, radiusR, radiusS, zS, zR, controlparameters, createPlot);
