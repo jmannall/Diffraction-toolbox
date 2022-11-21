@@ -12,17 +12,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
 
     saveDir = 'runningFiles';
     CheckFileDir(saveDir);
-    disp(['Save path ', saveDir]);
-    saveSeed = [saveDir, '\Seed.mat'];
     saveResult = [saveDir, '\BayesoptResults.mat'];
-    restarting = isfile(saveSeed);
-    if restarting
-        load(saveSeed, 'seed')
-    else
-        seed = round(1e9 * rand(1));
-        save(saveSeed, 'seed');
-    end
-    rng(seed)
     
     disp('Create Taining Data')
     [~, ~, ~, ~, ~, idx, saveData] = CreateBtmTrainingData(epochSize, controlparameters, 1);
@@ -47,9 +37,16 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     
     %% Test
     
-    [lossObs, netObs] = func(xObs);
-    [lossEst, netEst] = func(xEst);
-    
+    x = [xObs; xEst];
+    parfor i = 1:2
+        [loss(i), net(i)] = func(x(i,:));
+    end
+
+    lossObs = loss(1);
+    lossEst = loss(2);
+    netObs = net(1);
+    netEst = net(2);
+
     %% Save
     
     save(['BayesoptResult_Size_', num2str(networkSize), '_Filter_', controlparameters.filterType, '.mat'], "result", "xObs", "xEst", "lossObs", "netObs", "lossEst", "netEst")
