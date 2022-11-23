@@ -18,11 +18,12 @@ wedgeIndex = 270;
 
 receiverPath = [-4 2 1.6
     8 2 1.6];
+receiverHeading = [0 -1 0];
 source = [1 -2 1.6];
 vSources = [-1 -2 1.6
     1 -2 -1.6];
 
-[receivers, receiverDirection, receiverData, speed] = CreatePath(receiverPath, updateRate, 'scene_1', wedgeIndex, source);
+[receivers, receiverDirection, receiverHeading, receiverData, speed] = CreatePath(receiverPath, updateRate, 'scene_1', wedgeIndex, source, receiverHeading);
 numReceivers = length(receivers);
 
 %% Create audio
@@ -57,14 +58,14 @@ zA.vNN(:,3) = zA.vNN(:,3) - wedgeLength;
 %% Calculate azimuths and elevations for each path
 
 % Diffraction paths
-[azimuth, elevation] = CalculateAzimuthElevation(receiverDirection, receivers, zA);
+[azimuth, elevation] = CalculateAzimuthElevation(receiverHeading, receivers, zA);
 
 % Direct path
-[azimuth.dir, elevation.dir] = CalculateAzimuthElevation(receiverDirection, receivers, source);
+[azimuth.dir, elevation.dir] = CalculateAzimuthElevation(receiverHeading, receivers, source);
 
 % Specular paths
-[azimuth.wallRef, elevation.wallRef] = CalculateAzimuthElevation(receiverDirection, receivers, vSources(1,:));
-[azimuth.floorRef, elevation.floorRef] = CalculateAzimuthElevation(receiverDirection, receivers, vSources(2,:));
+[azimuth.wallRef, elevation.wallRef] = CalculateAzimuthElevation(receiverHeading, receivers, vSources(1,:));
+[azimuth.floorRef, elevation.floorRef] = CalculateAzimuthElevation(receiverHeading, receivers, vSources(2,:));
 
 x = thetaR - thetaS;
 figure

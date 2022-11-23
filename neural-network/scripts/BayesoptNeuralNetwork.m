@@ -8,14 +8,14 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     maxGradient = optimizableVariable('mG',[0.5 10],'Type','real','Transform','log');
     numLayers = optimizableVariable('nL',[2 min(20, maxLayers)],'Type','integer');
     
-    epochSize = 20e3;
+    epochSize = 1e3;
 
     saveDir = 'runningFiles';
     CheckFileDir(saveDir);
     saveResult = [saveDir, '\BayesoptResults.mat'];
     
     disp('Create Taining Data')
-    [~, ~, ~, ~, ~, idx, saveData] = CreateBtmTrainingData(epochSize, controlparameters, 1);
+    [~, ~, ~, ~, ~, idx, saveData] = CreateBtmTrainingData(epochSize, controlparameters, 2);
     dataFunc = @() CreateBtmTrainingData(epochSize, controlparameters, idx);
 
     numEpochs = 10;

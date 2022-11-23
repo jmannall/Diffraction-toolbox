@@ -1,7 +1,7 @@
-function [path, direction, data, speed] = CreatePath(landmarks, updateRate, scene, wedgeIndex, source, speed)
+function [path, direction, heading, data, speed] = CreatePath(landmarks, updateRate, scene, wedgeIndex, source, receiverHeading, speed)
     numSegements = size(landmarks,1) - 1;
     walkingSpeed = 1.3;
-    if nargin < 6
+    if nargin < 7
         speed = walkingSpeed;
     end
     
@@ -10,6 +10,7 @@ function [path, direction, data, speed] = CreatePath(landmarks, updateRate, scen
     path(1,:) = landmarks(1,:);
     vector = landmarks(2,:) - landmarks(1,:);
     direction(1,:) = vector / norm(vector);
+    heading(count,:) = receiverHeading;
     data = [];
     for i = 1:numSegements
         vector = landmarks(i + 1,:) - landmarks(i,:);
@@ -21,7 +22,8 @@ function [path, direction, data, speed] = CreatePath(landmarks, updateRate, scen
             count = count + 1;
             path(count,:) = path(count - 1,:) + stepVector;
             direction(count,:) = segmentDirection;
-            data = [data; path(count,:); direction(count,:)];
+            heading(count,:) = receiverHeading;
+            data = [data; segmentDirection; receiverHeading];
         end
         landmarks(i + 1,:) = path(count,:);
     end
@@ -30,5 +32,5 @@ function [path, direction, data, speed] = CreatePath(landmarks, updateRate, scen
     writePath = ['unity-control\', scene, '.csv'];
     writematrix(wedgeIndex, writePath)
     writematrix(speed, writePath, 'WriteMode', 'append')
-    writematrix([source; start; direction], writePath, 'WriteMode', 'append')
+    writematrix([source; receiverHeading; start; data], writePath, 'WriteMode', 'append')
 end
