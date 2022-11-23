@@ -3,7 +3,7 @@ function result = ProcessArrayResults(fileName, index, savePath, numSaves, contr
     % Compile saves into a single file
     resultAll = [];
     disp('Compiling saves. DO NOT STOP SCRIPT!')
-    loadStem = ['results\', fileName, filesep, fileName, '_', num2str(index), '_'];
+    loadStem = ['results',filesep, fileName, filesep, fileName, '_', num2str(index), '_'];
     for i = 1:numSaves
         loadpathI = [loadStem, num2str(i), '.mat'];
         load(loadpathI, "result");

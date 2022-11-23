@@ -12,7 +12,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
 
     saveDir = 'runningFiles';
     CheckFileDir(saveDir);
-    saveResult = [saveDir, '\BayesoptResults.mat'];
+    saveResult = [saveDir, filesep, 'BayesoptResults.mat'];
     
     disp('Create Taining Data')
     [~, ~, ~, ~, ~, idx, saveData] = CreateBtmTrainingData(epochSize, controlparameters, epochSize);
@@ -49,7 +49,9 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
 
     %% Save
     
-    save(['BayesoptResult_Size_', num2str(networkSize), '_Filter_', controlparameters.filterType, '.mat'], "result", "xObs", "xEst", "lossObs", "netObs", "lossEst", "netEst")
+    saveDir = 'bayesoptResults';
+    CheckFileDir(saveDir)
+    save([saveDir, filesep, 'BayesoptResult_Size_', num2str(networkSize), '_Filter_', controlparameters.filterType, '.mat'], "result", "xObs", "xEst", "lossObs", "netObs", "lossEst", "netEst")
     
     %% Delete data save
     % delete([saveData, '.mat'])

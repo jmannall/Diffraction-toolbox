@@ -21,7 +21,7 @@ hiddenLayerSize = round((-gx + sqrt(gx ^ 2 - 4 * (-networkSize ./ numLayers))) /
 
 controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'saveFiles', 2);
 CheckFileDir('data')
-savePath = 'data\NeuralNetworkTest.mat';
+savePath = ['data', filesep, 'NeuralNetworkTest.mat'];
 
 % Create loss function
 numFilters = 2;
