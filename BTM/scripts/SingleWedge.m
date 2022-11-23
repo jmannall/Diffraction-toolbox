@@ -8,10 +8,6 @@
 
 function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters,createPlot)
 
-    if ~exist('results\SingleWedge', 'dir')
-           mkdir results\SingleWedge
-    end
-
     % Create file info
     mFile = mfilename('fullpath');
     controlparameters.difforder = 1;
