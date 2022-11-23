@@ -6,11 +6,11 @@ function [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, ex
     % Create file info
     [~,fileName] = fileparts(file);
     fileStem = [fileName, '_', num2str(index)];
-    savePath = ['results\', fileName, filesep, fileStem];
-    loadPath = ['results\', fileName, filesep, fileStem, '.mat'];
+    savePath = ['results', filesep, fileName, filesep, fileStem];
+    loadPath = ['results', filesep, fileName, filesep, fileStem, '.mat'];
 
     % Create save directory if doesn't exist
-    CheckFileDir(['results\', fileName])
+    CheckFileDir(['results', filesep, fileName])
 
     % Check if previous complete result exists
     output = exist([cd filesep loadPath], "file");
