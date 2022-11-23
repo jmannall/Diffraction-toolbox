@@ -37,7 +37,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
         end
                 
         % Create geometry data
-        wedgeSize = 10 * max(max(radiusS), max(radiusR));
+        wedgeSize = 100 * max(max(radiusS), max(radiusR));
         x = wedgeSize * cosd(wedgeIndex);
         y = wedgeSize * sind(wedgeIndex);
         corners = [0 0 0

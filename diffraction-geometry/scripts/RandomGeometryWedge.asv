@@ -56,10 +56,10 @@ function [geometry, input] = RandomGeometryWedge(numObservations)
 
     % Ensure apex on physical edge but can be visible direct around wedge
     r = rR + rS;
-    dZ = sqrt(100 ^ 2 - r .^ 2);
-    deltaZ = [0 * const dZ];
+    dZ = sqrt(50 ^ 2 - r ^ 2;
+    deltaZ = [0 50];
     dZ = RandomTriangularDistribution(deltaZ, false, numObservations);
-    z = [-(wL / 2 + sourcePart .* dZ) wL / 2 - sourcePart .* dZ];
+    z = [-(max(0, wL / 2 - 0.1) + sourcePart .* dZ) (max(0, wL / 2 - 0.1) - sourcePart .* dZ)];
     
     zOne = RandomUniformDistribution(z, numObservations);
     zTwo = zOne + dZ;

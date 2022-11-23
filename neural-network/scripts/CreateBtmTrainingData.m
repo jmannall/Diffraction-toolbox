@@ -13,7 +13,7 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
 
     saveCount = 1;
     if resultExists
-        load(loadPath, "result");
+        load(loadPath, "result", "geometry");
         saveCount = CreateSaveCount(result, numInputs, numSaves, filesPerSave);
     end
     if saveCount <= numSaves
