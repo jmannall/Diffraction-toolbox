@@ -6,7 +6,7 @@ function [net, loss] = CreateNeuralNetwork(trainingData, targetData, numLayers, 
 
     numIterationsPerEpoch = floor(dataSize./miniBatchSize);
     
-    if nargin > 9
+    if nargin > 10
         [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc);
     else
         [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x);

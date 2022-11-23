@@ -32,7 +32,7 @@ function [geometry, input] = RandomGeometryWedge(numObservations)
 
     %% Wedge length
     wedgeLength = [0.1, 10]; % Chosen from sensitivity examples
-    wedgeLength = [0.1 50]; % To allow for larger variation in z values
+    %wedgeLength = [0.1 50]; % To allow for larger variation in z values
     wL = RandomLoguniformDistribution(wedgeLength, numObservations);
 
     %% Radius
@@ -42,7 +42,7 @@ function [geometry, input] = RandomGeometryWedge(numObservations)
     % to determine if edge can shadow. Therefore can probably assume radius
     % of 0.1m an adequate lower limit
 
-    radius = [0.1 50];
+    radius = [0.1 10];
     radiusOne = RandomLoguniformDistribution(radius, numObservations);
     radiusTwo = RandomLoguniformDistribution(radius, numObservations);
 
@@ -55,7 +55,7 @@ function [geometry, input] = RandomGeometryWedge(numObservations)
     sourcePart = rS ./ (rS + rR);
 
     % Ensure apex on physical edge but can be visible direct around wedge
-    deltaZ = [0 50];
+    deltaZ = [0 10];
     dZ = RandomTriangularDistribution(deltaZ, false, numObservations);
     z = [-(wL / 2 + sourcePart .* dZ) wL / 2 - sourcePart .* dZ];
     zOne = RandomUniformDistribution(z, numObservations);
