@@ -17,10 +17,6 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = DefaultBTM(controlparameters)
     zS = 5;
     zR = 5;
 
-    if ~exist('results\SingleWedge', 'dir')
-           mkdir results\SingleWedge
-    end
-
     % Create file info
     mFile = mfilename('fullpath');
     controlparameters.difforder = 1;
