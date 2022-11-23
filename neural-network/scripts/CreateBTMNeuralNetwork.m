@@ -1,6 +1,6 @@
 %% Create default neural network for BTM training
 
-function [loss, net] = CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs)
+function loss = CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs)
     % Define arcitecture
     alpha = 0.2;
     

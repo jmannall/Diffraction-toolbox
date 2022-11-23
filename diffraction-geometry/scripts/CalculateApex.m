@@ -16,6 +16,6 @@ function [zA, phii] = CalculateApex(radiusS, radiusR, zS, zR, zE)
             zA(i,3) = min(zE, max(0, zS + dZA));
         end
     end
-    dZ = abs(zR - zA);
+    dZ = abs(zR - zA(:,3));
     phii = atand(radiusR ./ dZ);
 end

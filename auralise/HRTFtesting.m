@@ -165,10 +165,11 @@ for i = 1:numReceivers
     [vTfmag(i,:), ~, ~] = SingleUTDWedgeInterpolated(vThetaS(2), thetaR(i), vRS(2), rR(i), wedgeIndex, vPhii(i), controlparameters);
 end
 
+%% Cont
 % Not exact as delay then LR filter - not working need to relook.
 % Previously only used for static cases.
-[audioPath.utd] = DelayLineLRFilter(audio, tfmag, pathLength.NN, windowLength, validPath.NN, c, fs, nfft);
-[audioPath.vUtd] = DelayLineLRFilter(audio, vTfmag, pathLength.vNN, windowLength, validPath.vNN, c, fs, nfft);
+[audioPath.utd] = DelayLineLRFilter(audio, tfmag, pathLength.NN, windowLength, validPath.ed, c, fs, nfft);
+[audioPath.vUtd] = DelayLineLRFilter(audio, vTfmag, pathLength.vNN, windowLength, validPath.ed, c, fs, nfft);
 
 %% Continue
 audioBtmTf = ConvolveTfcomplex(audio, tfBtm.ed.diff1, numReceivers);
@@ -185,6 +186,9 @@ audioOut.ed = ConvolveStereoIR(audioPath.ed, irHRTF.ed, windowLength);
 audioOut.sped = ConvolveStereoIR(audioPath.sped, irHRTF.sped, windowLength);
 audioOut.edsp = ConvolveStereoIR(audioPath.edsp, irHRTF.edsp, windowLength);
 audioOut.spedsp = ConvolveStereoIR(audioPath.spedsp, irHRTF.spedsp, windowLength);
+
+%% UTD
+
 audioOut.utd = ConvolveStereoIR(audioPath.utd, irHRTF.NN, windowLength);
 audioOut.vUtd = ConvolveStereoIR(audioPath.vUtd, irHRTF.vNN, windowLength);
 
@@ -192,7 +196,6 @@ audioOut.vUtd = ConvolveStereoIR(audioPath.vUtd, irHRTF.vNN, windowLength);
 
 direct = [audioOut.dir.L audioOut.dir.R];
 specular = [audioOut.wallRef.L + audioOut.floorRef.L audioOut.wallRef.R + audioOut.floorRef.R];
-specularWall = [audioOut.wallRef.L audioOut.wallRef.R];
 diffracted = [audioOut.ed.L audioOut.ed.R];
 specularDiffracted = [audioOut.sped.L + audioOut.edsp.L + audioOut.spedsp.L audioOut.sped.R + audioOut.edsp.R + audioOut.spedsp.R];
 utd = [audioOut.utd.L + audioOut.vUtd.L audioOut.utd.R + audioOut.vUtd.R];
