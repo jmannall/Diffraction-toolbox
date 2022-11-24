@@ -70,8 +70,8 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
         [targetData, fc, fidx] = CreateFrequencyNBands(tfmag, fvec, 12);
         trainingData = CreateNNinput(geometry);
     
-        savePath = [savePath, '_NN'];
-        save(savePath, "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
-        delete(loadPath)
+        NNSavePath = [savePath, '_NN'];
+        save(NNSavePath, "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
+        delete([savePath, '.mat'])
     end
 end

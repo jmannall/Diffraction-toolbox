@@ -9,7 +9,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     averageSqGrad = [];
     losses = zeros(1, numEpochs * numIterationsPerEpoch);
     iterationLosses = zeros(1, numIterationsPerEpoch);
-    epochLosses = zeros(1, numIterationsPerEpoch);
+    epochLosses = zeros(1, numEpochs);
     iteration = 0;
     start = tic;
 
