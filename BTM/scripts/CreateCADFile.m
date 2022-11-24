@@ -4,7 +4,7 @@ function cadFilePath = CreateCADFile(inFilePath, index, corners, planeCorners, p
 
     CheckFileDir('geometry')
     
-    cadFilePath = [inFilePath, filesep, 'geometry', filesep, num2str(index), '_geo.cad'];
+    cadFilePath = ['geometry', filesep, num2str(index), '_geo.cad'];
 
     % Open CAD file
     cadfile = fopen(cadFilePath, 'w');
