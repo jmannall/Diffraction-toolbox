@@ -11,8 +11,9 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
     end
     [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, extra, rtemplate] = BTMArrayFileHandling(mFile, index, numInputs);
 
-    [~, ~, ~, fvec, ~] = DefaultBTM(controlparameters);
-    disp('Default BTM success')
+    fs = controlparameters. fs;
+    nfft = controlparameters.nfft;
+    fvec = fs/nfft*[0:nfft/2-1];
 
     saveCount = 1;
     if resultExists
