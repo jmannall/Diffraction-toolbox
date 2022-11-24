@@ -15,9 +15,7 @@ radiusS = geometry.rS;
 radiusR = geometry.rR;
 zS = geometry.zS;
 zR = geometry.zR;
-truezS = geometry.truezS;
-truezR = geometry.truezR;
-truezA = geometry.truezA;
+zA = geometry.zA;
 
 %% Plots
 
@@ -54,31 +52,23 @@ set(gca, 'xscale','log')
 title('radiusR')
 
 figure
-histogram(truezS)
+histogram(zS)
 title('zS')
 
 figure
-histogram(truezS)
+histogram(zS)
 title('zR')
 
 figure
-histogram([truezS; truezS])
+histogram([zS; zS])
 title('zS and zR')
 
-dZ = abs(truezS - truezR);
+dZ = abs(zS - zR);
 figure
 histogram(dZ)
 title('dZ')
 
-if truezR < truezS
-    sourcePart = radiusR ./ (radiusS + radiusR);
-    zA = truezR + sourcePart .* dZ;
-else
-    sourcePart = radiusS ./ (radiusS + radiusR);
-    zA = truezS + sourcePart .* dZ;
-end
-
-zAProp = truezA ./ wedgeLength;
+zAProp = zA ./ wedgeLength;
 figure
 histogram(zAProp)
 title('zA')
@@ -87,12 +77,12 @@ controlparameters = struct('fs', 96e3, 'nfft', 16384, 'difforder', 1);
 
 %% Figure
 for i = 1:20
-    L(i,1) = sqrt((radiusS(i) + radiusR(i)) ^ 2 + (truezR(i) - truezS(i)) ^ 2);
-    [~, fvec, tfcomplex(i,:)] = SingleWedgeInterpolated(wedgeLength(i), wedgeIndex(i), minAngle(i), minAngle(i) + bendingAngle(i), radiusS(i), radiusR(i), truezS(i), truezR(i), controlparameters, false);
+    L(i,1) = sqrt((radiusS(i) + radiusR(i)) ^ 2 + (zR(i) - zS(i)) ^ 2);
+    [~, fvec, tfcomplex(i,:)] = SingleWedgeInterpolated(wedgeLength(i), wedgeIndex(i), minAngle(i), minAngle(i) + bendingAngle(i), radiusS(i), radiusR(i), zS(i), zR(i), controlparameters, false);
     tfcomplexDiffRef(i,:) = L(i) * tfcomplex(i,:);
     tfmagRef(i,:) = mag2db(abs(tfcomplexDiffRef(i,:)));
     controlparameters.Rstart = L(i);
-    [~, fvec, tfcomplex(i,:)] = SingleWedgeInterpolated(wedgeLength(i), wedgeIndex(i), minAngle(i), minAngle(i) + bendingAngle(i), radiusS(i), radiusR(i), truezS(i), truezR(i), controlparameters, false);
+    [~, fvec, tfcomplex(i,:)] = SingleWedgeInterpolated(wedgeLength(i), wedgeIndex(i), minAngle(i), minAngle(i) + bendingAngle(i), radiusS(i), radiusR(i), zS(i), zR(i), controlparameters, false);
     tfcomplexDiff(i,:) = tfcomplex(i,:);
     tfmag(i,:) = mag2db(abs(tfcomplexDiff(i,:)));
     controlparameters = rmfield(controlparameters, 'Rstart');

@@ -1,4 +1,4 @@
-function [geometry, input] = RandomGeometryWedge(numObservations)
+function geometry = RandomGeometryWedge(numObservations)
 
     % Geometry template
     gtemplate.wedgeIndex = [];
@@ -46,59 +46,56 @@ function [geometry, input] = RandomGeometryWedge(numObservations)
     radiusOne = RandomLoguniformDistribution(radius, numObservations);
     radiusTwo = RandomLoguniformDistribution(radius, numObservations);
 
-    rS = min(radiusOne, radiusTwo);
-    rR = max(radiusOne, radiusTwo);
+    r1 = min(radiusOne, radiusTwo);
+    r2 = max(radiusOne, radiusTwo);
 
     %% z values
     % Ensure reciprocity as swapping S and R is the same, reflecting in the
     % midpoint is the same and reflecting across the wedge is the same.
-    sourcePart = rS ./ (rS + rR);
+    r = r2 + r1;
+    r1Part = r1 ./ r;
 
     % Ensure apex on physical edge but can be visible direct around wedge
-    r = rR + rS;
-    dZ = sqrt(100 ^ 2 - r .^ 2);
+    maxL = 100;
+    dZ = sqrt(maxL ^ 2 - r .^ 2);
     deltaZ = [0 * const dZ];
     dZ = RandomTriangularDistribution(deltaZ, false, numObservations);
-    z = [-(wL / 2 + sourcePart .* dZ) wL / 2 - sourcePart .* dZ];
-    
-    zOne = RandomUniformDistribution(z, numObservations);
-    zTwo = zOne + dZ;
+    apex = [0 * const wL];
+    zA = RandomUniformDistribution(apex, numObservations);
+    zOne = [zA - r1Part .* dZ, zA + r1Part .* dZ];
+    zTwo = [zOne(:,1) + dZ, zOne(:,2) - dZ];
 
-    % Constrain z values to top and bottom of wedge
-%     z = [0 * const wL] - wL / 2;
-%     zOne = RandomUniformDistribution(z, numObservations);
-%     zTwo = RandomUniformDistribution(z, numObservations);
-%     dZ = abs(zTwo - zOne);
+    select = randi(2, 1, numObservations);
+    idx = select == 1;
+    z1(idx) = zOne(idx);
+    z2(idx) = zTwo(idx);
+    idx = select == 2;
+    z1(idx) = zOne(idx);
+    z2(idx) = zTwo(idx);
 
-    zA = zOne + sourcePart .* dZ;
+    z1 = z1';
+    z2 = z2';
+
     for i = 1:numObservations
-        if zOne(i) < 0
-            zOne(i) = -zOne(i);
-            zTwo(i) = -zTwo(i);
-            zA(i) = -zA(i);
+        if z1(i) > wL(i) / 2
+            z1(i) = wL(i) - z1(i);
+            z2(i) = wL(i) - z2(i);
+            zA(i) = wL(i) - zA(i);
         end
     end
-    zS = zOne;
-    zR = zTwo;
-    truezS = zS + wL / 2;
-    truezR = zR + wL / 2;
-    truezA = zA + wL / 2;
-
-    input = [deg2rad(wI), deg2rad(bA), deg2rad(mA), wL, rS, rR, zS, zR];
 
     geometry.wedgeIndex = wI;
     geometry.bendingAngle = bA;
     geometry.minAngle = mA;
     geometry.wedgeLength = wL;
-    geometry.rS = rS;
-    geometry.rR = rR;
-    geometry.zS = zS;
-    geometry.zR = zR;
+    geometry.rS = r1;
+    geometry.rR = r2;
+    geometry.zS = z1;
+    geometry.zR = z2;
     geometry.zA = zA;
-    geometry.truezS = truezS;
-    geometry.truezR = truezR;
-    geometry.truezA = truezA;
     geometry.thetaS = geometry.minAngle;
     geometry.thetaR = geometry.minAngle + geometry.bendingAngle;
-    input = input';
 end
+
+% r1 is the shortest radii.
+% z1 corresponds to r1. The z-axis zero lies on the corner nearest to z1 and extends into the positive along the edge.

@@ -18,7 +18,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     [~, ~, ~, ~, ~, idx, saveData] = CreateBtmTrainingData(epochSize, controlparameters, epochSize);
     dataFunc = @() CreateBtmTrainingData(epochSize, controlparameters, idx);
 
-    numEpochs = 5;
+    numEpochs = 100;
     func = @(x)CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs);
     restarting = isfile(saveResult);
     if restarting

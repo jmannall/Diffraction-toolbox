@@ -18,7 +18,7 @@ function [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, ex
     % Loop through to check for previous unifinished attempts
     i = 0;
     extra = 0;
-    filesPerSave = numInputs / 20;
+    filesPerSave = 100;
     numSaves = ceil(numInputs / filesPerSave);
     if output ~= 2
         test = true;

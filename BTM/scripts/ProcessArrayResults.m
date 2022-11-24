@@ -24,8 +24,10 @@ function result = ProcessArrayResults(fileName, index, savePath, numSaves, contr
         end
     end
     
-    if ~isempty([result.ir])
-        result = UniformResult(result);
+    if isfield(result, 'ir')
+        if ~isempty([result.ir])
+            result = UniformResult(result);
+        end
     end
     % Clear up and delete files
     for i = 1:numSaves
