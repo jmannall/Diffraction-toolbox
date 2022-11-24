@@ -11,8 +11,6 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
     end
     [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, extra, rtemplate] = BTMArrayFileHandling(mFile, index, numInputs);
 
-    [~, ~, ~, fvec, ~] = DefaultBTM(controlparameters);
-
     saveCount = 1;
     if resultExists
         load(loadPath, "result", "geometry");
@@ -49,7 +47,7 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
 %                 disp(num2str(wedgeIndex))
 %                 disp(num2str(thetaS))
 %                 disp(num2str(thetaR))
-                [result(i).tfmag, ~, ~] = SingleWedgeInterpolated(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
+                [result(i).tfmag, fvec(j), ~] = SingleWedgeInterpolated(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
                 % result(i).i = (j - 1) * filesPerSave + i;
             end
             savepathI = [savePath, '_', num2str(j)];

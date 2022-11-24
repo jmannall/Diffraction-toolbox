@@ -15,10 +15,10 @@ function [loss, net] = CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize
 
     % Train network
     % [net, loss] = CreateNeuralNetwork(trainingData, targetData, numLayers, hiddenLayerSize, numOutputs, alpha, numEpochs, miniBatchSize, lossFunc, x, dataFunc);
-    [net, loss] = CreateNeuralNetwork(trainingData, targetData, numLayers, hiddenLayerSize, numOutputs, alpha, numEpochs, miniBatchSize, lossFunc, x);
+    [net, loss, epochLosses, losses] = CreateNeuralNetwork(trainingData, targetData, numLayers, hiddenLayerSize, numOutputs, alpha, numEpochs, miniBatchSize, lossFunc, x);
     
     idx = [num2str(x.lR), '-', num2str(x.mG), '-', num2str(x.gD), '-', num2str(x.sGD), '-', num2str(x.nL)];
     idx = erase(idx, '.');
     CheckFileDir('NNSaves')
-    save(['NNSaves', filesep, num2str(networkSize), '_', idx, '.mat'], "net", "loss");
+    save(['NNSaves', filesep, num2str(networkSize), '_', idx, '.mat'], "net", "loss", "epochLosses", "losses");
 end

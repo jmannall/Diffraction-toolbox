@@ -1,4 +1,4 @@
-function [net, loss] = CreateNeuralNetwork(trainingData, targetData, numLayers, hiddenLayerSize, numOutputs, alpha, numEpochs, miniBatchSize, lossFunc, x, dataFunc)    
+function [net, loss, epochLosses, losses] = CreateNeuralNetwork(trainingData, targetData, numLayers, hiddenLayerSize, numOutputs, alpha, numEpochs, miniBatchSize, lossFunc, x, dataFunc)    
 
     [numInputs, dataSize] = size(trainingData);
 
@@ -7,10 +7,10 @@ function [net, loss] = CreateNeuralNetwork(trainingData, targetData, numLayers, 
     numIterationsPerEpoch = floor(dataSize./miniBatchSize);
     
     if nargin > 10
-        [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc);
+        [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc);
     else
-        [net, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x);
+        [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x);
     end
-    disp(losses)
-    loss = losses(end);
+    disp(epochLosses)
+    loss = epochLosses(end);
 end
