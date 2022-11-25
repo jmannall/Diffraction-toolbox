@@ -12,7 +12,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     epochLosses = zeros(1, numEpochs);
     iteration = 0;
     start = tic;
-    count = 1;
+    count = 0;
 
     [lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
 
@@ -52,16 +52,16 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             iterationLosses(i) = loss;
         end
         epochLosses(epoch) = mean(iterationLosses);
+        count = count + 1;
         if count > 10
             idx = max(epoch - 10, 1):epoch - 1;
             runningMean = mean(epochLosses(idx));
-            improvement = runningMean - epochLosses(epoch);
-            count = 1;
+            cost = runningMean - epochLosses(epoch);
+            count = 0;
         else
-            improvement = 1;
-            count = count + 1;
+            cost = 1;
         end
-        if improvement < 0
+        if cost < 0
             learnRate = learnRate / 2;
         end
 
