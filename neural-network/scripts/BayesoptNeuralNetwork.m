@@ -29,7 +29,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
         disp('Start Optimisation')
         result = bayesopt(func, [learnRate, gradDecay, sqGradDecay, maxGradient, numLayers], ...
         'UseParallel', true, 'MaxTime', 86400, 'MaxObjectiveEvaluations', 100, ...
-        'SaveFileName', saveResult, 'OutputFcn', @saveToFile);
+        'SaveFileName', saveResult, 'OutputFcn', @saveToFile, 'AcquisitionFunctionName', 'expected-improvement-plus');
     end
     
     xObs = result.XAtMinObjective;
