@@ -9,4 +9,5 @@ function loss = IIRFilterLoss(output, target, numIIRFilters, numFreq, fs, fidx)
     tfmagNBand = CreateNBandMagnitude(tfmag, fidx);
 
     loss = sum((tfmagNBand - target).^2, 'all')  / numel(tfmagNBand);
+    loss = min(loss, 10e10);
 end
