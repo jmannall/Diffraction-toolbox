@@ -12,9 +12,8 @@ createPlot = false;
 
 speed = 1.3; % Average walking speed
 
-% Minimum update rate so that the delay length changes by < 1 sample each
-% update
-updateRate = ceil(speed * fs / c);
+updateRate = speed * fs / c; % Required updateRate so that the distance 
+% updateRate = 100;
 
 %% Geometry data
 
@@ -28,6 +27,7 @@ source = [1 -2 1.6];
 vSources = [-1 -2 1.6
     1 -2 -1.6];
 
+speed = 1;
 [receivers, receiverDirection, receiverHeading, receiverData, speed] = CreatePath(receiverPath, updateRate, 'scene_1', wedgeIndex, source, receiverHeading, speed);
 numReceivers = length(receivers);
 

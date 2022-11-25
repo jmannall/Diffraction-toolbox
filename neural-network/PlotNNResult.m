@@ -1,4 +1,5 @@
 
+close all
 
 numIterations = length(losses);
 numEpochs = length(epochLosses);
@@ -11,8 +12,7 @@ plot(xLosses, losses)
 hold on
 plot(xEpochLosses, epochLosses)
 
-cost(1) = 100;
-for i = 2:numEpochs
+for i = 1:numEpochs
     idx = max(i - 5, 1):i - 1;
     runningMean(i) = mean(epochLosses(idx));
     cost(i) = runningMean(i) - epochLosses(i);

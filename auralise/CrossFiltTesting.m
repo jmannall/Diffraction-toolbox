@@ -1,5 +1,16 @@
 close all
 
+fs = 48e3;
+fc = [250 1000 4000];
+[b, a] = CalculateLRCoefficients(fc, fs);
+
+crossFilt = crossoverFilter( ...
+    'NumCrossovers', 3, ...
+    'CrossoverFrequencies', [250, 1000, 4000], ...
+    'CrossoverSlopes', 24, ...
+    'SampleRate', fs);
+
+visualize(crossFilt)
 [audio, fs] = LoopAudio('audio/whiteNoise96k.wav', 0.5);
 audio = [1; zeros(1000, 1)];
 fs = 48e3;
