@@ -51,6 +51,14 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             losses(idx) = loss;
             iterationLosses(i) = loss;
         end
+        if loss > 1e10
+            % Revert results to last epoch and end training
+            lastEpoch = epoch - 1;
+            epochLosses = epochLosses(1:lastEpoch);
+            losses = losses(1:lastEpoch * numIterationsPerEpoch);
+            net = oldNet;
+            break
+        end
         epochLosses(epoch) = mean(iterationLosses);
         if count > 10
             idx = max(epoch - 10, 1):epoch - 1;
@@ -66,6 +74,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
         end
 
         UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numIterationsPerEpoch, epoch, start)
+        oldNet = net;
     end
     toc
 end
