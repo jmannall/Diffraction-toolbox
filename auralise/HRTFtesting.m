@@ -14,7 +14,20 @@ speed = 1.3; % Average walking speed
 
 % Minimum update rate so that the delay length changes by < 1 sample each
 % update
+
+F = factor(fs);
+
+allFactors = [];
+for i = 1:length(F)
+    allFactors = [allFactors; unique(prod(nchoosek(F, i), 2))];
+end
+allFactors = sort(unique(allFactors));
+
+frameRate = 30;
+% Find lowest update rate that is often enough to prevent delay shifts
+% greater than 1 sample and a multiple of fs.
 updateRate = ceil(speed * fs / c);
+updateRate = allFactors(find(updateRate < allFactors, 1));
 
 %% Geometry data
 
@@ -28,7 +41,8 @@ source = [1 -2 1.6];
 vSources = [-1 -2 1.6
     1 -2 -1.6];
 
-[receivers, receiverDirection, receiverHeading, receiverData, speed] = CreatePath(receiverPath, updateRate, 'scene_1', wedgeIndex, source, receiverHeading, speed);
+scene = 'scene_1';
+[receivers, receiverDirection, receiverHeading, receiverData, speed] = CreatePath(receiverPath, updateRate, frameRate, scene, wedgeIndex, source, receiverHeading, speed);
 numReceivers = length(receivers);
 
 %% Create audio
@@ -210,12 +224,14 @@ diffracted = [audioOut.ed.L audioOut.ed.R];
 specularDiffracted = [audioOut.sped.L + audioOut.edsp.L + audioOut.spedsp.L audioOut.sped.R + audioOut.edsp.R + audioOut.spedsp.R];
 utd = [audioOut.utd.L + audioOut.vUtd.L audioOut.utd.R + audioOut.vUtd.R];
 
-audiowrite('audio\bRBtm.wav', direct + specular + diffracted + specularDiffracted, fs);
-audiowrite('audio\bRBtmDir.wav', direct, fs);
-audiowrite('audio\bRBtmSpec.wav', direct + specular, fs);
-audiowrite('audio\bRBtmDiff.wav', direct + specular + diffracted, fs);
-audiowrite('audio\bRUtd.wav', utd, fs);
-audiowrite('audio\bRUtdDir.wav', [audioOut.utd.L audioOut.utd.R], fs);
+audioFilePath = ['audio\', scene];
+
+audiowrite([audioFilePath, '_bRBtm.wav'], direct + specular + diffracted + specularDiffracted, fs);
+audiowrite([audioFilePath, '_bRBtmDir.wav'], direct, fs);
+audiowrite([audioFilePath, '_bRBtmSpec.wav'], direct + specular, fs);
+audiowrite([audioFilePath, '_bRBtmDiff.wav'], direct + specular + diffracted, fs);
+audiowrite([audioFilePath, '_bRUtd.wav'], utd, fs);
+audiowrite([audioFilePath, '_bRUtdDir.wav'], [audioOut.utd.L audioOut.utd.R], fs);
 
 direct = delayedAudio.dir;
 specular = delayedAudio.wallRef + delayedAudio.floorRef;
@@ -224,30 +240,30 @@ diffracted = audioPath.ed;
 specularDiffracted = audioPath.sped + audioPath.edsp + audioPath.spedsp;
 utd = audioPath.utd + audioPath.vUtd;
 
-audiowrite('audio\Btm.wav', direct + specular + diffracted + specularDiffracted, fs);
-audiowrite('audio\BtmDir.wav', direct, fs);
-audiowrite('audio\BtmSpec.wav', direct + specular, fs);
-audiowrite('audio\BtmDiff.wav', direct + specular + diffracted, fs);
-audiowrite('audio\Utd.wav', utd, fs);
-audiowrite('audio\UtdDir.wav', audioPath.utd, fs);
+audiowrite([audioFilePath, '_Btm.wav'], direct + specular + diffracted + specularDiffracted, fs);
+audiowrite([audioFilePath, '_BtmDir.wav'], direct, fs);
+audiowrite([audioFilePath, '_BtmSpec.wav'], direct + specular, fs);
+audiowrite([audioFilePath, '_BtmDiff.wav'], direct + specular + diffracted, fs);
+audiowrite([audioFilePath, '_Utd.wav'], utd, fs);
+audiowrite([audioFilePath, '_UtdDir.wav'], audioPath.utd, fs);
 
 %% Figures
 
 close all
 
-PlotSpectrogramOfWAV('audio\bRBtm.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\bRBtmDir.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\bRBtmSpec.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\bRBtmDiff.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\bRUtd.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\bRUtdDir.wav', [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_bRBtm.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_bRBtmDir.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_bRBtmSpec.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_bRBtmDiff.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_bRUtd.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_bRUtdDir.wav'], [-70 0], nfft);
 
-PlotSpectrogramOfWAV('audio\Btm.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\BtmDir.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\BtmSpec.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\BtmDiff.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\Utd.wav', [-70 0], nfft);
-PlotSpectrogramOfWAV('audio\UtdDir.wav', [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_Btm.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_BtmDir.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_BtmSpec.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_BtmDiff.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_Utd.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioPath, '_UtdDir.wav'], [-70 0], nfft);
 
 input = [1; zeros(5, 1)];
 

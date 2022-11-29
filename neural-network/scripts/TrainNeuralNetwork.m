@@ -15,6 +15,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     count = 1;
 
     [lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
+    oldNet = [];
 
     disp('Start training')
     tic
@@ -51,7 +52,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             losses(idx) = loss;
             iterationLosses(i) = loss;
         end
-        if loss > 1e10
+        if isnan(loss)
             % Revert results to last epoch and end training
             lastEpoch = epoch - 1;
             epochLosses = epochLosses(1:lastEpoch);
