@@ -5,42 +5,46 @@ clear all
 fs = 96e3;
 nfft = 4096;
 c = 344;
-epochSize = 20e3;
-miniBatchSize = 256;
-numEpochs = 500;
-alpha = 0.2;
 
-load ('BayesoptResult_Size_700_Filter_IIR.mat', 'xEst', 'xObs');
-x = [xEst; xObs];
+filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
+size = [700, 350, 700];
+filter = {'IIR', 'Biquad', 'Biquad'};
+numNetworks = length(size);
 
-numNetworks = size(x, 1);
-networkSize = [700, 700];
-numLayers = x.nL;
-gx = 5;
-hiddenLayerSize = round((-gx + sqrt(gx ^ 2 - 4 * (-networkSize ./ numLayers))) / 2); % (-b + sqrt(b^2 - 4ac)) / 2a
-
-controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'saveFiles', 2);
-CheckFileDir('data')
-savePath = ['data', filesep, 'NeuralNetworkTest.mat'];
+x = table('Size', [numNetworks, 5], 'VariableTypes', ["double", "double", "double", "double", "double"], 'VariableNames', ["lR", "gD", "sGD", "mG", "nL"]);
+for i = 1:numNetworks
+    x(i,:) = LoadBayesoptResult(size(i), filter{i});
+end
 
 % Create loss function
 numFilters = 2;
 nBands = 12;
+controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'saveFiles', 2);
 [~, tfmag, ~, fvec, ~] = DefaultBTM(controlparameters);
 [~, ~, fidx] = CreateFrequencyNBands(tfmag, fvec, nBands);
-biquad = true;
-if biquad
-    filterFunc = @(output, target) BiquadLoss(output, target, numFilters, nfft, fs, fidx);
-    numOutputs = 4 * numFilters + 1;
-    controlparameters.filterType = 'Biquad';
-else
-    filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
-    numOutputs = 2 * numFilters + 1;
-    controlparameters.filterType = 'IIR';
+
+epochSize = 1e3;
+numEpochs = 10;
+dataFunc = @(i) CreateBtmTrainingData(epochSize, controlparameters, i);
+
+parfor i = 1:numNetworks
+
+    name = filter{i};
+    networkSize = size(i);
+    if matches(name, 'IIR')
+        filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
+        numOutputs = 2 * numFilters + 1;
+    else
+        filterFunc = @(output, target) BiquadLoss(output, target, numFilters, nfft, fs, fidx);
+        numOutputs = 4 * numFilters + 1;
+    end
+
+    lossFunc = @(net, trainingData, targetData) NNFilterLoss(net, trainingData, targetData, filterFunc, true);
+
+    [loss(i), net(i)] = CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize(i), numOutputs, numEpochs, name, false);
 end
 
-[loss, net] = CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs, name, runBayesopt)
-
+return
 restarting = isfile(savePath);
 if restarting
     disp('Resume training')
