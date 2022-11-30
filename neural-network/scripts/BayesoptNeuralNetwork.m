@@ -19,11 +19,12 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     dataFunc = @() CreateBtmTrainingData(epochSize, controlparameters, idx);
 
     numEpochs = 100;
-    func = @(x)CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs);
+    func = @(x)CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs, controlparameters.filterType, true);
     restarting = isfile(saveResult);
     if restarting
         disp('Restart Optimisation')
         load(saveResult, 'BayesoptResults');
+        BayesoptResults.ObjectiveFcn = func;
         result = resume(BayesoptResults, 'SaveFileName', saveResult, 'OutputFcn', @saveToFile );
     else
         disp('Start Optimisation')

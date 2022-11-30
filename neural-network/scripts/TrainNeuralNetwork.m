@@ -21,7 +21,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     tic
     for epoch = 1:numEpochs
         if nargin > 8 && epoch > 1
-            [trainingData, targetData] = dataFunc();
+            [trainingData, targetData] = dataFunc(epoch);
         end
         % Shuffle data.
         idx = randperm(size(trainingData, 2));
@@ -52,7 +52,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             losses(idx) = loss;
             iterationLosses(i) = loss;
         end
-        if isnan(loss)
+        if isnan(loss) && epoch > 1
             % Revert results to last epoch and end training
             lastEpoch = epoch - 1;
             epochLosses = epochLosses(1:lastEpoch);
