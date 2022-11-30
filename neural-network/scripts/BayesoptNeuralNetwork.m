@@ -24,7 +24,6 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     if restarting
         disp('Restart Optimisation')
         load(saveResult, 'BayesoptResults');
-        BayesoptResults.ObjectiveFcn = func;
         result = resume(BayesoptResults, 'SaveFileName', saveResult, 'OutputFcn', @saveToFile );
     else
         disp('Start Optimisation')
