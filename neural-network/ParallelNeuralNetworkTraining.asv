@@ -28,20 +28,19 @@ numFilters = 2;
 nBands = 12;
 [~, tfmag, ~, fvec, ~] = DefaultBTM(controlparameters);
 [~, ~, fidx] = CreateFrequencyNBands(tfmag, fvec, nBands);
-
-filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
-numOutputs = 2 * numFilters + 1;
-controlparameters.filterType = 'IIR';
-
-filterFunc = @(output, target) BiquadLoss(output, target, numFilters, nfft, fs, fidx);
-numOutputs = 4 * numFilters + 1;
-controlparameters.filterType = 'Biquad';
-
-lossFunc = @(net, trainingData, targetData) NNFilterLoss(net, trainingData, targetData, filterFunc, true);
-
-for i = 1:numNetworks
-    [loss, net] = CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs, controlparameters.filterType, false);
+biquad = true;
+if biquad
+    filterFunc = @(output, target) BiquadLoss(output, target, numFilters, nfft, fs, fidx);
+    numOutputs = 4 * numFilters + 1;
+    controlparameters.filterType = 'Biquad';
+else
+    filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
+    numOutputs = 2 * numFilters + 1;
+    controlparameters.filterType = 'IIR';
 end
+
+[loss, net] = CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs, name, runBayesopt)
+
 restarting = isfile(savePath);
 if restarting
     disp('Resume training')
