@@ -10,7 +10,8 @@ c = 344;
 controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'saveFiles', 2);
 
 gpuDevice(1)
+rng(1000)
 
-for i = 1:numEpochs
+for i = 118:numEpochs
     [trainingData, targetData] = CreateBtmTrainingData(epochSize, controlparameters, i);
 end
