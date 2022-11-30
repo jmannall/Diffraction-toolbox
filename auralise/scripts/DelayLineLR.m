@@ -1,12 +1,16 @@
 %% Implement delay line with a Linkwitz-Riley filter structure
 
-function output = DelayLineLR(audio, pathLength, windowLength, validPath, tfmag, c, fs)
+function [output, ir] = DelayLineLR(audio, pathLength, windowLength, validPath, tfmag, c, fs)
 
     [delay, fracDelay, amplitude] = CalculateDelay(pathLength, c, fs);
     amplitude = ones(size(amplitude));
 
     [buffer, read, write, window, overlap, numBuffers, inputBuffer, output] = InitialiseBuffers(delay, windowLength, audio, pathLength);
-    
+    maxDelay = max(delay);
+    iirLength = 1e3;
+    irIn = zeros(maxDelay + iirLength + 1, 1);
+    ir = zeros(maxDelay + iirLength + 1, numBuffers);
+
     numBands = 4;
     [inputBufferLR, outputBufferLR] = InitialiseLRBuffers();     % Linwitz-Riley IIR filters input/output buffers
     
@@ -27,6 +31,12 @@ function output = DelayLineLR(audio, pathLength, windowLength, validPath, tfmag,
             [idx, read, write, inputBuffer, input] = ProcessSampleData(windowLength, overlap, read, write, inputBuffer, amplitude, validPath, buffer, k, i);
             [inputBufferLR, outputBufferLR, input] = ProcessLRFilterBank(input, b, a, inputBufferLR, outputBufferLR, tfmag(k,:), numBands);
             [inputBuffer, output, buffer] = ProcessSampleOutput(audio, buffer, input, inputBuffer, fracDelay, window, write, idx, k, i, output);
+        end
+        irIn(delay(k)) = validPath(k) * amplitude(k) * (1 - fracDelay(k));
+        irIn(delay(k) + 1) = validPath(k) * amplitude(k) * fracDelay(k);
+        [tempInputBufferLR, tempOutputBufferLR] = InitialiseLRBuffers();
+        for i = delay(k):maxDelay + iirLength
+            [tempInputBufferLR, tempOutputBufferLR, ir(i, k)] = ProcessLRFilterBank(irIn(i), b, a, tempInputBufferLR, tempOutputBufferLR, tfmag(k,:), numBands);
         end
     end
 end

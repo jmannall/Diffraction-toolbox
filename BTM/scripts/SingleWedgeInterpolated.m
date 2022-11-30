@@ -52,9 +52,15 @@ function [tfmagOut, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedg
         tfcomplex = scale * PolarToComplex(10.^(tfmagOut / 20), phase);
         tfmagOut = mag2db(abs(tfcomplex));
     else
-        % Remove diffracted sound if not in the shadow zone 
-        [~, dirIr] = DelayLine(input, pathLength, 3, 1, c, fs);
-        [tfmag, tfcomplex] = IrToTf(dirIr, nfft);
+        % Remove diffracted sound if not in the shadow zone
+        l = sqrt(radiusS .^ 2 + zS .^ 2);
+        m = sqrt(radiusR .^ 2 + zR .^ 2);
+
+        pathLength = sqrt(l .^ 2 + m .^ 2 - 2 * l .* m .* cosd(thetaR - thetaS));
+
+        input = [1; zeros(11, 1)];
+        [~, dirIr] = DelayLine(input, pathLength, 12, 1, c, fs);
+        [tfmagOut, tfcomplex] = IrToTf(dirIr, nfft);
         fvec = fs/nfft*[0:nfft/2-1];
 %         [~, tfmag, ~, fvec, tfcomplex] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusR, radiusS, zS, zR, controlparameters, createPlot);
 %         tfcomplex = tfcomplex.direct;

@@ -13,13 +13,35 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     iteration = 0;
     start = tic;
     count = 1;
+    i = 1;
 
     [lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
     oldNet = [];
 
-    disp('Start training')
+    if nargin < 9
+        idx = DataHash({trainingData, extractdata(targetData), numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc});
+    else
+        idx = DataHash({trainingData, extractdata(targetData), numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x});
+    end
+
+    filePath = 'tempNN';
+    CheckFileDir(filePath);
+    fileName = num2str(idx);
+    savePath = [filePath filesep fileName];
+    loadPath = [savePath '.mat'];
+
+    backupRate = 5;
+    restart = exist([cd filesep loadPath], "file");
+
+    if restart == 2
+        load(loadPath, "net", "losses", "epochLosses", "iteration", "i")
+        disp('Restart training')
+    else
+        disp('Start training')
+    end
+
     tic
-    for epoch = 1:numEpochs
+    for epoch = i:numEpochs
         if nargin > 8 && epoch > 1
             [trainingData, targetData] = dataFunc(epoch);
         end
@@ -52,12 +74,15 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             losses(idx) = loss;
             iterationLosses(i) = loss;
         end
-        if isnan(loss) && epoch > 1
+        if isnan(loss)
             % Revert results to last epoch and end training
-            lastEpoch = epoch - 1;
+            lastEpoch = max(epoch - 1, 1);
             epochLosses = epochLosses(1:lastEpoch);
             losses = losses(1:lastEpoch * numIterationsPerEpoch);
             net = oldNet;
+            if epoch > backupRate
+                delete(loadPath)
+            end
             break
         end
         epochLosses(epoch) = mean(iterationLosses);
@@ -76,6 +101,13 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
 
         UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numIterationsPerEpoch, epoch, start)
         oldNet = net;
+
+        % Backup result every 5 epochs
+        if mod(epoch, backupRate) == 0
+            i = epoch;
+            save(savePath, "net", "losses", "epochLosses", "iteration", "i", '-v7.3')
+        end
     end
+    delete(loadPath)
     toc
 end

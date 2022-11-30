@@ -41,7 +41,7 @@ parfor i = 1:numNetworks
 
     lossFunc = @(net, trainingData, targetData) NNFilterLoss(net, trainingData, targetData, filterFunc, true);
 
-    [loss(i), net(i)] = CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs, name, false);
+    [loss(i), net(i)] = CreateBTMNeuralNetwork(x(i,:), lossFunc, dataFunc, networkSize, numOutputs, numEpochs, name, false);
 end
 
 return

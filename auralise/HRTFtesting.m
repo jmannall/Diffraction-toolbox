@@ -1,6 +1,21 @@
 close all
 clear all
 
+%% COmplexity
+N_operations_per_sample = 102;
+Fs = 44100;
+Fupdate = 10;
+runtime_complexity_ms = 0.001; % [ms]
+
+single_thread_flops = 3.5*10^9;
+
+mflops_for_diffraction_calculation = runtime_complexity_ms*single_thread_flops*Fupdate/(10^6)
+mflops_for_filtering = Fs*N_operations_per_sample/(10^6)
+
+T60 = 0.001;
+N = Fs/Fupdate+T60*Fs-1;
+mflops_overlap_add = Fupdate*(18*N*log2(N)+6*N+T60*Fs-1)/(10^6)
+
 %% Input data
 
 fs = 48e3;
@@ -39,7 +54,8 @@ receiverPath = [-4 2 1.6
 receiverHeading = [0 -1 0];
 source = [1 -2 1.6];
 vSources = [-1 -2 1.6
-    1 -2 -1.6];
+    1 -2 -1.6
+    -1 -2 -1.6];
 
 scene = 'scene_1';
 [receivers, receiverDirection, receiverHeading, receiverData, speed] = CreatePath(receiverPath, updateRate, frameRate, scene, wedgeIndex, source, receiverHeading, speed);
@@ -79,7 +95,7 @@ audio = resample(audio,fs,audioFs)';
 [zA.ed, ~] = CalculateApex(rS, rR, zS, zR, wedgeLength);
 [zA.sped, ~] = CalculateApex(vRS(2), rR, vZS(2), zR, wedgeLength);
 [zA.edsp, ~] = CalculateApex(vRS(2), rR, vZS(2) + wedgeLength, zR + wedgeLength, wedgeLength);
-zA.edsp(:,3) = zA.edsp(:,3) - wedgeLength;
+zA.edsp(:,3) = wedgeLength - zA.edsp(:,3);
 [zA.spedsp, ~] = CalculateApex(rS, rR, zS + wedgeLength, zR + wedgeLength, wedgeLength);
 zA.spedsp(:,3) = zA.spedsp(:,3) - wedgeLength;
 
@@ -100,6 +116,7 @@ zA.vNN(:,3) = zA.vNN(:,3) - wedgeLength;
 % Specular paths
 [azimuth.wallRef, elevation.wallRef] = CalculateAzimuthElevation(receiverHeading, receivers, vSources(1,:));
 [azimuth.floorRef, elevation.floorRef] = CalculateAzimuthElevation(receiverHeading, receivers, vSources(2,:));
+[azimuth.floorWallRef, elevation.floorWallRef] = CalculateAzimuthElevation(receiverHeading, receivers, vSources(3,:));
 
 x = thetaR - thetaS;
 figure
@@ -126,6 +143,7 @@ pathLength.dir = PathLength(receivers, source);
 % Specular paths
 pathLength.wallRef = PathLength(receivers, vSources(1,:));
 pathLength.floorRef = PathLength(receivers, vSources(2,:));
+pathLength.floorWallRef = PathLength(receivers, vSources(3,:));
 
 % Diffraction paths
 pathLength.ed = DiffractionPathLength(receivers, source, zA.ed);
@@ -144,6 +162,7 @@ validPath.dir = thetaR <= 180 + thetaS;
 % Specular paths
 validPath.wallRef = thetaR <= 180 - thetaS;
 validPath.floorRef = thetaR <= 180 + thetaS;
+validPath.floorWallRef = thetaR <= 180 - thetaS;
 
 % Diffraction paths
 validPath.NN = thetaR > 180 + thetaS;
@@ -158,12 +177,12 @@ validPath.vNN = thetaR > 180 + thetaS;
 
 [ir.ed, ~, ~, ~, tfBtm.ed] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, rS, rR, zS, zR, controlparameters, createPlot);
 [ir.sped, ~, ~, ~, tfBtm.sped] = SingleWedge(wedgeLength, wedgeIndex, vThetaS(2), thetaR, vRS(2), rR, vZS(2), zR, controlparameters, createPlot);
-[ir.edsp, ~, ~, ~, tfBtm.edsp] = SingleWedge(wedgeLength, wedgeIndex, vThetaS(2), thetaR, vRS(2), rR, vZS(2), zR + wedgeLength, controlparameters, createPlot);
-[ir.spedsp, ~, ~, ~, tfBtm.spedsp] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, rS, rR, zS + wedgeLength, zR + wedgeLength, controlparameters, createPlot);
+[ir.edsp, ~, ~, ~, tfBtm.edsp] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, rS, rR, zS, zR - 2 * zR, controlparameters, createPlot);
+[ir.spedsp, ~, ~, fvec, tfBtm.spedsp] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, rS, rR, zS + wedgeLength, zR + wedgeLength, controlparameters, createPlot);
 
-ir.dir = ir.ed.direct;
-ir.wallRef = ir.ed.geom;
-ir.floorRef = ir.sped.direct;
+% ir.dir = ir.ed.direct;
+% ir.wallRef = ir.ed.geom;
+% ir.floorRef = ir.sped.direct;
 ir.ed = ir.ed.diff1;
 ir.sped = ir.sped.diff1;
 ir.edsp = ir.edsp.diff1;
@@ -200,8 +219,102 @@ for i = 1:numReceivers
     [vTfmag(i,:), ~, ~] = SingleUTDWedgeInterpolated(vThetaS(2), thetaR(i), vRS(2), rR(i), wedgeIndex, vPhii(i), controlparameters);
 end
 
-audioPath.utd = DelayLineLR(audio, pathLength.NN, windowLength, validPath.ed, tfmag, c, fs);
-audioPath.vUtd = DelayLineLR(audio, pathLength.vNN, windowLength, validPath.ed, vTfmag, c, fs);
+[audioPath.utd, ir.utd] = DelayLineLR(audio, pathLength.NN, windowLength, validPath.ed, tfmag, c, fs);
+[audioPath.vUtd, ir.vUtd] = DelayLineLR(audio, pathLength.vNN, windowLength, validPath.ed, vTfmag, c, fs);
+
+%% NN audio
+
+% loadPath = ['NNSaves', filesep, 'Biquad-700_00060474-14515-089849-080573-3'];
+loadPath = ['NNSaves', filesep, 'Biquad-350_00068602-080579-090717-098823-2'];
+load(loadPath, "net");
+
+% X = [wedgeLength, wedgeIndex, thetaR - thetaS]  ;  
+% Where one corresponds to the shortest radius. And the z axis zero is the
+% edge corner nearest to zOne
+bendingAngle = thetaR - thetaS;
+minAngle = min(thetaS, wedgeIndex - thetaR);
+
+
+sourceIsROne = rS < rR;
+rOne(sourceIsROne, 1) = rS;
+rOne(~sourceIsROne, 1) = rR(~sourceIsROne);
+rTwo(sourceIsROne, 1) = rR(sourceIsROne);
+rTwo(~sourceIsROne, 1) = rS;
+
+zOne(sourceIsROne, 1) = zS + wedgeLength;
+zOne(~sourceIsROne, 1) = zR(~sourceIsROne, 1) + wedgeLength;
+zTwo(sourceIsROne, 1) = zR(sourceIsROne, 1) + wedgeLength;
+zTwo(~sourceIsROne, 1) = zS + wedgeLength;
+
+longWedgeLength = wedgeLength * 2;
+
+flipCorner = zOne > wedgeLength;
+zOne(flipCorner, 1) = wedgeLength - zOne(flipCorner, 1);
+zTwo(flipCorner, 1) = wedgeLength - zTwo(flipCorner, 1);
+
+const = ones(numReceivers, 1);
+X = ([deg2rad(wedgeIndex) * const, deg2rad(bendingAngle), deg2rad(minAngle), longWedgeLength * const, rOne, rTwo, zOne, zTwo])';
+X = dlarray(single(X), "CB");
+output = predict(net, X);
+
+tfmag = [];
+for i = 1:numReceivers
+    [tfmagTest(:,i), ~, ~] = SingleWedgeInterpolated(longWedgeLength,wedgeIndex,thetaS,thetaR(i),rS,rR(i),zS,zR(i),controlparameters,false);
+end
+
+%% go
+[targetData, fc, fidx] = CreateFrequencyNBands(tfmagTest, fvec, 12);
+loss = BiquadLoss(output, targetData, numBiquads, nfft, fs, fidx);
+
+numBiquads = 2;
+[zReal, zImg, pReal, pImg, k] = CreateZPKFromNNOutput(output, numBiquads);
+
+[b, a] = BiquadCoefficients(zReal, zImg, pReal, pImg, k, numBiquads, numReceivers);
+[tfmagNN, ~, tfcomplexNNstore] = CreateBiquad(zReal, zImg, pReal, pImg, k, nfft, fs);
+
+[tfmag, tfcomplex] = IrToTf(ir, nfft);
+
+tfcomplexNN = tfcomplex.dir;
+tfcomplexNN(:,validPath.NN) = extractdata(tfcomplexNNstore(:,validPath.NN));
+PlotSpectrogram(tfcomplexNN, fvec, thetaR - thetaS, [-70 0], 'NN', false, false, 'Bending Angle')
+
+idx = 50;
+figure
+semilogx(fvec, tfmagTest(:,idx))
+hold on
+semilogx(fvec, extractdata(tfmagNN(:,idx)))
+xlim([20 20e3])
+
+[audioPath.NN, ir.NN] = DelayLineBiquad(audio, pathLength.NN, windowLength, validPath.ed, b, a, numBiquads, c, fs, validPath.NN);
+
+%% Transfer functions
+
+[tfmag, tfcomplex] = IrToTf(ir, nfft);
+
+close all
+
+PlotSpectrogram([tfcomplex.dir], fvec, thetaR - thetaS, [-70 0], 'Direct', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.wallRef], fvec, thetaR - thetaS, [-70 0], 'Wall reflection', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.floorRef], fvec, thetaR - thetaS, [-70 0], 'Floor Reflection', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.floorWallRef], fvec, thetaR - thetaS, [-70 0], 'Floor Wall Reflection', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.ed], fvec, thetaR - thetaS, [-70 0], 'Edge Diffraction', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.sped], fvec, thetaR - thetaS, [-70 0], 'Floor Edge Diffraction', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.edsp], fvec, thetaR - thetaS, [-70 0], 'Edge Floor Diffarction', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.spedsp], fvec, thetaR - thetaS, [-70 0], 'Floor Edge Floor Diffraction', false, false, 'Bending Angle')
+
+geomField = [tfcomplex.dir] + [tfcomplex.wallRef] + [tfcomplex.floorRef] + [tfcomplex.floorWallRef];
+diffFieldBtm = [tfcomplex.ed] + [tfcomplex.sped] + [tfcomplex.edsp] + [tfcomplex.spedsp];
+completeFieldBtm = geomField + diffFieldBtm;
+PlotSpectrogram(geomField, fvec, thetaR - thetaS, [-70 0], 'Geometric Field', false, false, 'Bending Angle')
+PlotSpectrogram(diffFieldBtm, fvec, thetaR - thetaS, [-70 0], 'BTM Diffracted Field', false, false, 'Bending Angle')
+PlotSpectrogram(completeFieldBtm, fvec, thetaR - thetaS, [-70 0], 'BTM Complete Field', false, false, 'Bending Angle')
+
+diffFieldUtd = [tfcomplex.utd] + [tfcomplex.vUtd];
+completeFieldUtd = [tfcomplex.wallRef] + [tfcomplex.floorWallRef] + diffFieldUtd;
+PlotSpectrogram(diffFieldUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Diffracted Field', false, false, 'Bending Angle')
+PlotSpectrogram(completeFieldUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Complete Field', false, false, 'Bending Angle')
+
+PlotSpectrogram([tfcomplex.NN], fvec, thetaR - thetaS, [-70 0], 'Single NN Path', false, false, 'Bending Angle')
 
 %% HRTF
 
@@ -209,6 +322,7 @@ irHRTF = CreateHRTF(azimuth, elevation);
 audioOut.dir = ConvolveStereoIR(delayedAudio.dir, irHRTF.dir, windowLength);
 audioOut.wallRef = ConvolveStereoIR(delayedAudio.wallRef, irHRTF.wallRef, windowLength);
 audioOut.floorRef = ConvolveStereoIR(delayedAudio.floorRef, irHRTF.floorRef, windowLength);
+audioOut.floorWallRef = ConvolveStereoIR(delayedAudio.floorWallRef, irHRTF.floorWallRef, windowLength);
 audioOut.ed = ConvolveStereoIR(audioPath.ed, irHRTF.ed, windowLength);
 audioOut.sped = ConvolveStereoIR(audioPath.sped, irHRTF.sped, windowLength);
 audioOut.edsp = ConvolveStereoIR(audioPath.edsp, irHRTF.edsp, windowLength);
@@ -218,131 +332,38 @@ audioOut.vUtd = ConvolveStereoIR(audioPath.vUtd, irHRTF.vNN, windowLength);
 
 %% Write audio
 
-direct = [audioOut.dir.L audioOut.dir.R];
-specular = [audioOut.wallRef.L + audioOut.floorRef.L audioOut.wallRef.R + audioOut.floorRef.R];
-diffracted = [audioOut.ed.L audioOut.ed.R];
-specularDiffracted = [audioOut.sped.L + audioOut.edsp.L + audioOut.spedsp.L audioOut.sped.R + audioOut.edsp.R + audioOut.spedsp.R];
-utd = [audioOut.utd.L + audioOut.vUtd.L audioOut.utd.R + audioOut.vUtd.R];
+geometric = SumAudioOut(audioOut, {'dir', 'wallRef', 'floorRef', 'floorWallRef'});
+geometricUtdNN = SumAudioOut(audioOut, {'wallRef', 'floorWallRef'});
+diffractedBtm = SumAudioOut(audioOut, {'ed', 'sped', 'edsp', 'spedsp'});
+diffractedUtd = SumAudioOut(audioOut, {'utd', 'vUtd'});
 
 audioFilePath = ['audio\', scene];
 
-audiowrite([audioFilePath, '_bRBtm.wav'], direct + specular + diffracted + specularDiffracted, fs);
-audiowrite([audioFilePath, '_bRBtmDir.wav'], direct, fs);
-audiowrite([audioFilePath, '_bRBtmSpec.wav'], direct + specular, fs);
-audiowrite([audioFilePath, '_bRBtmDiff.wav'], direct + specular + diffracted, fs);
-audiowrite([audioFilePath, '_bRUtd.wav'], utd, fs);
-audiowrite([audioFilePath, '_bRUtdDir.wav'], [audioOut.utd.L audioOut.utd.R], fs);
+audiowrite([audioFilePath, '_bRBtm.wav'], geometric + diffractedBtm, fs);
+audiowrite([audioFilePath, '_bRGeometric.wav'], geometric, fs);
+audiowrite([audioFilePath, '_bRUtd.wav'], geometricUtdNN + diffractedUtd, fs);
+audiowrite([audioFilePath, '_bRUtdNoWallRef.wav'], diffractedUtd, fs);
 
-direct = delayedAudio.dir;
-specular = delayedAudio.wallRef + delayedAudio.floorRef;
-specularWall = delayedAudio.wallRef;
-diffracted = audioPath.ed;
-specularDiffracted = audioPath.sped + audioPath.edsp + audioPath.spedsp;
-utd = audioPath.utd + audioPath.vUtd;
+geometric = delayedAudio.dir + delayedAudio.wallRef + delayedAudio.floorRef + delayedAudio.floorWallRef;
+geometricUtdNN = delayedAudio.wallRef + delayedAudio.floorWallRef;
+diffractedBtm = audioPath.ed + audioPath.sped + audioPath.edsp + audioPath.spedsp;
+diffractedUtd = audioPath.utd + audioPath.vUtd;
 
-audiowrite([audioFilePath, '_Btm.wav'], direct + specular + diffracted + specularDiffracted, fs);
-audiowrite([audioFilePath, '_BtmDir.wav'], direct, fs);
-audiowrite([audioFilePath, '_BtmSpec.wav'], direct + specular, fs);
-audiowrite([audioFilePath, '_BtmDiff.wav'], direct + specular + diffracted, fs);
-audiowrite([audioFilePath, '_Utd.wav'], utd, fs);
-audiowrite([audioFilePath, '_UtdDir.wav'], audioPath.utd, fs);
+audiowrite([audioFilePath, '_Btm.wav'], geometric + diffractedBtm, fs);
+audiowrite([audioFilePath, '_Geometric.wav'], geometric, fs);
+audiowrite([audioFilePath, '_Utd.wav'], geometricUtdNN + diffractedUtd, fs);
+audiowrite([audioFilePath, '_UtdNoWallRef.wav'], diffractedUtd, fs);
 
 %% Figures
 
 close all
 
-PlotSpectrogramOfWAV([audioPath, '_bRBtm.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioPath, '_bRBtmDir.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioPath, '_bRBtmSpec.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioPath, '_bRBtmDiff.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioPath, '_bRUtd.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioPath, '_bRUtdDir.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioFilePath, '_bRBtm.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioFilePath, '_bRGeometric.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioFilePath, '_bRUtd.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioFilePath, '_bRUtdNoWallRef.wav'], [-70 0], nfft);
 
-PlotSpectrogramOfWAV([audioPath, '_Btm.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioPath, '_BtmDir.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioPath, '_BtmSpec.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioPath, '_BtmDiff.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioPath, '_Utd.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioPath, '_UtdDir.wav'], [-70 0], nfft);
-
-input = [1; zeros(5, 1)];
-
-createPlot = false;
-arg = cosd(90 - phii);
-l = rS / arg;
-m = rR / arg;
-
-time = numReceivers / updateRate;
-
-[audio, fs] = audioread('audio\whiteNoise.wav');
-
-ir = CreateHRTF(azimuth, elevation);
-audioDir = ConvolveStereoIR(audio, ir.Dir, windowLength);
-audioGeom = ConvolveStereoIR(audio, ir.Geom, windowLength);
-
-
-
-load 'ReferenceHRTF.mat' hrtfData sourcePosition
-
-hrtfData = permute(double(hrtfData),[2,3,1]);
-
-sourcePosition = sourcePosition(:,[1,2]);
-
-n = 100;
-durationPerPosition = 0.2;
-%durationPerPosition = 1;
-desiredAz = [-120;-60;0;60;120;0;-120;120];
-desiredAz = linspace(90,90,n)';
-desiredEl = [-90;90;45;0;-45;0;45;45];
-desiredEl = linspace(0,180,n)';
-
-desiredPosition = [desiredAz desiredEl];
-
-interpolatedIR  = interpolateHRTF(hrtfData,sourcePosition,desiredPosition);
-
-leftIR = squeeze(interpolatedIR(:,1,:));
-rightIR = squeeze(interpolatedIR(:,2,:));
-
-desiredFs = 48e3;
-audioFilePath = 'audio\imagination.wav';
-[audio, fs] = LoopAudio(audioFilePath, 0.8 * n * durationPerPosition);
-audio = 0.8*resample(audio,desiredFs,fs);
-audioFilePath = 'audio\imagination48k.wav';
-audiowrite(audioFilePath,audio,desiredFs);
-
-audioLength = length(audio);
-
-fileReader = dsp.AudioFileReader(audioFilePath);
-deviceWriter = audioDeviceWriter('SampleRate',fileReader.SampleRate);
-
-leftFilter = dsp.FIRFilter('NumeratorSource','Input port');
-rightFilter = dsp.FIRFilter('NumeratorSource','Input port');
-
-samplesPerPosition = durationPerPosition*fileReader.SampleRate;
-samplesPerPosition = samplesPerPosition - rem(samplesPerPosition,fileReader.SamplesPerFrame);
-
-sourcePositionIndex = 1;
-samplesRead = 0;
-while ~isDone(fileReader)
-    audioIn = fileReader();
-    samplesRead = samplesRead + fileReader.SamplesPerFrame;
-    
-    leftChannel = leftFilter(audioIn,leftIR(sourcePositionIndex,:));
-    rightChannel = rightFilter(audioIn,rightIR(sourcePositionIndex,:));
-    
-    deviceWriter([leftChannel,rightChannel]);
-    
-    samplesRemaining = audioLength - samplesRead;
-    if sourcePositionIndex > 98
-        x = 2;
-    end
-    if samplesRemaining < 1000
-        x = 1;
-    end
-    if mod(samplesRead,samplesPerPosition) == 0
-        sourcePositionIndex = sourcePositionIndex + 1;
-    end
-end
-
-release(deviceWriter)
-release(fileReader)
+PlotSpectrogramOfWAV([audioFilePath, '_Btm.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioFilePath, '_Geometric.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioFilePath, '_Utd.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioFilePath, '_UtdNoWallRef.wav'], [-70 0], nfft);
