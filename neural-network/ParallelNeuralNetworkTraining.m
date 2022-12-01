@@ -9,7 +9,7 @@ filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
 % size = [350, 700, 350, 700];
 % filter = {'IIR', 'IIR', 'Biquad', 'Biquad'};
 
-size = [200; 1e3; 10e3; 50e3; 100e3];
+size = [200; 1e3; 5e3; 10e3; 20e3;];
 size = [size; size; size; size];
 
 iir = 'IIR';
