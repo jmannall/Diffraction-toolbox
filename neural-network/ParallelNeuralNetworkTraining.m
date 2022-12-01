@@ -3,9 +3,8 @@ close all
 clear all
 
 fs = 96e3;
-nfft = 4096;
+nfft = 16384;
 c = 344;
-
 filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
 % size = [350, 700, 350, 700];
 % filter = {'IIR', 'IIR', 'Biquad', 'Biquad'};
