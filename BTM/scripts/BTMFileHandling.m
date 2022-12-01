@@ -10,7 +10,7 @@ function [inFilePath, fileName, savePath, loadPath, resultExists] = BTMFileHandl
     loadPath = ['results', filesep, fileName, filesep, fileStem, '.mat'];
 
     % Create save directory if doesn't exist
-    CheckFileDir(['results', filesep, fileName])
+    % CheckFileDir(['results', filesep, fileName])
 
     % Check if previous result exists
     resultExists = isfile(loadPath);
