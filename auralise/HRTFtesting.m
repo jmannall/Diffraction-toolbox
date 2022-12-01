@@ -1,21 +1,6 @@
 close all
 clear all
 
-%% COmplexity
-N_operations_per_sample = 102;
-Fs = 44100;
-Fupdate = 10;
-runtime_complexity_ms = 0.001; % [ms]
-
-single_thread_flops = 3.5*10^9;
-
-mflops_for_diffraction_calculation = runtime_complexity_ms*single_thread_flops*Fupdate/(10^6)
-mflops_for_filtering = Fs*N_operations_per_sample/(10^6)
-
-T60 = 0.001;
-N = Fs/Fupdate+T60*Fs-1;
-mflops_overlap_add = Fupdate*(18*N*log2(N)+6*N+T60*Fs-1)/(10^6)
-
 %% Input data
 
 fs = 48e3;
@@ -257,10 +242,16 @@ X = ([deg2rad(wedgeIndex) * const, deg2rad(bendingAngle), deg2rad(minAngle), lon
 X = dlarray(single(X), "CB");
 output = predict(net, X);
 
-tfmag = [];
+tfmag = zeros(nfft / 2, numReceivers);
+tfcomplexNNRef = zeros(nfft / 2, numReceivers);
 for i = 1:numReceivers
-    [tfmagTest(:,i), ~, ~] = SingleWedgeInterpolated(longWedgeLength,wedgeIndex,thetaS,thetaR(i),rS,rR(i),zS,zR(i),controlparameters,false);
+    [tfmagTest(:,i), ~, tfcomplexNNRef(:,i)] = SingleWedgeInterpolated(longWedgeLength,wedgeIndex,thetaS,thetaR(i),rS,rR(i),zS,zR(i),controlparameters,false);
 end
+
+tfcomplexNNRef(:, validPath.dir) = tfcomplexNNRef(:, validPath.dir) ./ pathLength.dir(validPath.dir)';
+tfcomplexNNRef(:, validPath.NN) = tfcomplexNNRef(:, validPath.NN) ./ pathLength.NN(validPath.NN)';
+
+PlotSpectrogram(tfcomplexNNRef, fvec, thetaR - thetaS, [-70 0], 'NN', false, false, 'Bending Angle')
 
 %% go
 [targetData, fc, fidx] = CreateFrequencyNBands(tfmagTest, fvec, 12);

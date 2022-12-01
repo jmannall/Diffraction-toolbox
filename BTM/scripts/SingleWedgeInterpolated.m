@@ -60,6 +60,7 @@ function [tfmagOut, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedg
 
         input = [1; zeros(11, 1)];
         [~, dirIr] = DelayLine(input, pathLength, 12, 1, c, fs);
+        dirIr = dirIr * pathLength;
         [tfmagOut, tfcomplex] = IrToTf(dirIr, nfft);
         fvec = fs/nfft*[0:nfft/2-1];
 %         [~, tfmag, ~, fvec, tfcomplex] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusR, radiusS, zS, zR, controlparameters, createPlot);
