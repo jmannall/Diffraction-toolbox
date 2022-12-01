@@ -24,7 +24,7 @@ numNetworks = length(size);
 % end
 
 
-lR(1:20,1) = 6e-3;
+lR(1:20,1) = 1e-3;
 gD(1:20,1) = 0.9;
 sGD(1:20,1) = 0.99;
 mG(1:20,1) = 1;
