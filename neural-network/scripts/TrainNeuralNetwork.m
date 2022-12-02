@@ -18,10 +18,12 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     [lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
     oldNet = [];
 
+    numLayers = length(net.Learnables.Value);
+    numNodes = numel(net.Learnables.Value{2});
     if nargin < 9
-        idx = DataHash({trainingData, extractdata(targetData), numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc});
+        idx = DataHash({numLayers, numNodes, trainingData, extractdata(targetData), numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc});
     else
-        idx = DataHash({trainingData, extractdata(targetData), numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x});
+        idx = DataHash({numLayers, numNodes, trainingData, extractdata(targetData), numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x});
     end
 
     filePath = 'tempNN';
@@ -74,15 +76,12 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             losses(idx) = loss;
             iterationLosses(i) = loss;
         end
-        if isnan(loss)
+        if isnan(loss) && epoch > 1
             % Revert results to last epoch and end training
             lastEpoch = max(epoch - 1, 1);
             epochLosses = epochLosses(1:lastEpoch);
             losses = losses(1:lastEpoch * numIterationsPerEpoch);
             net = oldNet;
-            if epoch > backupRate
-                delete(loadPath)
-            end
             break
         end
         epochLosses(epoch) = mean(iterationLosses);
@@ -96,6 +95,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             count = count + 1;
         end
         if improvement < 0
+            disp('Decrease learn rate')
             learnRate = learnRate / 2;
         end
 
@@ -105,9 +105,17 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
         % Backup result every 5 epochs
         if mod(epoch, backupRate) == 0
             i = epoch;
+            worker = getCurrentWorker;
+            if ~isempty(worker)
+                disp(['Save backup: ', worker.ProcessId])
+            else
+                disp('Save backup')
+            end
             save(savePath, "net", "losses", "epochLosses", "iteration", "i", '-v7.3')
         end
     end
-    delete(loadPath)
+    if epoch > backupRate
+        delete(loadPath)
+    end    
     toc
 end

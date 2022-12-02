@@ -43,12 +43,12 @@ controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'save
 epochSize = 20e3;
 numEpochs = 500;
 dataFunc = @(i) CreateBtmTrainingData(epochSize, controlparameters, i);
-disp('Start parallel training')
+
 parfor i = 1:numNetworks
+disp('Start parallel training')
 
     worker = getCurrentWorker;
-    disp(['Begin woker: ', worker.ProcessId])
-
+    disp(worker.ProcessId)
     name = filter{i};
     networkSize = size(i);
     if matches(name, 'IIR')

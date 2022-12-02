@@ -210,7 +210,7 @@ end
 %% NN audio
 
 % loadPath = ['NNSaves', filesep, 'Biquad-700_00060474-14515-089849-080573-3'];
-loadPath = ['NNSaves', filesep, 'Biquad-350_00068602-080579-090717-098823-2'];
+loadPath = ['NNSaves', filesep, 'IIR-20000_0001-1-09-099-2.mat'];
 load(loadPath, "net");
 
 % X = [wedgeLength, wedgeIndex, thetaR - thetaS]  ;  
@@ -254,19 +254,29 @@ tfcomplexNNRef(:, validPath.NN) = tfcomplexNNRef(:, validPath.NN) ./ pathLength.
 PlotSpectrogram(tfcomplexNNRef, fvec, thetaR - thetaS, [-70 0], 'NN', false, false, 'Bending Angle')
 
 %% go
+numFilters = 2;
+biquad = false;
 [targetData, fc, fidx] = CreateFrequencyNBands(tfmagTest, fvec, 12);
-loss = BiquadLoss(output, targetData, numBiquads, nfft, fs, fidx);
 
-numBiquads = 2;
-[zReal, zImg, pReal, pImg, k] = CreateZPKFromNNOutput(output, numBiquads);
+if biquad
+    loss = BiquadLoss(output, targetData, numFilters, nfft, fs, fidx);
 
-[b, a] = BiquadCoefficients(zReal, zImg, pReal, pImg, k, numBiquads, numReceivers);
-[tfmagNN, ~, tfcomplexNNstore] = CreateBiquad(zReal, zImg, pReal, pImg, k, nfft, fs);
+    [zReal, zImg, pReal, pImg, k] = CreateZPKFromNNOutput(output, numFilters);
+
+    [b, a] = BiquadCoefficients(zReal, zImg, pReal, pImg, k, numFilters, numReceivers);
+    [tfmagNN, ~, tfcomplexNNstore] = CreateBiquad(zReal, zImg, pReal, pImg, k, nfft, fs);
+else
+    loss = IIRFilterLoss(output, targetData, numFilters, nfft, fs, fidx);
+
+    [z, p, k] = CreateIIRFromNNOutput(output, numFilters);
+    [b, a] = IIRFilterCoefficients(z, p, k, numFilters, numReceivers);
+    [tfmagNN, ~, tfcomplexNNstore] = CreateIIRFilter(z, p, k, nfft, fs);
+end
 
 [tfmag, tfcomplex] = IrToTf(ir, nfft);
 
 tfcomplexNN = tfcomplex.dir;
-tfcomplexNN(:,validPath.NN) = extractdata(tfcomplexNNstore(:,validPath.NN));
+tfcomplexNN(:,validPath.NN) = extractdata(tfcomplexNNstore(:,validPath.NN) ./ pathLength.NN(validPath.NN)');
 PlotSpectrogram(tfcomplexNN, fvec, thetaR - thetaS, [-70 0], 'NN', false, false, 'Bending Angle')
 
 idx = 50;
