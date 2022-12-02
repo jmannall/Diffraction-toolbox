@@ -47,7 +47,7 @@ disp('Start parallel training')
 parfor i = 1:numNetworks
 
     worker = getCurrentWorker;
-    disp(['Begin woker: ', worker.ProcessId])
+    disp(['Begin worker: ' num2str(worker.ProcessId)])
 
     name = filter{i};
     networkSize = size(i);

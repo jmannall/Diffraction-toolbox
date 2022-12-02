@@ -107,7 +107,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             i = epoch;
             worker = getCurrentWorker;
             if ~isempty(worker)
-                disp(['Save backup: ', worker.ProcessId])
+                disp(['Save backup: ', num2str(worker.ProcessId)])
             else
                 disp('Save backup')
             end
