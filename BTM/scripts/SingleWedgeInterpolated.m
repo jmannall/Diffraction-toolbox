@@ -16,7 +16,7 @@ function [tfmagOut, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedg
         % Removed phase shift for very long paths.
         if L < 10
             input = [1; zeros(5, 1)];
-            zA = CalculateApex(radiusS, radiusR, zS, zR, wedgeLength);
+            zA = CalculateApex(radiusS, radiusR, zS, zR, wedgeLength, true);
             zA = zA(3);
 
             pathLength = sqrt(radiusS ^ 2 + (abs(zA - zS) ^ 2)) + sqrt(radiusR ^ 2 + (abs(zA - zR) ^ 2));
@@ -53,8 +53,10 @@ function [tfmagOut, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedg
         tfmagOut = mag2db(abs(tfcomplex));
     else
         % Remove diffracted sound if not in the shadow zone
-        l = sqrt(radiusS .^ 2 + zS .^ 2);
-        m = sqrt(radiusR .^ 2 + zR .^ 2);
+        zA = CalculateApex(radiusS, radiusR, zS, zR, wedgeLength, true);
+        zA = zA(3);
+        l = sqrt(radiusS .^ 2 + abs(zS - zA) .^ 2);
+        m = sqrt(radiusR .^ 2 + abs(zR - zA) .^ 2);
 
         pathLength = sqrt(l .^ 2 + m .^ 2 - 2 * l .* m .* cosd(thetaR - thetaS));
 
