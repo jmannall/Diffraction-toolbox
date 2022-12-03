@@ -8,5 +8,6 @@ function loss = BiquadLoss(output, target, numBiquads, numFreq, fs, fidx)
     
     tfmagNBand = CreateNBandMagnitude(tfmag, fidx);
 
+    tfmagNBand = max(-128, min(128, tfmagNBand));
     loss = sum((tfmagNBand - target).^2, 'all')  / numel(tfmagNBand);
 end
