@@ -8,7 +8,6 @@ function [output, ir] = DelayLineLR(audio, pathLength, windowLength, validPath, 
     [buffer, read, write, window, overlap, numBuffers, inputBuffer, output] = InitialiseBuffers(delay, windowLength, audio, pathLength);
     maxDelay = max(delay);
     iirLength = 1e3;
-    irIn = zeros(maxDelay + iirLength + 1, 1);
     ir = zeros(maxDelay + iirLength + 1, numBuffers);
 
     numBands = 4;
@@ -32,10 +31,11 @@ function [output, ir] = DelayLineLR(audio, pathLength, windowLength, validPath, 
             [inputBufferLR, outputBufferLR, input] = ProcessLRFilterBank(input, b, a, inputBufferLR, outputBufferLR, tfmag(k,:), numBands);
             [inputBuffer, output, buffer] = ProcessSampleOutput(audio, buffer, input, inputBuffer, fracDelay, window, write, idx, k, i, output);
         end
+        irIn = zeros(maxDelay + iirLength, 1);
         irIn(delay(k)) = validPath(k) * amplitude(k) * (1 - fracDelay(k));
         irIn(delay(k) + 1) = validPath(k) * amplitude(k) * fracDelay(k);
         [tempInputBufferLR, tempOutputBufferLR] = InitialiseLRBuffers();
-        for i = delay(k):maxDelay + iirLength
+        for i = delay(k):delay(k) + iirLength
             [tempInputBufferLR, tempOutputBufferLR, ir(i, k)] = ProcessLRFilterBank(irIn(i), b, a, tempInputBufferLR, tempOutputBufferLR, tfmag(k,:), numBands);
         end
     end

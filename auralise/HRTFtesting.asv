@@ -257,6 +257,45 @@ tfcomplexRef.vNN = CalculateNNRef(wedgeLength, wedgeIndex, vThetaS(2), thetaR, v
 % semilogx(fvec, extractdata(tfmagNN(:,idx)))
 % xlim([20 20e3])
 
+%% Spectrograms
+
+close all
+
+PlotSpectrogram([tfcomplex.dir], fvec, thetaR - thetaS, [-70 0], 'Direct', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.wallRef], fvec, thetaR - thetaS, [-70 0], 'Wall reflection', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.floorRef], fvec, thetaR - thetaS, [-70 0], 'Floor Reflection', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.floorWallRef], fvec, thetaR - thetaS, [-70 0], 'Floor Wall Reflection', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.ed], fvec, thetaR - thetaS, [-70 0], 'Edge Diffraction', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.sped], fvec, thetaR - thetaS, [-70 0], 'Floor Edge Diffraction', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.edsp], fvec, thetaR - thetaS, [-70 0], 'Edge Floor Diffarction', false, false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.spedsp], fvec, thetaR - thetaS, [-70 0], 'Floor Edge Floor Diffraction', false, false, 'Bending Angle')
+
+geomField = [tfcomplex.dir] + [tfcomplex.wallRef] + [tfcomplex.floorRef] + [tfcomplex.floorWallRef];
+diffFieldBtm = [tfcomplex.ed] + [tfcomplex.sped] + [tfcomplex.edsp] + [tfcomplex.spedsp];
+completeFieldBtm = geomField + diffFieldBtm;
+PlotSpectrogram(geomField, fvec, thetaR - thetaS, [-70 0], 'Geometric Field', false, false, 'Bending Angle')
+PlotSpectrogram(diffFieldBtm, fvec, thetaR - thetaS, [-70 0], 'BTM Diffracted Field', false, false, 'Bending Angle')
+PlotSpectrogram(completeFieldBtm, fvec, thetaR - thetaS, [-70 0], 'BTM Complete Field', false, false, 'Bending Angle')
+
+diffFieldUtd = [tfcomplex.utd] + [tfcomplex.vUtd];
+completeFieldUtd = [tfcomplex.wallRef] + [tfcomplex.floorWallRef] + diffFieldUtd;
+PlotSpectrogram(diffFieldUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Diffracted Field', false, false, 'Bending Angle')
+PlotSpectrogram(completeFieldUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Complete Field', false, false, 'Bending Angle')
+
+diffFieldSchisslerUtd = [tfcomplex.utd];
+completeFieldSchisslerUtd = [tfcomplex.wallRef] + [tfcomplex.floorRef] + [tfcomplex.floorWallRef] + diffFieldSchisslerUtd;
+PlotSpectrogram(diffFieldSchisslerUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Schissler Diffracted Field', false, false, 'Bending Angle')
+PlotSpectrogram(completeFieldSchisslerUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Schissler Complete Field', false, false, 'Bending Angle')
+
+diffFieldNN = [tfcomplex.NN] + [tfcomplex.vNN];
+completeFieldNN = [tfcomplex.wallRef] + [tfcomplex.floorWallRef] + diffFieldNN;
+PlotSpectrogram(diffFieldNN, fvec, thetaR - thetaS, [-70 0], 'NN Diffracted Field', false, false, 'Bending Angle')
+PlotSpectrogram(completeFieldNN, fvec, thetaR - thetaS, [-70 0], 'NN Complete Field', false, false, 'Bending Angle')
+
+diffFieldNNRef = [tfcomplexRef.NN] + [tfcomplexRef.vNN];
+completeFieldNNRef = [tfcomplex.wallRef] + [tfcomplex.floorWallRef] + diffFieldNNRef;
+PlotSpectrogram(diffFieldNNRef, fvec, thetaR - thetaS, [-70 0], 'NN Ref Diffracted Field', false, false, 'Bending Angle')
+PlotSpectrogram(completeFieldNNRef, fvec, thetaR - thetaS, [-70 0], 'NN Ref Complete Field', false, false, 'Bending Angle')
 
 %% HRTF
 
@@ -303,45 +342,6 @@ audiowrite([audioFilePath, '_Geometric.wav'], geometric, fs);
 audiowrite([audioFilePath, '_Utd.wav'], geometricUtdNN + diffractedUtd, fs);
 audiowrite([audioFilePath, '_SchisslerUtd.wav'], schisslerUtd, fs);
 audiowrite([audioFilePath, '_NN.wav'], geometricUtdNN + diffractedNN, fs);
-%% Spectrograms
-
-close all
-
-PlotSpectrogram([tfcomplex.dir], fvec, thetaR - thetaS, [-70 0], 'Direct', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.wallRef], fvec, thetaR - thetaS, [-70 0], 'Wall reflection', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.floorRef], fvec, thetaR - thetaS, [-70 0], 'Floor Reflection', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.floorWallRef], fvec, thetaR - thetaS, [-70 0], 'Floor Wall Reflection', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.ed], fvec, thetaR - thetaS, [-70 0], 'Edge Diffraction', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.sped], fvec, thetaR - thetaS, [-70 0], 'Floor Edge Diffraction', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.edsp], fvec, thetaR - thetaS, [-70 0], 'Edge Floor Diffarction', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.spedsp], fvec, thetaR - thetaS, [-70 0], 'Floor Edge Floor Diffraction', false, false, 'Bending Angle')
-
-geomField = [tfcomplex.dir] + [tfcomplex.wallRef] + [tfcomplex.floorRef] + [tfcomplex.floorWallRef];
-diffFieldBtm = [tfcomplex.ed] + [tfcomplex.sped] + [tfcomplex.edsp] + [tfcomplex.spedsp];
-completeFieldBtm = geomField + diffFieldBtm;
-PlotSpectrogram(geomField, fvec, thetaR - thetaS, [-70 0], 'Geometric Field', false, false, 'Bending Angle')
-PlotSpectrogram(diffFieldBtm, fvec, thetaR - thetaS, [-70 0], 'BTM Diffracted Field', false, false, 'Bending Angle')
-PlotSpectrogram(completeFieldBtm, fvec, thetaR - thetaS, [-70 0], 'BTM Complete Field', false, false, 'Bending Angle')
-
-diffFieldUtd = [tfcomplex.utd] + [tfcomplex.vUtd];
-completeFieldUtd = [tfcomplex.wallRef] + [tfcomplex.floorWallRef] + diffFieldUtd;
-PlotSpectrogram(diffFieldUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Diffracted Field', false, false, 'Bending Angle')
-PlotSpectrogram(completeFieldUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Complete Field', false, false, 'Bending Angle')
-
-diffFieldSchisslerUtd = [tfcomplex.utd];
-completeFieldSchisslerUtd = [tfcomplex.wallRef] + [tfcomplex.floorRef] + [tfcomplex.floorWallRef] + diffFieldSchisslerUtd;
-PlotSpectrogram(diffFieldSchisslerUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Schissler Diffracted Field', false, false, 'Bending Angle')
-PlotSpectrogram(completeFieldSchisslerUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Schissler Complete Field', false, false, 'Bending Angle')
-
-diffFieldNN = [tfcomplex.NN] + [tfcomplex.vNN];
-completeFieldNN = [tfcomplex.wallRef] + [tfcomplex.floorWallRef] + diffFieldNN;
-PlotSpectrogram(diffFieldNN, fvec, thetaR - thetaS, [-70 0], 'NN Diffracted Field', false, false, 'Bending Angle')
-PlotSpectrogram(completeFieldNN, fvec, thetaR - thetaS, [-70 0], 'NN Complete Field', false, false, 'Bending Angle')
-
-diffFieldNNRef = [tfcomplexRef.NN] + [tfcomplexRef.vNN];
-completeFieldNNRef = [tfcomplex.wallRef] + [tfcomplex.floorWallRef] + diffFieldNNRef;
-PlotSpectrogram(diffFieldNNRef, fvec, thetaR - thetaS, [-70 0], 'NN Ref Diffracted Field', false, false, 'Bending Angle')
-PlotSpectrogram(completeFieldNNRef, fvec, thetaR - thetaS, [-70 0], 'NN Ref Complete Field', false, false, 'Bending Angle')
 
 %% Figures
 

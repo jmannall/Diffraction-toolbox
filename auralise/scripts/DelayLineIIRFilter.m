@@ -9,8 +9,7 @@ function [output, ir] = DelayLineIIRFilter(audio, pathLength, windowLength, vali
 
     [buffer, read, write, window, overlap, numBuffers, inputBuffer, output] = InitialiseBuffers(delay, windowLength, audio, pathLength);
     maxDelay = max(delay);
-    iirLength = 50;
-    irIn = zeros(maxDelay + iirLength + 1, 1);
+    iirLength = 1e3;
     ir = zeros(maxDelay + iirLength + 1, numBuffers);
 
     [numCoeff, numFilters, ~] = size(b);
@@ -26,11 +25,12 @@ function [output, ir] = DelayLineIIRFilter(audio, pathLength, windowLength, vali
             end
             [inputBuffer, output, buffer] = ProcessSampleOutput(audio, buffer, input, inputBuffer, fracDelay, window, write, idx, k, i, output);
         end
+        irIn = zeros(maxDelay + iirLength + 1, 1);
         irIn(delay(k)) = validPath(k) * amplitude(k) * (1 - fracDelay(k));
         irIn(delay(k) + 1) = validPath(k) * amplitude(k) * fracDelay(k);
         if doFilter(k)
             [tempInputBufferIIR, tempOutputBufferIIR] = InitialiseIIRBuffers(numCoeff, numFilters);
-            for i = delay(k):maxDelay + iirLength
+            for i = delay(k):delay(k) + iirLength
                 [tempInputBufferIIR, tempOutputBufferIIR, ir(i, k)] = ProcessIIRFilter(irIn(i), b(:,:,k), a(:,:,k), tempInputBufferIIR, tempOutputBufferIIR);
             end
         else

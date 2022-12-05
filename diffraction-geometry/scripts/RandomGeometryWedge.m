@@ -9,7 +9,7 @@ function geometry = RandomGeometryWedge(numObservations)
     
     geometry = repmat(gtemplate, 1, 1);
 
-    epsilon = 1e-5;
+    epsilon = 1e-3;
 
     %% Wedge index
     numTriObservations = 0.5 * numObservations;
@@ -24,6 +24,7 @@ function geometry = RandomGeometryWedge(numObservations)
     wI = RandomTriangularDistribution(wedgeIndex, true, numObservations);
     
     %% Bending angle and minimum angle
+    epsilon = 1e-6;
     bendingAngle = [(180 + epsilon) * const, wI - epsilon];
     bA = RandomTriangularDistribution(bendingAngle, false, numObservations);
     
