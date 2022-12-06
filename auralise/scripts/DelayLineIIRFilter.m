@@ -3,11 +3,13 @@
 function [output, ir] = DelayLineIIRFilter(audio, pathLength, windowLength, validPath, b, a, c, fs, doFilter)
 
     b = extractdata(b);
-    a = extractdata(a);
+    a = extractdata(a); 
 
-    [delay, fracDelay, amplitude] = CalculateDelay(pathLength, c, fs);
+    [delay, fracDelay, amplitude] = CalculateDelay(pathLength, c, fs, doFilter);
 
     [buffer, read, write, window, overlap, numBuffers, inputBuffer, output] = InitialiseBuffers(delay, windowLength, audio, pathLength);
+
+
     maxDelay = max(delay);
     iirLength = 1e3;
     ir = zeros(maxDelay + iirLength + 1, numBuffers);

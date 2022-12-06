@@ -76,6 +76,6 @@ function PlotSpectrogram(tfcomplex, f, t, limits, fileName, phase, savePlot, xLa
         if ~exist('figures', 'dir')
            mkdir figures
         end
-        saveas(gcf, ['figures\', fileName, '.png'])
+        saveas(gcf, ['figures', filesep, fileName, '.png'])
     end
 end

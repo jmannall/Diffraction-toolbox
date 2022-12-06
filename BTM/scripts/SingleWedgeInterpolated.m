@@ -1,4 +1,4 @@
-function [tfmagOut, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS, zR, controlparameters, createPlot)
+function [tfmagOut, fvec, tfcomplex, ir] = SingleWedgeInterpolated(wedgeLength, wedgeIndex, thetaS, thetaR, radiusS, radiusR, zS, zR, controlparameters, createPlot)
     
     nfft = controlparameters.nfft;
     fs = controlparameters.fs;
@@ -51,18 +51,16 @@ function [tfmagOut, fvec, tfcomplex] = SingleWedgeInterpolated(wedgeLength, wedg
         phase = angle(tfcomplex.diff1);
         tfcomplex = scale * PolarToComplex(10.^(tfmagOut / 20), phase);
         tfmagOut = mag2db(abs(tfcomplex));
+        ir = 0;
     else
         % Remove diffracted sound if not in the shadow zone
-        zA = CalculateApex(radiusS, radiusR, zS, zR, wedgeLength, true);
-        zA = zA(3);
-        l = sqrt(radiusS .^ 2 + abs(zS - zA) .^ 2);
-        m = sqrt(radiusR .^ 2 + abs(zR - zA) .^ 2);
-
-        pathLength = sqrt(l .^ 2 + m .^ 2 - 2 * l .* m .* cosd(thetaR - thetaS));
-
+        source = [radiusS * cosd(thetaS) radiusS * sind(thetaS) zS];
+        receiver = [radiusR * cosd(thetaR) radiusR * sind(thetaR) zR];
+        
+        pathLength = vecnorm(source - receiver);
         input = [1; zeros(11, 1)];
-        [~, dirIr] = DelayLine(input, pathLength, 12, 1, c, fs);
-        dirIr = dirIr * pathLength;
+        [~, ir] = DelayLine(input, pathLength, 12, 1, c, fs);
+        dirIr = ir * pathLength;
         [tfmagOut, tfcomplex] = IrToTf(dirIr, nfft);
         fvec = fs/nfft*[0:nfft/2-1];
 %         [~, tfmag, ~, fvec, tfcomplex] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, radiusR, radiusS, zS, zR, controlparameters, createPlot);

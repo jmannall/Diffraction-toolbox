@@ -1,6 +1,8 @@
 
 close all
-clear all
+% clear all
+
+%% Load networks
 
 loadDir = 'NNSaves';
 listing = dir(loadDir);
@@ -10,6 +12,8 @@ networks.networkSize = extractBetween(listing, '-', '_');
 networks.numLayers = extractBetween(listing, '099-', '.');
 
 numNetworks = length(listing);
+
+%% Create Data
 
 fs = 96e3;
 nfft = 16384;
@@ -35,16 +39,21 @@ n = 5;
 colours = colororder;
 colours = colours(1:n, :);
 
-for i = 1:numNetworks
-    if matches(networks.filterType, 'IIR')
-        filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
-        numOutputs = 2 * numFilters + 1;
-    else
-        filterFunc = @(output, target) BiquadLoss(output, target, numFilters, nfft, fs, fidx);
-        numOutputs = 4 * numFilters + 1;
-    end
-    load([loadDir, filesep, listing{i}], 'loss', 'net', 'epochLosses', 'losses');
-    figTitle = [networks.filterType{i}, ' Size: ', num2str(networks.networkSize{i}), ' Layers: ', num2str(networks.numLayers{i})];
+%for i = 1:numNetworks
+%     if matches(networks.filterType, 'IIR')
+%         filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
+%         numOutputs = 2 * numFilters + 1;
+%     else
+%         filterFunc = @(output, target) BiquadLoss(output, target, numFilters, nfft, fs, fidx);
+%         numOutputs = 4 * numFilters + 1;
+%     end
+%     load([loadDir, filesep, listing{i}], 'loss', 'net', 'epochLosses', 'losses');
+%     figTitle = [networks.filterType{i}, ' Size: ', num2str(networks.networkSize{i}), ' Layers: ', num2str(networks.numLayers{i})];
+    filterFunc = @(output, target) BiquadLoss(output, target, numFilters, nfft, fs, fidx);
+    numOutputs = 4 * numFilters + 1;
+%     filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
+%     numOutputs = 2 * numFilters + 1;
+    figTitle = 'Biquad_1';
     PlotNNTrainingLossess(losses, epochLosses, figTitle)
     [loss, ~, ~, prediction] = NNFilterLoss(net, inputData, targetData, filterFunc, false);
     iLosses = sum(abs(prediction - targetData), 1) / numFreq;
@@ -95,7 +104,7 @@ for i = 1:numNetworks
 %     figure
 %     histogram(iSqLosses)
 %     title(['Square losses: ', figTitle])
-end
+%end
 
 
 % cost = [];
@@ -112,3 +121,8 @@ end
 % 
 % figure
 % plot(xEpoch, cost)
+
+%% Export neural network
+
+CheckFileDir('NNonnxExport')
+exportONNXNetwork(net, ['NNonnxExport', filesep, 'testExport.onnx'])

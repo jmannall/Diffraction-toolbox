@@ -212,8 +212,8 @@ for i = 1:numReceivers
     [vTfmag(i,:), ~, ~] = SingleUTDWedgeInterpolated(vThetaS(2), thetaR(i), vRS(2), rR(i), wedgeIndex, vPhii(i), controlparameters);
 end
 
-[audioPath.utd, ir.utd] = DelayLineLR(audio, pathLength.NN, windowLength, validPath.ed, tfmag, c, fs);
-[audioPath.vUtd, ir.vUtd] = DelayLineLR(audio, pathLength.vNN, windowLength, validPath.ed, vTfmag, c, fs);
+[audioPath.utd, ir.utd] = DelayLineLR(audio, [pathLength.NN, pathLength.dir], windowLength, validPath.ed, tfmag, c, fs, validPath.NN);
+[audioPath.vUtd, ir.vUtd] = DelayLineLR(audio, [pathLength.vNN, pathLength.floorRef], windowLength, validPath.ed, vTfmag, c, fs, validPath.NN);
 
 %% Transfer functions
 
@@ -222,7 +222,9 @@ end
 %% NN audio
 
 %loadPath = ['NNSaves', filesep, 'Biquad-700_00060474-14515-089849-080573-3.mat'];
-loadPath = ['NNSaves', filesep, 'IIR-20000_0001-1-09-099-5.mat'];
+% loadPath = ['NNSaves', filesep, 'IIR-20000_0001-1-09-099-5.mat'];
+loadPath = ['NNSaves', filesep, 'ceea9bd63ac9a6a773f13a33bf9fc8e1.mat'];
+
 load(loadPath, "net");
 
 output.NN = CreateNNOutput(net, wedgeIndex, wedgeLength, thetaR, thetaS, rS, rR, zS, zR);
@@ -232,8 +234,8 @@ biquad = false;
 [tfcomplex.NN, b.NN, a.NN] = CalculateNN(output.NN, tfcomplex.dir, validPath.NN, pathLength.NN, nfft, fs, biquad);
 [tfcomplex.vNN, b.vNN, a.vNN] = CalculateNN(output.vNN, tfcomplex.floorRef, validPath.vNN, pathLength.vNN, nfft, fs, biquad);
 
-[audioPath.NN, ir.NN] = DelayLineIIRFilter(audio, pathLength.NN, windowLength, validPath.ed, b.NN, a.NN, c, fs, validPath.NN);
-[audioPath.vNN, ir.vNN] = DelayLineIIRFilter(audio, pathLength.vNN, windowLength, validPath.ed, b.vNN, a.vNN, c, fs, validPath.vNN);
+[audioPath.NN, ir.NN] = DelayLineIIRFilter(audio, [pathLength.NN, pathLength.dir], windowLength, validPath.ed, b.NN, a.NN, c, fs, validPath.NN);
+[audioPath.vNN, ir.vNN] = DelayLineIIRFilter(audio, [pathLength.vNN, pathLength.floorRef], windowLength, validPath.ed, b.vNN, a.vNN, c, fs, validPath.vNN);
 
 %% Transfer functions
 
@@ -241,8 +243,8 @@ biquad = false;
 
 %% NN Reference
 
-tfcomplexRef.NN = CalculateNNRef(wedgeLength, wedgeIndex, thetaS, thetaR, rS, rR, zS, zR, controlparameters, validPath.dir, pathLength.dir, pathLength.NN);
-tfcomplexRef.vNN = CalculateNNRef(wedgeLength, wedgeIndex, vThetaS(2), thetaR, vRS(2), rR, vZS(2), zR, controlparameters, validPath.dir, pathLength.floorRef, pathLength.vNN);
+[tfcomplexRef.NN, irTest] = CalculateNNRef(wedgeLength, wedgeIndex, thetaS, thetaR, rS, rR, zS, zR, controlparameters, validPath.dir, pathLength.dir, pathLength.NN);
+[tfcomplexRef.vNN, irFloorTest] = CalculateNNRef(wedgeLength, wedgeIndex, vThetaS(2), thetaR, vRS(2), rR, vZS(2), zR, controlparameters, validPath.dir, pathLength.floorRef, pathLength.vNN);
 
 %% NN loss
 
@@ -307,52 +309,61 @@ audiowrite([audioFilePath, '_NN.wav'], geometricUtdNN + diffractedNN, fs);
 
 close all
 
-PlotSpectrogram([tfcomplex.dir], fvec, thetaR - thetaS, [-70 0], 'Direct', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.wallRef], fvec, thetaR - thetaS, [-70 0], 'Wall reflection', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.floorRef], fvec, thetaR - thetaS, [-70 0], 'Floor Reflection', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.floorWallRef], fvec, thetaR - thetaS, [-70 0], 'Floor Wall Reflection', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.ed], fvec, thetaR - thetaS, [-70 0], 'Edge Diffraction', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.sped], fvec, thetaR - thetaS, [-70 0], 'Floor Edge Diffraction', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.edsp], fvec, thetaR - thetaS, [-70 0], 'Edge Floor Diffarction', false, false, 'Bending Angle')
-PlotSpectrogram([tfcomplex.spedsp], fvec, thetaR - thetaS, [-70 0], 'Floor Edge Floor Diffraction', false, false, 'Bending Angle')
+plotPhase = true;
+savePlot = true;
+
+PlotSpectrogram([tfcomplex.dir], fvec, thetaR - thetaS, [-70 0], 'Direct', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram([tfcomplex.wallRef], fvec, thetaR - thetaS, [-70 0], 'Wall reflection', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram([tfcomplex.floorRef], fvec, thetaR - thetaS, [-70 0], 'Floor Reflection', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram([tfcomplex.floorWallRef], fvec, thetaR - thetaS, [-70 0], 'Floor Wall Reflection', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram([tfcomplex.ed], fvec, thetaR - thetaS, [-70 0], 'Edge Diffraction', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram([tfcomplex.sped], fvec, thetaR - thetaS, [-70 0], 'Floor Edge Diffraction', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram([tfcomplex.edsp], fvec, thetaR - thetaS, [-70 0], 'Edge Floor Diffarction', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram([tfcomplex.spedsp], fvec, thetaR - thetaS, [-70 0], 'Floor Edge Floor Diffraction', plotPhase, savePlot, 'Bending Angle')
+
+%% BTM, UTD and NN
+
+close all
 
 geomField = [tfcomplex.dir] + [tfcomplex.wallRef] + [tfcomplex.floorRef] + [tfcomplex.floorWallRef];
 diffFieldBtm = [tfcomplex.ed] + [tfcomplex.sped] + [tfcomplex.edsp] + [tfcomplex.spedsp];
 completeFieldBtm = geomField + diffFieldBtm;
-PlotSpectrogram(geomField, fvec, thetaR - thetaS, [-70 0], 'Geometric Field', false, false, 'Bending Angle')
-PlotSpectrogram(diffFieldBtm, fvec, thetaR - thetaS, [-70 0], 'BTM Diffracted Field', false, false, 'Bending Angle')
-PlotSpectrogram(completeFieldBtm, fvec, thetaR - thetaS, [-70 0], 'BTM Complete Field', false, false, 'Bending Angle')
+PlotSpectrogram(geomField, fvec, thetaR - thetaS, [-70 0], 'Geometric Field', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram(diffFieldBtm, fvec, thetaR - thetaS, [-70 0], 'BTM Diffracted Field', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram(completeFieldBtm, fvec, thetaR - thetaS, [-70 0], 'BTM Complete Field', plotPhase, savePlot, 'Bending Angle')
 
 diffFieldUtd = [tfcomplex.utd] + [tfcomplex.vUtd];
 completeFieldUtd = [tfcomplex.wallRef] + [tfcomplex.floorWallRef] + diffFieldUtd;
-PlotSpectrogram(diffFieldUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Diffracted Field', false, false, 'Bending Angle')
-PlotSpectrogram(completeFieldUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Complete Field', false, false, 'Bending Angle')
+PlotSpectrogram(diffFieldUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Diffracted Field', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram(completeFieldUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Complete Field', plotPhase, savePlot, 'Bending Angle')
 
 diffFieldSchisslerUtd = [tfcomplex.utd];
 completeFieldSchisslerUtd = [tfcomplex.wallRef] + [tfcomplex.floorRef] + [tfcomplex.floorWallRef] + diffFieldSchisslerUtd;
-PlotSpectrogram(diffFieldSchisslerUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Schissler Diffracted Field', false, false, 'Bending Angle')
-PlotSpectrogram(completeFieldSchisslerUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Schissler Complete Field', false, false, 'Bending Angle')
+PlotSpectrogram(diffFieldSchisslerUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Schissler Diffracted Field', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram(completeFieldSchisslerUtd, fvec, thetaR - thetaS, [-70 0], 'UTD Schissler Complete Field', plotPhase, savePlot, 'Bending Angle')
 
 diffFieldNN = [tfcomplex.NN] + [tfcomplex.vNN];
 completeFieldNN = [tfcomplex.wallRef] + [tfcomplex.floorWallRef] + diffFieldNN;
-PlotSpectrogram(diffFieldNN, fvec, thetaR - thetaS, [-70 0], 'NN Diffracted Field', false, false, 'Bending Angle')
-PlotSpectrogram(completeFieldNN, fvec, thetaR - thetaS, [-70 0], 'NN Complete Field', false, false, 'Bending Angle')
+PlotSpectrogram(diffFieldNN, fvec, thetaR - thetaS, [-70 0], 'NN Diffracted Field', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram(completeFieldNN, fvec, thetaR - thetaS, [-70 0], 'NN Complete Field', plotPhase, savePlot, 'Bending Angle')
 
 diffFieldNNRef = [tfcomplexRef.NN] + [tfcomplexRef.vNN];
 completeFieldNNRef = [tfcomplex.wallRef] + [tfcomplex.floorWallRef] + diffFieldNNRef;
-PlotSpectrogram(diffFieldNNRef, fvec, thetaR - thetaS, [-70 0], 'NN Ref Diffracted Field', false, false, 'Bending Angle')
-PlotSpectrogram(completeFieldNNRef, fvec, thetaR - thetaS, [-70 0], 'NN Ref Complete Field', false, false, 'Bending Angle')
+PlotSpectrogram(diffFieldNNRef, fvec, thetaR - thetaS, [-70 0], 'NN Ref Diffracted Field', plotPhase, savePlot, 'Bending Angle')
+PlotSpectrogram(completeFieldNNRef, fvec, thetaR - thetaS, [-70 0], 'NN Ref Complete Field', plotPhase, savePlot, 'Bending Angle')
 
 %% Figures
 
-PlotSpectrogramOfWAV([audioFilePath, '_bRBtm.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioFilePath, '_bRGeometric.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioFilePath, '_bRUtd.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioFilePath, '_bRSchisslerUtd.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioFilePath, '_bRNN.wav'], [-70 0], nfft);
+close all
 
-PlotSpectrogramOfWAV([audioFilePath, '_Btm.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioFilePath, '_Geometric.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioFilePath, '_Utd.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioFilePath, '_SchisslerUtd.wav'], [-70 0], nfft);
-PlotSpectrogramOfWAV([audioFilePath, '_NN.wav'], [-70 0], nfft);
+PlotSpectrogramOfWAV([audioFilePath, '_bRBtm.wav'], [-70 0], nfft, savePlot);
+PlotSpectrogramOfWAV([audioFilePath, '_bRGeometric.wav'], [-70 0], nfft, savePlot);
+PlotSpectrogramOfWAV([audioFilePath, '_bRUtd.wav'], [-70 0], nfft, savePlot);
+PlotSpectrogramOfWAV([audioFilePath, '_bRSchisslerUtd.wav'], [-70 0], nfft, savePlot);
+PlotSpectrogramOfWAV([audioFilePath, '_bRNN.wav'], [-70 0], nfft, savePlot);
+
+PlotSpectrogramOfWAV([audioFilePath, '_Btm.wav'], [-70 0], nfft, savePlot);
+PlotSpectrogramOfWAV([audioFilePath, '_Geometric.wav'], [-70 0], nfft, savePlot);
+PlotSpectrogramOfWAV([audioFilePath, '_Utd.wav'], [-70 0], nfft, savePlot);
+PlotSpectrogramOfWAV([audioFilePath, '_SchisslerUtd.wav'], [-70 0], nfft, savePlot);
+PlotSpectrogramOfWAV([audioFilePath, '_NN.wav'], [-70 0], nfft, savePlot);
