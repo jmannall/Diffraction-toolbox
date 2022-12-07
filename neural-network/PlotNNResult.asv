@@ -67,12 +67,7 @@ for i = 1:numNetworks
     examplesIdxHi = find(iLosses > percentiles(end));
     [~, examplesIdxMax] = maxk(iLosses, numSelect);
     
-    idx = randi(length(examplesIdxLo), [1, numSelect]);
-    examplesIdxLo = examplesIdxLo(idx);
-
-    idx = randi(length(examplesIdxHi), [1, numSelect]);
-    examplesIdxHi = examplesIdxHi(idx);
-
+    idx = ran
     figure
     colororder(colours)
     semilogx(fc, targetData(:, examplesIdxLo))
