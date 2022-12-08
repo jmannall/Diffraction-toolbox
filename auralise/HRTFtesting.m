@@ -50,8 +50,8 @@ numReceivers = length(receivers);
 
 windowLength = 2 * fs / updateRate;
 audioLength = (numReceivers + 1) / updateRate;
-[audio, audioFs] = LoopAudio('audio/whiteNoise.wav', audioLength);
-audio = resample(audio,fs,audioFs)';
+[audio, audioFs] = LoopAudio('audio/music.wav', audioLength);
+audio = resample(audio,fs,audioFs);
 
 %% LR testing
 

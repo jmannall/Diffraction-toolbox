@@ -5,7 +5,8 @@ clear all
 %% Distributions
 numObservations = 20e3;
 
-geometry = RandomGeometryWedge(numObservations);
+weight = 25;
+geometry = RandomGeometryWedgeWeighted(numObservations, 20);
 
 wedgeIndex = geometry.wedgeIndex;
 bendingAngle = geometry.bendingAngle;

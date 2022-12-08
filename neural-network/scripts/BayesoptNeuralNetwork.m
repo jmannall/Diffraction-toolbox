@@ -7,7 +7,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSizeInput, numOutputs, controlpa
     sqGradDecay = optimizableVariable('sGD',[0.8 1],'Type','real');
     maxGradient = optimizableVariable('mG',[0.5 10],'Type','real','Transform','log');
     numLayers = optimizableVariable('nL',[2 min(20, maxLayers)],'Type','integer');
-    networkSize = optimizableVariable('nS',[5000 networkSizeInput],'Type','real','Transform','log');
+    networkSize = optimizableVariable('nS',[5000 networkSizeInput],'Type','integer','Transform','log');
     
     epochSize = 20e3;
 

@@ -39,6 +39,8 @@ colours = colororder;
 colours = colours(1:numSelect, :);
 lossFunc = @(net, X, targetData, filterFunc)NNFilterLoss(net, X, targetData, filterFunc, false);
 gradFunc = @(net, X, targetData, filterFunc)CalculateSalientMapping(net, X, targetData, filterFunc);
+
+inputNames = {'wI', 'bA', 'mA', 'wL', 'rS', 'rR', 'zS', 'zR'};
 for i = 1:numNetworks
     if matches(networks.filterType{i}, 'IIR')
         filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
@@ -50,7 +52,7 @@ for i = 1:numNetworks
     load([loadDir, filesep, listing{i}], 'loss', 'net', 'epochLosses', 'losses');
     figTitle = [networks.filterType{i}, ' Size: ', num2str(networks.networkSize{i}), ' Layers: ', num2str(networks.numLayers{i})];
 
-    PlotNNTrainingLossess(losses, epochLosses, figTitle)
+    % PlotNNTrainingLossess(losses, epochLosses, figTitle)
 
     X = dlarray(single(inputData), "CB");
     gradients = dlfeval(gradFunc, net, X, targetData, filterFunc);
@@ -103,12 +105,13 @@ for i = 1:numNetworks
 %     xlim([20 20e3])
 %     ylim([-60 20])
 
-    figure
-    histogram(iLosses)
-    title(['Losses: ', figTitle])
+%     figure
+%     histogram(iLosses)
+%     title(['Losses: ', figTitle])
 
     n = 3;
     m = 4;
+    x = [];
     for k = 1:n * m
         for j = 1:length(gradients)
             x{k}(:,j) = gradients{j}(:,k);
@@ -117,21 +120,30 @@ for i = 1:numNetworks
 
     figure
     ax = gca;
-    tiledlayout(n, m)
+    t = tiledlayout(n,m,'TileSpacing','Compact');
     for k = 1:n * m
         nexttile
         image(extractdata(x{k}), 'CDataMapping','scaled')
         clim([-1 1])
         colorbar
-        xlabel('Outputs')
-        ylabel('Inputs')
+        for j = 1:8
+            labels{j} = [inputNames{j}, ': ', num2str(inputData(j, k))];
+        end
+        yticks(1:8)
+        yticklabels(labels)
+        title('Loss: ', num2str(iLosses(k)))
     end
+    title(t,[figTitle, ' Loss: ', num2str(percentiles(end))])
+    xlabel(t,'Outputs')
+    ylabel(t,'Inputs')
     
     allPercentiles(i,:) = percentiles;
 %     figure
 %     histogram(iSqLosses)
 %     title(['Square losses: ', figTitle])
 end
+
+
 
 %% End
 
@@ -153,6 +165,112 @@ ylim([0 6])
 % 
 % figure
 % plot(xEpoch, cost)
+
+%% Best
+
+close all
+
+[~, i] = min(allPercentiles(:, end));
+
+if matches(networks.filterType{i}, 'IIR')
+    filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
+    numOutputs = 2 * numFilters + 1;
+else
+    filterFunc = @(output, target) BiquadLoss(output, target, numFilters, nfft, fs, fidx);
+    numOutputs = 4 * numFilters + 1;
+end
+load([loadDir, filesep, listing{i}], 'loss', 'net', 'epochLosses', 'losses');
+figTitle = [networks.filterType{i}, ' Size: ', num2str(networks.networkSize{i}), ' Layers: ', num2str(networks.numLayers{i})];
+
+% PlotNNTrainingLossess(losses, epochLosses, figTitle)
+
+X = dlarray(single(inputData), "CB");
+gradients = dlfeval(gradFunc, net, X, targetData, filterFunc);
+[loss, ~, ~, prediction] = dlfeval(lossFunc, net, X, targetData, filterFunc);
+iLosses = sum(abs(prediction - targetData), 1) / numFreq;
+iSqLosses = sum((prediction - targetData) .^ 2, 1) / numFreq;
+
+mid = median(iLosses);
+av = mean(iLosses);
+percentileBounds = 5:5:95;
+percentiles = prctile(iLosses, percentileBounds);
+
+examplesIdxLo = find(iLosses < percentiles(1));
+examplesIdxHi = find(iLosses > percentiles(end));
+[~, examplesIdxMax] = maxk(iLosses, numSelect);
+
+idx = randi(length(examplesIdxLo), [1, numSelect]);
+examplesIdxLo = examplesIdxLo(idx);
+
+idx = randi(length(examplesIdxHi), [1, numSelect]);
+examplesIdxHi = examplesIdxHi(idx);
+
+figure
+colororder(colours)
+semilogx(fc, targetData(:, examplesIdxLo))
+hold on
+semilogx(fc, prediction(:, examplesIdxLo), '--')
+title(['below ', num2str(percentiles(1)), ' error: ', figTitle])
+legend(num2str(inputData(:, examplesIdxLo)'), 'Location', 'southoutside')
+xlim([20 20e3])
+ylim([-60 20])
+
+figure
+colororder(colours)
+semilogx(fc, targetData(:, examplesIdxHi))
+hold on
+semilogx(fc, prediction(:, examplesIdxHi), '--')
+title(['above ', num2str(percentiles(end)), ' error: ', figTitle])
+legend(num2str(inputData(:, examplesIdxHi)'), 'Location', 'southoutside')
+xlim([20 20e3])
+ylim([-60 20])
+
+figure
+colororder(colours)
+semilogx(fc, targetData(:, examplesIdxMax))
+hold on
+semilogx(fc, prediction(:, examplesIdxMax), '--')
+title(['Worst cases: ', figTitle])
+legend(num2str(inputData(:, examplesIdxMax)'), 'Location', 'southoutside')
+xlim([20 20e3])
+ylim([-60 20])
+
+figure
+histogram(iLosses)
+title(['Losses: ', figTitle])
+
+n = 3;
+m = 4;
+x = [];
+for k = 1:n * m
+    for j = 1:length(gradients)
+        x{k}(:,j) = gradients{j}(:,k);
+    end
+end
+
+figure
+ax = gca;
+t = tiledlayout(n,m,'TileSpacing','Compact');
+for k = 1:n * m
+    nexttile
+    image(extractdata(x{k}), 'CDataMapping','scaled')
+    clim([-1 1])
+    colorbar
+    for j = 1:8
+        labels{j} = [inputNames{j}, ': ', num2str(inputData(j, k))];
+    end
+    yticks(1:8)
+    yticklabels(labels)
+    title('Loss: ', num2str(iLosses(k)))
+end
+title(t,[figTitle, ' Loss: ', num2str(percentiles(end))])
+xlabel(t,'Outputs')
+ylabel(t,'Inputs')
+    
+%     figure
+%     histogram(iSqLosses)
+%     title(['Square losses: ', figTitle])
+
 
 %% Export neural network
 

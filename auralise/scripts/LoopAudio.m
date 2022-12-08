@@ -4,7 +4,7 @@ function [output, fs, sampleLength] = LoopAudio(filePath, timeLength)
     
     [audio, fs] = audioread(filePath);
 
-    audio = audio(round(2 * end / 3): end);
+    %audio = audio(round(2 * end / 3): end);
     audioLength = length(audio);
     sampleLength = floor(timeLength * fs);
     
