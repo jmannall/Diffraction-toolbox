@@ -73,35 +73,35 @@ for i = 1:numNetworks
     idx = randi(length(examplesIdxHi), [1, numSelect]);
     examplesIdxHi = examplesIdxHi(idx);
 
-    figure
-    colororder(colours)
-    semilogx(fc, targetData(:, examplesIdxLo))
-    hold on
-    semilogx(fc, prediction(:, examplesIdxLo), '--')
-    title(['below ', num2str(percentiles(1)), ' error: ', figTitle])
-    legend(num2str(inputData(:, examplesIdxLo)'), 'Location', 'southoutside')
-    xlim([20 20e3])
-    ylim([-60 20])
+%     figure
+%     colororder(colours)
+%     semilogx(fc, targetData(:, examplesIdxLo))
+%     hold on
+%     semilogx(fc, prediction(:, examplesIdxLo), '--')
+%     title(['below ', num2str(percentiles(1)), ' error: ', figTitle])
+%     legend(num2str(inputData(:, examplesIdxLo)'), 'Location', 'southoutside')
+%     xlim([20 20e3])
+%     ylim([-60 20])
 
-    figure
-    colororder(colours)
-    semilogx(fc, targetData(:, examplesIdxHi))
-    hold on
-    semilogx(fc, prediction(:, examplesIdxHi), '--')
-    title(['above ', num2str(percentiles(end)), ' error: ', figTitle])
-    legend(num2str(inputData(:, examplesIdxHi)'), 'Location', 'southoutside')
-    xlim([20 20e3])
-    ylim([-60 20])
+%     figure
+%     colororder(colours)
+%     semilogx(fc, targetData(:, examplesIdxHi))
+%     hold on
+%     semilogx(fc, prediction(:, examplesIdxHi), '--')
+%     title(['above ', num2str(percentiles(end)), ' error: ', figTitle])
+%     legend(num2str(inputData(:, examplesIdxHi)'), 'Location', 'southoutside')
+%     xlim([20 20e3])
+%     ylim([-60 20])
 
-    figure
-    colororder(colours)
-    semilogx(fc, targetData(:, examplesIdxMax))
-    hold on
-    semilogx(fc, prediction(:, examplesIdxMax), '--')
-    title(['Worst cases: ', figTitle])
-    legend(num2str(inputData(:, examplesIdxMax)'), 'Location', 'southoutside')
-    xlim([20 20e3])
-    ylim([-60 20])
+%     figure
+%     colororder(colours)
+%     semilogx(fc, targetData(:, examplesIdxMax))
+%     hold on
+%     semilogx(fc, prediction(:, examplesIdxMax), '--')
+%     title(['Worst cases: ', figTitle])
+%     legend(num2str(inputData(:, examplesIdxMax)'), 'Location', 'southoutside')
+%     xlim([20 20e3])
+%     ylim([-60 20])
 
     figure
     histogram(iLosses)
@@ -133,8 +133,11 @@ for i = 1:numNetworks
 %     title(['Square losses: ', figTitle])
 end
 
+%% End
+
 figure
 plot(percentileBounds, allPercentiles)
+ylim([0 6])
 
 % cost = [];
 % runningMean = [];

@@ -1,12 +1,13 @@
-function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparameters)
+function BayesoptNeuralNetwork(lossFunc, networkSizeInput, numOutputs, controlparameters)
     
-    maxLayers = networkSize / 2 ^ 2;
+    maxLayers = networkSizeInput / 2 ^ 2;
     
     learnRate = optimizableVariable('lR',[1e-5 1e-1],'Type','real','Transform','log');
     gradDecay = optimizableVariable('gD',[0.5 1],'Type','real');
     sqGradDecay = optimizableVariable('sGD',[0.8 1],'Type','real');
     maxGradient = optimizableVariable('mG',[0.5 10],'Type','real','Transform','log');
     numLayers = optimizableVariable('nL',[2 min(20, maxLayers)],'Type','integer');
+    networkSize = optimizableVariable('nS',[5000 networkSizeInput],'Type','real','Transform','log');
     
     epochSize = 20e3;
 
@@ -15,11 +16,11 @@ function BayesoptNeuralNetwork(lossFunc, networkSize, numOutputs, controlparamet
     saveResult = [saveDir, filesep, 'BayesoptResults.mat'];
     
     disp('Create Training Data')
-    [~, ~, ~, ~, ~, idx, saveData] = CreateBtmTrainingData(epochSize, controlparameters, epochSize);
-    dataFunc = @() CreateBtmTrainingData(epochSize, controlparameters, idx);
+    % [~, ~, ~, ~, ~, idx, saveData] = CreateBtmTrainingData(epochSize, controlparameters, epochSize);
+    dataFunc = @(idx) CreateBtmTrainingData(epochSize, controlparameters, idx);
 
     numEpochs = 100;
-    func = @(x)CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize, numOutputs, numEpochs, controlparameters.filterType, true);
+    func = @(x)CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSizeInput, numOutputs, numEpochs, controlparameters.filterType, true);
     restarting = isfile(saveResult);
     if restarting
         disp('Restart Optimisation')

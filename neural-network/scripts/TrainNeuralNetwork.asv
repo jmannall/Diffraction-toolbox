@@ -77,8 +77,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             iterationLosses(i) = loss;
         end
         epochLosses(epoch) = mean(iterationLosses);
-        improvement = epochLosses(max(1, epoch - 1)) - epochLosses(epoch);
-        if epoch > 1 && (isnan(loss) || improvement < -1e3)
+        if epoch > 1 && (isnan(loss) || (epochLosses(epoch) - epochLosses(epoch - 1))  
             % Revert results to last epoch and end training
             lastEpoch = max(epoch - 1, 1);
             epochLosses = epochLosses(1:lastEpoch);
