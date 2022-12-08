@@ -184,11 +184,142 @@ figTitle = [networks.filterType{i}, ' Size: ', num2str(networks.networkSize{i}),
 
 % PlotNNTrainingLossess(losses, epochLosses, figTitle)
 
+isWeight = matches(net.Learnables.Parameter, "Weights");
+
+weights = net.Learnables.Value(isWeight);
+
+numLayers = length(weights);
+
+allWeights = [];
+for i = 1:numLayers
+    allWeights = [allWeights; reshape(extractdata(weights{i}), [], 1)];
+end
+threshold = 0;
+weightThreshold = prctile(abs(allWeights), threshold);
+
+for i = 1:numLayers
+    weights{i}(abs(weights{i}) < weightThreshold) = 0;
+end
+
+net.Learnables.Value(isWeight) = weights;
+
 X = dlarray(single(inputData), "CB");
 gradients = dlfeval(gradFunc, net, X, targetData, filterFunc);
 [loss, ~, ~, prediction] = dlfeval(lossFunc, net, X, targetData, filterFunc);
 iLosses = sum(abs(prediction - targetData), 1) / numFreq;
 iSqLosses = sum((prediction - targetData) .^ 2, 1) / numFreq;
+
+% analyzeNetwork(net,X)
+layers = {'InputLayer', 'ActivationLayer_1', 'ActivationLayer_2', 'ActivationLayer_3', 'ActivationLayer_4', 'ActivationLayer_5', 'OutputLayer'};
+[inOutput, output1, output2, output3, output4, output5, outOutput] = predict(net, X, 'Outputs', layers);
+
+figure
+ax = gca;
+t = tiledlayout(n,m,'TileSpacing','Compact');
+image(extractdata(inOutput), 'CDataMapping','scaled')
+%clim([-1 1])
+colorbar
+title(t,'Input Layer')
+xlabel(t,'Outputs')
+ylabel(t,'Inputs')
+
+figure
+ax = gca;
+t = tiledlayout(n,m,'TileSpacing','Compact');
+image(extractdata(output1), 'CDataMapping','scaled')
+%clim([-1 1])
+colorbar
+title(t,'Layer 1')
+xlabel(t,'Outputs')
+ylabel(t,'Inputs')
+
+figure
+ax = gca;
+t = tiledlayout(n,m,'TileSpacing','Compact');
+image(extractdata(output2), 'CDataMapping','scaled')
+%clim([-1 1])
+colorbar
+title(t,'Layer 2')
+xlabel(t,'Outputs')
+ylabel(t,'Inputs')
+
+figure
+ax = gca;
+t = tiledlayout(n,m,'TileSpacing','Compact');
+image(extractdata(output3), 'CDataMapping','scaled')
+%clim([-1 1])
+colorbar
+title(t,'Layer 3')
+xlabel(t,'Outputs')
+ylabel(t,'Inputs')
+
+figure
+ax = gca;
+t = tiledlayout(n,m,'TileSpacing','Compact');
+image(extractdata(output4), 'CDataMapping','scaled')
+%clim([-1 1])
+colorbar
+title(t,'Layer 4')
+xlabel(t,'Outputs')
+ylabel(t,'Inputs')
+
+figure
+ax = gca;
+t = tiledlayout(n,m,'TileSpacing','Compact');
+image(extractdata(output5), 'CDataMapping','scaled')
+%clim([-1 1])
+colorbar
+title(t,'Layer 5')
+xlabel(t,'Outputs')
+ylabel(t,'Inputs')
+
+figure
+ax = gca;
+t = tiledlayout(n,m,'TileSpacing','Compact');
+image(extractdata(outOutput), 'CDataMapping','scaled')
+%clim([-1 1])
+colorbar
+title(t,'Output Layer')
+xlabel(t,'Outputs')
+ylabel(t,'Inputs')
+
+%% Test
+
+[z, p, k] = CreateIIRFromNNOutput(outOutput, 2);
+
+[tfmag, ~] = CreateIIRFilter(z, p, k, nfft, fs);
+    
+tfmagNBand = CreateNBandMagnitude(tfmag, fidx);
+
+targetTfmagNBand = max(-128, min(128, tfmagNBand));
+
+
+beta0 = zeros(8, 17);
+func = @(beta, x)test(beta, x);
+
+options = statset('nlinfit');
+options.MaxIter = 10000;
+z = double(extractdata(z));
+p = extractdata(p);
+k = extractdata(k);
+[betaz1,R1,J1,CovB1] = nlinfit(inputData,z(1,:),func, beta0, 'options', options);
+[betaz2,R2,J2,CovB2] = nlinfit(inputData,z(2,:),func, beta0, 'options', options);
+[betap1,R3,J3,CovB3] = nlinfit(inputData,p(1,:),func, beta0, 'options', options);
+[betap2,R4,J4,CovB4] = nlinfit(inputData,p(2,:),func, beta0, 'options', options);
+[betak,R5,J5,CovB5] = nlinfit(inputData,k,func, beta0, 'options', options);
+
+zPred = [test(betaz1, inputData); test(betaz2, inputData)];
+pPred = [test(betap1, inputData); test(betap2, inputData)];
+kPred = test(betak, inputData);
+
+[tfmag, ~] = CreateIIRFilter(zPred, pPred, kPred, nfft, fs);
+    
+tfmagNBand = CreateNBandMagnitude(tfmag, fidx);
+
+tfmagNBand = max(-128, min(128, tfmagNBand));
+
+lossAbs = sum((tfmagNBand - targetData).^2, 'all')  / numel(tfmagNBand);
+lossNN = sum((tfmagNBand - targetTfmagNBand).^2, 'all')  / numel(tfmagNBand);
 
 mid = median(iLosses);
 av = mean(iLosses);
@@ -276,3 +407,16 @@ ylabel(t,'Inputs')
 
 CheckFileDir('NNonnxExport')
 exportONNXNetwork(net, ['NNonnxExport', filesep, 'testExport.onnx'])
+
+function Y = test(beta, x)
+
+    [numInputs, numData] = size(x);
+    squares = zeros(numInputs, numInputs, numData);
+    for i = 1:numData
+        squares(:, :, i) = x(:,i) * x(:,i)';
+    end
+    for i = 1:numData
+        triples(:, :, i) = squares(:, :, i) .* x(:,i);
+    end
+    Y = sum(beta(:,1) .* x, 1) + squeeze(sum(sum(beta(:,2:numInputs + 1) .* squares, 1),2))' + squeeze(sum(sum(beta(:,numInputs + 2:end) .* triples, 1),2))';
+end
