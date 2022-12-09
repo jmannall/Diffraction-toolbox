@@ -4,9 +4,12 @@ function [b, a] = LowPassCoefficients(fc, fs, k)
     omega = 2 * pi * fc;
     K = omega * T;
     
-    b(:,1,:) = [K; K];
-    a(:,1,:) = [K + 2; K - 2];
+    b = [K; K];
+    a = [K + 2; K - 2];
     if nargin > 2
-        b(:,1,:) = squeeze(b(:,1,:)) .* k;
+        b = b .* k;
     end
+    [x, z] = size(b);
+    b = reshape(b, x, 1, z);
+    a = reshape(a, x, 1, z);
 end

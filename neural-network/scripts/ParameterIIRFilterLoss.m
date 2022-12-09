@@ -4,6 +4,7 @@ function [loss, tfmagNBand] = ParameterIIRFilterLoss(output, target, nfft, fs, f
     
     [lpFc, hsFc, G, k] = CreateFilterParametersFromNNOutput(output);
 
+    [b, a] = deal(zeros(2, 2, length(lpFc)));
     [b(:,1,:), a(:,1,:)] = LowPassCoefficients(lpFc, fs, k);
     [b(:,2,:), a(:,2,:)] = HighShelfCoefficients(hsFc, G, fs);
 

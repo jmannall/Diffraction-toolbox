@@ -35,7 +35,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSizeInput, numOutputs, controlpa
         disp('Start Optimisation')
         %result = bayesopt(func, [learnRate, gradDecay, sqGradDecay, maxGradient, numLayers, networkSize], ...
         result = bayesopt(func, [learnRate, numLayers, networkSize], ...
-        'UseParallel', true, 'MaxTime', 86400, 'MaxObjectiveEvaluations', 100, ...
+        'UseParallel', false, 'MaxTime', 86400, 'MaxObjectiveEvaluations', 100, ...
         'SaveFileName', saveResult, 'OutputFcn', @saveToFile, 'AcquisitionFunctionName', 'expected-improvement-plus');
     end
     
@@ -58,6 +58,9 @@ function BayesoptNeuralNetwork(lossFunc, networkSizeInput, numOutputs, controlpa
     
     saveDir = 'bayesoptResults';
     CheckFileDir(saveDir)
+    if weighted
+        controlparameters.filterType = [controlparameters.filterType, 'W'];
+    end
     save([saveDir, filesep, 'BayesoptResult_Size_', num2str(networkSize), '_Filter_', controlparameters.filterType, '.mat'], "result", "xObs", "xEst", "lossObs", "netObs", "lossEst", "netEst")
     
     %% Delete data save
