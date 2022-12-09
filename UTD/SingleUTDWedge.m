@@ -7,12 +7,9 @@ function [tfmag, fvec, tfcomplex] = SingleUTDWedge(thetaS, thetaR, radiusS, radi
     phii = deg2rad(phii);
 
     c = controlparameters.c;
-    nfft = controlparameters.nfft;
-    fs = controlparameters.fs;
     fvec = [125 500 2000 11050];
     k = 2 * pi * fvec/ c; % Precompute
     n = wedgeIndex / pi; % 1
-    dir = zeros(1, length(fvec));
 
     if nargin > 7
         L = A * sin(phii)^2;
@@ -25,13 +22,6 @@ function [tfmag, fvec, tfcomplex] = SingleUTDWedge(thetaS, thetaR, radiusS, radi
         B = 1;
     end
 
-    if thetaR - thetaS < pi % Direct path open
-        arg = cos(pi / 2 - phii);
-        l = radiusS / arg;
-        m = radiusR / arg;
-        directlen = sqrt(l ^ 2 + m ^ 2 - 2 * l * m * cos(thetaR - thetaS));
-        dir = exp(-1i * k * directlen) / directlen;
-    end
     tfcomplex = frontFactor .* (EquationHalf(thetaR - thetaS, n, k, L, B) + EquationHalf(thetaR + thetaS, n, k, L, B)); % 4 + 2 * eqHalf -> 146
     tfmag = mag2db(abs(tfcomplex));
 end

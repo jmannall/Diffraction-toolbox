@@ -25,8 +25,8 @@ function [loss, net] = CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSize
 %         [net, loss, epochLosses, losses] = CreateNeuralNetwork(trainingData, targetData, numLayers, hiddenLayerSize, numOutputs, alpha, numEpochs, miniBatchSize, lossFunc, x, dataFunc);
 %     end
 
-    % idx = [num2str(x.lR), '-', num2str(x.mG), '-', num2str(x.gD), '-', num2str(x.sGD), '-', num2str(x.nL), '-', num2str(x.nS)];
-    idx = [num2str(x.lR), '-', num2str(x.nL), '-', num2str(x.nS)];
+    idx = [num2str(x.lR), '-', num2str(x.mG), '-', num2str(x.gD), '-', num2str(x.sGD), '-', num2str(x.nL), '-', num2str(x.nS)];
+    % idx = [num2str(x.lR), '-', num2str(x.nL), '-', num2str(x.nS)];
     idx = erase(idx, '.');
     CheckFileDir('NNSaves')
     save(['NNSaves', filesep, name, '-', num2str(networkSize), '_', idx, '.mat'], "net", "loss", "epochLosses", "losses");

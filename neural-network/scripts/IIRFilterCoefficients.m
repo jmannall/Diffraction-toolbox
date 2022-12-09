@@ -20,5 +20,4 @@ function [b, a] = IIRFilterCoefficients(z, p, k, numIIRFilters, numObservations)
         b = stripdims(b);
         a = stripdims(a);
     end
-
 end

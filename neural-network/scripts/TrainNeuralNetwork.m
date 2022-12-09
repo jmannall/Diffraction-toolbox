@@ -1,13 +1,13 @@
 function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc)
     
     learnRate = x.lR;
-%     gradDecay = x.gD;
-%     sqGradDecay = x.sGD;
-%     maxGradient = x.mG;
+    gradDecay = x.gD;
+    sqGradDecay = x.sGD;
+    maxGradient = x.mG;
 
-    gradDecay = 0.9;
-    sqGradDecay = 0.99;
-    maxGradient = 1.5;
+%     gradDecay = 0.9;
+%     sqGradDecay = 0.99;
+%     maxGradient = 1.5;
 
     averageGrad = [];
     averageSqGrad = [];
