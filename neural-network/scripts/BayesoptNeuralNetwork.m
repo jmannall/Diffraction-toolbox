@@ -1,4 +1,4 @@
-function BayesoptNeuralNetwork(lossFunc, networkSizeInput, numOutputs, controlparameters)
+function BayesoptNeuralNetwork(lossFunc, networkSizeInput, numOutputs, controlparameters, weighted)
     
     maxLayers = networkSizeInput / 2 ^ 2;
     
@@ -17,7 +17,12 @@ function BayesoptNeuralNetwork(lossFunc, networkSizeInput, numOutputs, controlpa
     
     disp('Create Training Data')
     % [~, ~, ~, ~, ~, idx, saveData] = CreateBtmTrainingData(epochSize, controlparameters, epochSize);
-    dataFunc = @(idx) CreateBtmTrainingData(epochSize, controlparameters, idx);
+    
+    if weighted
+        dataFunc = @(idx) CreateBtmTrainingDataWeighted(epochSize, controlparameters, idx);
+    else
+        dataFunc = @(idx) CreateBtmTrainingData(epochSize, controlparameters, idx);
+    end
 
     numEpochs = 100;
     func = @(x)CreateBTMNeuralNetwork(x, lossFunc, dataFunc, networkSizeInput, numOutputs, numEpochs, controlparameters.filterType, true);
