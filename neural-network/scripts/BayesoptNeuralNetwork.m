@@ -3,9 +3,9 @@ function BayesoptNeuralNetwork(lossFunc, networkSizeInput, numOutputs, controlpa
     maxLayers = networkSizeInput / 2 ^ 2;
     
     learnRate = optimizableVariable('lR',[1e-5 1e-2],'Type','real','Transform','log');
-    gradDecay = optimizableVariable('gD',[0.5 1],'Type','real');
-    sqGradDecay = optimizableVariable('sGD',[0.8 1],'Type','real');
-    maxGradient = optimizableVariable('mG',[0.5 10],'Type','real','Transform','log');
+    %gradDecay = optimizableVariable('gD',[0.5 1],'Type','real');
+    %sqGradDecay = optimizableVariable('sGD',[0.8 1],'Type','real');
+    %maxGradient = optimizableVariable('mG',[0.5 10],'Type','real','Transform','log');
     numLayers = optimizableVariable('nL',[2 min(20, maxLayers)],'Type','integer');
     networkSize = optimizableVariable('nS',[5000 networkSizeInput],'Type','integer','Transform','log');
     
