@@ -4,7 +4,7 @@ function [loss, tfmagNBand] = ParameterIIRFilterLoss(output, target, nfft, fs, f
     
     [lpFc, hsFc, G, k] = CreateFilterParametersFromNNOutput(output);
 
-    [b, a] = IIRFilterParameterCoefficients(lpFc, hsFc, G, k);
+    [b, a] = IIRFilterParameterCoefficients(lpFc, hsFc, G, k, fs);
 
     [tfmag, ~, ~] = CalculateFilterResponse(b, a, nfft, fs);
     

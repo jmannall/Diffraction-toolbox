@@ -1,4 +1,4 @@
-function [b, a] = IIRFilterParameterCoefficients(lpFc, hsFc, G, k)
+function [b, a] = IIRFilterParameterCoefficients(lpFc, hsFc, G, k, fs)
 
     [b, a] = deal(zeros(2, 2, length(lpFc)));
     [b(:,1,:), a(:,1,:)] = LowPassCoefficients(lpFc, fs, k);
