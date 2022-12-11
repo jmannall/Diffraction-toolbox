@@ -61,7 +61,7 @@ function BayesoptNeuralNetwork(lossFunc, networkSizeInput, numOutputs, controlpa
     if weighted
         controlparameters.filterType = [controlparameters.filterType, 'W'];
     end
-    save([saveDir, filesep, 'BayesoptResult_Size_', num2str(networkSize), '_Filter_', controlparameters.filterType, '.mat'], "result", "xObs", "xEst", "lossObs", "netObs", "lossEst", "netEst")
+    save([saveDir, filesep, 'BayesoptResult_Size_', num2str(networkSizeInput), '_Filter_', controlparameters.filterType, '.mat'], "result", "xObs", "xEst", "lossObs", "netObs", "lossEst", "netEst")
     
     %% Delete data save
     % delete([saveData, '.mat'])
