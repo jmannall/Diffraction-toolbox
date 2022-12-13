@@ -19,7 +19,8 @@ function BayesoptNeuralNetwork(lossFunc, networkSizeInput, numOutputs, controlpa
     % [~, ~, ~, ~, ~, idx, saveData] = CreateBtmTrainingData(epochSize, controlparameters, epochSize);
     
     if weighted
-        dataFunc = @(idx) CreateBtmTrainingDataWeighted(epochSize, controlparameters, idx);
+        weight = 20;
+        dataFunc = @(idx) CreateBtmTrainingDataWeighted(epochSize, controlparameters, weight, idx);
     else
         dataFunc = @(idx) CreateBtmTrainingData(epochSize, controlparameters, idx);
     end
