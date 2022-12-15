@@ -1,0 +1,27 @@
+function [loss, gradients] = TransformationLoss(net, psiInv, w, x, y, NNlossFunc, numIIRFilters, gamma)
+
+    NNLoss = NNlossFunc(net, x, y);
+    xHat = psiInv' * w;
+    r = x - xHat;
+    input = xHat + extractdata(r);
+
+    xHat = dlarray(xHat, "CB");
+    output = predict(net, input);
+    [z, p, k] = CreateIIRFromNNOutput(output, numIIRFilters);
+
+    z = mean(z, 2);
+    p = mean(p, 2);
+    k = mean(k);
+   
+%     TRIM = dlarray (zeros(1));
+%     input = num2cell([z; p; k]);
+%     for i = 1:size(input, 1)
+%         attrib = dlgradient(input{i}, w);
+%         TRIM = TRIM + mean(abs(attrib), 'all');
+%     end
+%     TRIM = TRIM / size(input, 1);
+    attrib = dlgradient(k, w, 'EnableHigherDerivatives',true);
+    TRIM = sum(abs(attrib), 'all');
+    loss = NNLoss + gamma * TRIM;
+    gradients = dlgradient(loss, psiInv);
+end

@@ -1,0 +1,118 @@
+function [net, epochLosses, losses] = TrainTransformation(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, dataFunc)
+    
+    psi = 100 * rand(8, 50);
+    psiInv = dlarray(pinv(psi));
+
+    learnRate = 1e-3;
+    gradDecay = 0.9;
+    sqGradDecay = 0.99;
+    maxGradient = 10;
+
+    averageGrad = [];
+    averageSqGrad = [];
+    losses = zeros(1, numEpochs * numIterationsPerEpoch);
+    iterationLosses = zeros(1, numIterationsPerEpoch);
+    epochLosses = zeros(1, numEpochs);
+    iteration = 0;
+    start = tic;
+    count = 1;
+    i = 1;
+
+    [lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
+    oldNet = [];
+
+    numLayers = length(net.Learnables.Value);
+    numNodes = numel(net.Learnables.Value{2});
+    idx = DataHash({numLayers, numNodes, trainingData, extractdata(targetData), numEpochs, miniBatchSize, numIterationsPerEpoch});
+
+    filePath = 'tempPsi';
+    CheckFileDir(filePath);
+    fileName = num2str(idx);
+    savePath = [filePath filesep fileName];
+    loadPath = [savePath '.mat'];
+
+    backupRate = 5;
+    restart = exist([cd filesep loadPath], "file");
+
+    if restart == 2
+        load(loadPath, "net", "losses", "epochLosses", "iteration", "i")
+        disp('Restart training')
+    else
+        disp('Start training')
+    end
+
+    tic
+    for epoch = i:numEpochs
+        if nargin > 7 && epoch > 1
+            [trainingData, targetData] = dataFunc(epoch);
+        end
+        % Shuffle data.
+        idx = randperm(size(trainingData, 2));
+        targetData = targetData(:,idx);
+        trainingData = trainingData(:,idx);
+        for i = 1:numIterationsPerEpoch
+            iteration = iteration + 1;
+    
+            [X, T] = ProcessNNBatchInputData(trainingData, targetData, miniBatchSize, i);
+            
+            % Evaluate the model loss and gradients using dlfeval and the
+            % modelLoss function.input
+            W = dlarray(psi' * extractdata(X));
+            [loss, gradients] = dlfeval(lossFunc,net,psiInv,W,X,T);
+    
+            % Update the network parameters using the Adam optimizer.
+            % Clip gradients
+            %gradients = ClipGradients(gradients, maxGradient);
+            gradients = max(-maxGradient, min(gradients, maxGradient));
+            [psiInv,averageGrad,averageSqGrad] = adamupdate(psiInv,gradients,averageGrad,averageSqGrad,iteration,learnRate,gradDecay,sqGradDecay);
+            
+            psi = pinv(extractdata(psiInv));
+            idx = numIterationsPerEpoch * (epoch - 1) + i;
+            loss = double(loss);
+            losses(idx) = loss;
+            iterationLosses(i) = loss;
+        end
+        epochLosses(epoch) = mean(iterationLosses);
+        improvement = epochLosses(max(1, epoch - 1)) - epochLosses(epoch);
+        if epoch > 1 && (isnan(loss) || improvement < -1e3)
+            % Revert results to last epoch and end training
+            lastEpoch = max(epoch - 1, 1);
+            epochLosses = epochLosses(1:lastEpoch);
+            losses = losses(1:lastEpoch * numIterationsPerEpoch);
+            net = oldNet;
+            break
+        end
+        if count > 10
+            idx = max(epoch - 10, 1):epoch - 1;
+            runningMean = mean(epochLosses(idx));
+            improvement = runningMean - epochLosses(epoch);
+            count = 1;
+        else
+            improvement = 1;
+            count = count + 1;
+        end
+        if improvement < 0
+            disp('Decrease learn rate')
+            learnRate = learnRate / 2;
+        end
+
+        UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numIterationsPerEpoch, epoch, start)
+        oldNet = net;
+
+        % Backup result every 5 epochs
+        if mod(epoch, backupRate) == 0
+            i = epoch;
+            worker = getCurrentWorker;
+            if ~isempty(worker)
+                disp(['Save backup: ', num2str(worker.ProcessId)])
+            else
+                disp('Save backup')
+            end
+            save(savePath, "net", "losses", "epochLosses", "iteration", "i", '-v7.3')
+        end
+    end
+    if epoch > backupRate
+        delete(loadPath)
+    end    
+    toc
+end

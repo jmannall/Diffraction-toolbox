@@ -6,8 +6,15 @@ function [tfmag, fvec, tfcomplex] = SingleUTDWedge(thetaS, thetaR, radiusS, radi
     wedgeIndex = deg2rad(wedgeIndex);
     phii = deg2rad(phii);
 
+    B0 = sin(phii); % 1
+    l = radiusS / B0;
+    m = radiusR / B0;
     c = controlparameters.c;
-    fvec = [125 500 2000 11050];
+    if isfield(controlparameters, 'fvec')
+        fvec = controlparameters.fvec;
+    else
+        fvec = [125 500 2000 11050];
+    end
     k = 2 * pi * fvec/ c; % Precompute
     n = wedgeIndex / pi; % 1
 
@@ -15,9 +22,8 @@ function [tfmag, fvec, tfcomplex] = SingleUTDWedge(thetaS, thetaR, radiusS, radi
         L = A * sin(phii)^2;
         frontFactor = -exp(-1i * (pi / 4)) ./ (2 * n * sqrt(2 * pi * k));
     else
-        B0 = sin(phii); % 1
-        L = radiusR * radiusS / (radiusS + radiusR) * B0^2; % 5
-        A = exp(-1i  * k * (radiusS + radiusR)) / sqrt(radiusS * radiusR * (radiusS + radiusR)); % 9 - From Pisha code. Not certain why this
+        L = l * m  * B0^2 / (l + m); % 5
+        A = exp(-1i  * k * (l + m)) / sqrt(l * m * (l + m)); % 9 - From Pisha code. Not certain why this
         frontFactor = -A .* exp(-1i * (pi / 4)) ./ (2 * n * sqrt(2 * pi * k) * B0); % 12
         B = 1;
     end

@@ -34,12 +34,16 @@ fv = 0.9995;
 thresholdVar = fv * totalVar;
 idx = cumVar < thresholdVar; % m = sum(idx)
 numPos = sum(idx);
+numPos = 4;
+percent = cumVar / totalVar * 100;
+numFreq = length(fvec);
+idx = [true(numPos, 1) ; false(numFreq - numPos, 1)];
 P = p(:,idx);
 
 b = P' * (targetData - meanTargetData); % m first dimension. k second dimension
 b = max(-3 * sqrt(llambda(idx)), min(3 * sqrt(llambda(idx)), b));
 
-numFreq = length(fvec);
+
 components = zeros(numFreq, testSize, numPos);
 for i = 1:numPos
     components(:,:,i) = P(:,i) * b(i,:);
@@ -47,10 +51,13 @@ end
 
 figure
 semilogx(fvec, P(:,1))
+labels{1} = num2str(1);
 hold on
-semilogx(fvec, P(:,2))
-semilogx(fvec, P(:,3))
-legend('1', '2', '3')
+for i = 2:numPos
+    semilogx(fvec, P(:,i))
+    labels{i} = num2str(i);
+end
+legend(labels)
 
 softTargetData = meanTargetData + P * b;
 
@@ -83,6 +90,12 @@ end
 % ylim([-70 0])
 % xlim([20 20e3])
 % title('Soft target data')
+
+figure
+plot(1:numFreq, percent)
+xlim([0 10])
+ylim([99 100])
+grid on
 
 %% IIR filter
 

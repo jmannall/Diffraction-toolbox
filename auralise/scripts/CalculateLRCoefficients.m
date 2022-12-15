@@ -21,15 +21,15 @@ function [b, a] = CalculateLRCoefficients(fc, fs, freqResponse)
     aLpfHpf(:,2,:) = aLpfHpf(:,1,:);
 
     % Create bands
-    bLow= [bLpf(:,:,2), bLpf(:,:,1)];
-    aLow = [aLpfHpf(:,:,2), aLpfHpf(:,:,1)];
+    bLow= [bLpf(:,:,2), bLpf(:,:,3), bHpf(:,:,3), bLpf(:,:,1)];
+    aLow = [aLpfHpf(:,:,2), aLpfHpf(:,:,3), aLpfHpf(:,:,3), aLpfHpf(:,:,1)];
 
-    bMidLow = [bLpf(:,:,2), bHpf(:,:,1)];
+    bMidLow = [bLpf(:,:,2), bLpf(:,:,3), bHpf(:,:,3), bHpf(:,:,1)];
 
-    bMidHigh = [bHpf(:,:,2), bLpf(:,:,3)];
+    bMidHigh = [bHpf(:,:,2), bLpf(:,:,1), bHpf(:,:,1), bLpf(:,:,3)];
 
-    bHigh = [bHpf(:,:,2), bHpf(:,:,3)];
-    aHigh = [aLpfHpf(:,:,2), aLpfHpf(:,:,3)];
+    bHigh = [bHpf(:,:,2), bLpf(:,:,1), bHpf(:,:,1), bHpf(:,:,3)];
+    aHigh = [aLpfHpf(:,:,2), aLpfHpf(:,:,1), aLpfHpf(:,:,1), aLpfHpf(:,:,3)];
 
     b = cat(3, bLow, bMidLow, bMidHigh, bHigh);
     a = cat(3, aLow, aLow, aHigh, aHigh);

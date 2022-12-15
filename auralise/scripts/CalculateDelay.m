@@ -8,15 +8,15 @@ function [delay, fracDelay, amplitude] = CalculateDelay(pathLength, c, fs, diffP
 
     if nargin > 3
         delayStore = delay;
-        delay = delayStore(:, 2);
+        delay = delayStore(:, end);
         delay(diffPart) = delayStore(diffPart, 1);
 
         fracDelayStore = fracDelay;
-        fracDelay = fracDelayStore(:, 2);
+        fracDelay = fracDelayStore(:, end);
         fracDelay(diffPart) = fracDelayStore(diffPart, 1);
 
         amplitudeStore = amplitude;
-        amplitude = amplitudeStore(:, 2);
+        amplitude = amplitudeStore(:, end);
         amplitude(diffPart) = amplitudeStore(diffPart, 1);
     end
 end
