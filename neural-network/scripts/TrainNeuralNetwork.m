@@ -5,6 +5,12 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     sqGradDecay = x.sGD;
     maxGradient = x.mG;
 
+    worker = getCurrentWorker;
+    if ~isempty(worker)
+        disp(['Worker: ', num2str(worker.ProcessId), ', Network: ' num2str(x.nL), '-', num2str(x.hL)]);
+    else
+        disp(['Network: ' num2str(x.nL), '-', num2str(x.hL)]);
+    end
 %     gradDecay = 0.9;
 %     sqGradDecay = 0.99;
 %     maxGradient = 1.5;
@@ -16,7 +22,6 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     epochLosses = zeros(1, numEpochs);
     iteration = 0;
     start = tic;
-    count = 1;
     i = 1;
 
     [lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
@@ -84,24 +89,15 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
         improvement = epochLosses(max(1, epoch - 1)) - epochLosses(epoch);
         if epoch > 1 && (isnan(loss) || improvement < -1e3)
             % Revert results to last epoch and end training
+            disp('End training early')
             lastEpoch = max(epoch - 1, 1);
             epochLosses = epochLosses(1:lastEpoch);
             losses = losses(1:lastEpoch * numIterationsPerEpoch);
             net = oldNet;
             break
         end
-        if count > 10
-            idx = max(epoch - 10, 1):epoch - 1;
-            runningMean = mean(epochLosses(idx));
-            improvement = runningMean - epochLosses(epoch);
-            count = 1;
-        else
-            improvement = 1;
-            count = count + 1;
-        end
-        if improvement < 0
-            disp('Decrease learn rate')
-            learnRate = learnRate / 2;
+        if epoch == 200 || epoch == 400
+            learnRate = learnRate / 10;
         end
 
         UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numIterationsPerEpoch, epoch, start)

@@ -8,14 +8,13 @@ c = 344;
 filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
 
 iir = 'IIR';
-iirW = 'iirW';
 
 nI = 8;
 nO = 5;
 gx = 5;
 
 networkSizes = [2e3; 4e3; 6e3; 8e3; 10e3];
-layers = [2, 3, 4, 5, 6, 7];
+nL = [2, 3, 4, 5, 6, 7];
 
 CcPZTransform = 5;
 numPZ = nO - 1;
@@ -24,11 +23,17 @@ CcOutputTransform = numPZ * CcPZTransform + CcKTransform;
 
 CcIIR = 6;
 
-a = layers - 1;
-b = layers + layers * gx + nI + nO;
+a = nL - 1;
+b = nL + nL * gx + nI + nO;
 c = CcIIR + CcOutputTransform + nO - networkSizes;
+test = c * a;
 hL = round((-b + sqrt(b .^ 2 - 4 .* c * a)) ./ (2 * a));
 
+
+lR(1:20,1) = 1e-3;
+gD(1:20,1) = 0.9;
+sGD(1:20,1) = 0.99;
+mG(1:20,1) = 1;
 % const = ones(4, 1);
 % nL(1:20,1) = [2 * const; 3 * const; 5 * const; 6 * const; 7 * const];
 % layers1 = [32; 48; 64; 80];
@@ -40,28 +45,19 @@ hL = round((-b + sqrt(b .^ 2 - 4 .* c * a)) ./ (2 * a));
 
 const = ones(20,1);
 numSizes = length(networkSizes);
-numLayers = length(layers);
+numLayers = length(nL);
 numNetworks = numLayers * numSizes;
 for i = 1:numSizes
     for j = 1:numLayers
-        cost(i, j) = CalculateNNIIRCost(layers(j), hL(i, j), nI, nO, gx);
+        cost(i, j) = CalculateNNIIRCost(nL(j), hL(i, j), nI, nO, gx);
     end
 end
 x = 1:numSizes;
 figure
 plot(x, cost)
-legend('2', '3', '4', '5', '6', '7')
-
-lR(1:numNetworks,1) = 1e-3;
-gD(1:numNetworks,1) = 0.9;
-sGD(1:numNetworks,1) = 0.99;
-mG(1:numNetworks,1) = 1;
-nL = layers .* ones(numSizes, numLayers);
-nL = reshape(nL, numNetworks, 1);
-hL = reshape(hL, numNetworks, 1);
+legend('2', '3', '5', '6', '7')
 
 x = table(lR, gD, sGD, mG, nL, hL, 'VariableNames', ["lR", "gD", "sGD", "mG", "nL", "hL"]);
-x = [x; x];
 
 % Create loss function
 numFilters = 2;
@@ -72,27 +68,26 @@ controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'save
 
 epochSize = 20e3;
 numEpochs = 500;
-
-filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
-numOutputs = 2 * numFilters + 1;
-
+dataFunc = @(i) CreateBtmTrainingData(epochSize, controlparameters, i);
 disp('Start parallel training')
-parfor i = 1:2 * numNetworks
-
-    if i > numNetworks
-        dataFunc = @(i) CreateBtmTrainingData(epochSize, controlparameters, i);
-        name = iir;
-    else        
-        dataFunc = @(i) CreateBtmTrainingDataWeighted(epochSize, controlparameters, i);
-        name = iirW;
-    end
+parfor i = 1:numNetworks
 
     worker = getCurrentWorker;
     disp(['Begin worker: ' num2str(worker.ProcessId)])
 
+    name = filter{i};
+    networkSize = networkSizes(i);
+    if matches(name, 'IIR')
+        filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
+        numOutputs = 2 * numFilters + 1;
+    else
+        filterFunc = @(output, target) BiquadLoss(output, target, numFilters, nfft, fs, fidx);
+        numOutputs = 4 * numFilters + 1;
+    end
+
     lossFunc = @(net, trainingData, targetData) NNFilterLoss(net, trainingData, targetData, filterFunc, true);
 
-    [loss(i), net(i)] = CreateBTMNeuralNetwork(x(i,:), lossFunc, dataFunc, numOutputs, numEpochs, name);
+    [loss(i), net(i)] = CreateBTMNeuralNetwork(x(i,:), lossFunc, dataFunc, networkSize, numOutputs, numEpochs, name, false);
 end
 
 % restarting = isfile(savePath);

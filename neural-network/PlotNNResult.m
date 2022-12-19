@@ -2,6 +2,9 @@
 close all
 % clear all
 
+figTitle = 'Test';
+PlotNNTrainingLossess(losses, epochLosses, figTitle)
+
 %% Load networks
 
 loadDir = 'NNSaves';
