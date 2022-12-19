@@ -80,10 +80,10 @@ disp('Start parallel training')
 parfor i = 1:2 * numNetworks
 
     if i > numNetworks
-        dataFunc = @(i) CreateBtmTrainingData(epochSize, controlparameters, i);
+        dataFunc = @(i) CreateBtmTrainingDataWeighted(epochSize, controlparameters, i);
         name = iir;
     else        
-        dataFunc = @(i) CreateBtmTrainingDataWeighted(epochSize, controlparameters, i);
+        dataFunc = @(i) CreateBtmTrainingData(epochSize, controlparameters, i);
         name = iirW;
     end
 
