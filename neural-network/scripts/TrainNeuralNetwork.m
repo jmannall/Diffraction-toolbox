@@ -17,7 +17,6 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
 
     averageGrad = [];
     averageSqGrad = [];
-    disp('test2');
     losses = zeros(1, numEpochs * numIterationsPerEpoch);
     iterationLosses = zeros(1, numIterationsPerEpoch);
     epochLosses = zeros(1, numEpochs);
@@ -25,7 +24,6 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     start = tic;
     i = 1;
 
-    disp('test3');
     [lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
     oldNet = [];
 

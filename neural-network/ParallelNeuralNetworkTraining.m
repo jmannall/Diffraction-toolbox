@@ -75,12 +75,13 @@ numEpochs = 500;
 
 filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
 numOutputs = 2 * numFilters + 1;
+weight = 20;
 
 disp('Start parallel training')
 parfor i = 1:2 * numNetworks
 
     if i > numNetworks
-        dataFunc = @(i) CreateBtmTrainingDataWeighted(epochSize, controlparameters, i);
+        dataFunc = @(i) CreateBtmTrainingDataWeighted(epochSize, controlparameters, weight, i);
         name = iir;
     else        
         dataFunc = @(i) CreateBtmTrainingData(epochSize, controlparameters, i);
