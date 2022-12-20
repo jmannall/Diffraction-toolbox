@@ -17,7 +17,7 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
     NNSaveExists = exist([cd, filesep, NNSavePath, '.mat'], "file");
 
     if NNSaveExists == 2
-        load([savePath, '_NN.mat'], "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath");
+        load([NNSavePath, '.mat'], "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath");
         % disp('Load NN data')
     else
         rtemplate.tfmag = [];
