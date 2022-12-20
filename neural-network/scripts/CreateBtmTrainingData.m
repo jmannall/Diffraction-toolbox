@@ -9,19 +9,20 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
     end
     [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, extra] = BTMArrayFileHandling(mFile, index, numInputs);
     
-    NNSaveExists = exist([cd, filesep, savePath, '_NN.mat'], "file");
+    fs = controlparameters.fs / 2;
+    nfft = controlparameters.nfft / 2;
+    fvec = fs/nfft*[0:nfft/2-1];
+
+    NNSavePath = [savePath, '-', num2str(round(fs / 1e3)), '_NN'];
+    NNSaveExists = exist([cd, filesep, NNSavePath, '.mat'], "file");
 
     if NNSaveExists == 2
         load([savePath, '_NN.mat'], "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath");
-        disp('Load NN data')
+        % disp('Load NN data')
     else
         rtemplate.tfmag = [];
         rtemplate.i = [];
-    
-        fs = controlparameters. fs;
-        nfft = controlparameters.nfft;
-        fvec = fs/nfft*[0:nfft/2-1];
-    
+
         saveCount = 1;
         if resultExists
             load(loadPath, "result", "geometry");
@@ -66,11 +67,11 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
             result = ProcessArrayResults(fileName, index, savePath, numSaves, controlparameters, geometry);
         end
         tfmag = [result.tfmag];
+        tfmag = tfmag(1:end / 2,:);
         tfmag = max(min(tfmag, 128), -128);
-        [targetData, fc, fidx] = CreateFrequencyNBands(tfmag, fvec, 12);
+        [targetData, fc, fidx] = CreateFrequencyNBands(tfmag, fvec, 8);
         trainingData = CreateNNinput(geometry);
     
-        NNSavePath = [savePath, '_NN'];
         save(NNSavePath, "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
         delete([savePath, '.mat'])
     end

@@ -9,7 +9,7 @@ function UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numI
     title("Epoch: " + epoch + ", Elapsed: " + string(D))
     drawnow
 
-    if rem(epoch, 10) == 0
+    if mod(epoch, 10) == 0
         worker = getCurrentWorker;
         if ~isempty(worker)
             disp(['Worker: ', num2str(worker.ProcessId), ', Epoch ' num2str(epoch), ' loss: ', num2str(epochLoss)]);

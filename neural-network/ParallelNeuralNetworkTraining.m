@@ -2,9 +2,11 @@
 close all
 clear all
 
-fs = 96e3;
-nfft = 16384;
+fs = 48e3;
+nfft = 8192;
 c = 344;
+controlparameters = struct('fs', 2 * fs, 'nfft', 2 * nfft, 'difforder', 1, 'c', c, 'saveFiles', 2);
+
 filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
 
 iir = 'IIR';
@@ -65,8 +67,7 @@ x = [x; x];
 
 % Create loss function
 numFilters = 2;
-nBands = 12;
-controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'saveFiles', 2);
+nBands = 8;
 [~, tfmag, ~, fvec, ~] = DefaultBTM(controlparameters);
 [~, ~, fidx] = CreateFrequencyNBands(tfmag, fvec, nBands);
 
