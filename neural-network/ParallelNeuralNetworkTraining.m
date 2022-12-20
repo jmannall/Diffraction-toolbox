@@ -7,7 +7,7 @@ clear all
 fs = 48e3;
 nfft = 8192;
 c = 344;
-controlparameters = struct('fs', 2 * fs, 'nfft', 2 * nfft, 'difforder', 1, 'c', c, 'saveFiles', 2);
+controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'saveFiles', 2);
 
 filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
 
@@ -57,6 +57,8 @@ numFilters = 2;
 nBands = 8;
 [~, tfmag, ~, fvec, ~] = DefaultBTM(controlparameters);
 [~, ~, fidx] = CreateFrequencyNBands(tfmag, fvec, nBands);
+controlparameters.fs = 2 * fs;
+controlparameters.nfft = 2 * nfft;
 
 epochSize = 20e3;
 numEpochs = 500;

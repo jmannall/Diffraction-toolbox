@@ -30,10 +30,11 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     numLayers = length(net.Learnables.Value);
     numNodes = numel(net.Learnables.Value{2});
     if nargin < 9
-        idx = DataHash({numLayers, numNodes, trainingData, extractdata(targetData), numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc});
+        idx = DataHash({numLayers, numNodes, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc});
     else
-        idx = DataHash({numLayers, numNodes, trainingData, extractdata(targetData), numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x});
+        idx = DataHash({numLayers, numNodes, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x});
     end
+    targetData = dlarray(targetData);
 
     filePath = 'tempNN';
     CheckFileDir(filePath);
