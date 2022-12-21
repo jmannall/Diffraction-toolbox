@@ -91,9 +91,9 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
         if epoch > 1 && (isnan(loss) || improvement < -1e3)
             % Revert results to last epoch and end training
             if ~isempty(worker)
-                disp(['End training early: ', num2str(worker.ProcessId)])
+                disp(['End training early: ', num2str(epoch), '_', num2str(worker.ProcessId)])
             else
-                disp('End training early')
+                disp(['End training early: ', num2str(epoch)])
             end
             lastEpoch = max(epoch - 1, 1);
             epochLosses = epochLosses(1:lastEpoch);
