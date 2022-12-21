@@ -13,7 +13,7 @@ filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
 saveDir = 'NNSaves';
 CheckFileDir(saveDir)
 
-iir = 'iir';
+iir = 'IIR';
 iirW = 'iirW';
 
 %% NN complexity
@@ -72,7 +72,7 @@ weight = 20;
 %% Run grid search
 
 disp('Start parallel training')
-parfor i = 1:2 * numNetworks
+for i = 5:2 * numNetworks
     
     if i > numNetworks
         dataFunc = @(i) CreateBtmTrainingDataWeighted(epochSize, controlparameters, weight, i);
@@ -82,16 +82,9 @@ parfor i = 1:2 * numNetworks
         name = iir;
     end
     input = x(i,:);
-
-    gx = 5;
-    numInputs = 8;
-    networkSize = CalculateNNIIRCost(input.nL, input.hL, numInputs, numOutputs, gx);
-    %hiddenLayerSize = round((-gx + sqrt(gx ^ 2 - 4 * (-networkSize / numLayers))) / 2); % (-b + sqrt(b^2 - 4ac)) / 2a
-
-    idx = [num2str(input.lR), '-', num2str(input.mG), '-', num2str(input.gD), '-', num2str(input.sGD), '-', num2str(input.nL), '-', num2str(input.hL)];
+    idx = [num2str(input.lR), '-', num2str(input.mG), '-', num2str(x.gD), '-', num2str(x.sGD), '-', num2str(x.nL), '-', num2str(x.hL)];
     idx = erase(idx, '.');
-    saveFile = [name, '-', num2str(networkSize), '_', idx];
-    networkExists = exist([cd filesep saveDir filesep saveFile '.mat'], "file");
+    networkExists = exist([cd filesep saveDir filesep name, '-', num2str(networkSize), '_', idx, '.mat'], "file");
     if networkExists == 2
         disp('Already trained')
     else
@@ -100,7 +93,7 @@ parfor i = 1:2 * numNetworks
     
         lossFunc = @(net, trainingData, targetData) NNFilterLoss(net, trainingData, targetData, filterFunc, true);
     
-        [lossStore(i), netStore(i)] = CreateBTMNeuralNetwork(input, lossFunc, dataFunc, numOutputs, numEpochs, saveFile);
+        [lossStore(i), netStore(i)] = CreateBTMNeuralNetworkinput, lossFunc, dataFunc, numOutputs, numEpochs, name);
     end
 end
 

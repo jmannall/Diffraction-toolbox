@@ -22,16 +22,16 @@ function [tfmag, fvec, tfcomplex] = SingleUTDWedgeInterpolated(thetaS, thetaR, r
         m = radiusR / sind(phii);
         pathLength = l + m;
         %pathLength = sqrt((radiusS + radiusR) ^ 2 + abs(cosd(phii) * (radiusR - radiusS)) ^ 2);
-        DirRef = mag2db(abs(exp(-1i * k * pathLength) / pathLength));
+        %DirRef = mag2db(abs(exp(-1i * k * pathLength) / pathLength));
+        DirRef = ones(size(k)) .* mag2db(abs(1 / pathLength));
         %[~, tfmagDirRef, ~, ~, ~] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaS + 180 - epsilon, radiusR, radiusS, zS, zR, controlparameters, createPlot);
         
         % Create scaled response
         shift = DirRef - DiffRef;
         scaledResponse = tfmag + shift;
-        truth = 0;
 
         % Interpolate between the true and scaled responses
-        i = min(1, (thetaR - thetaS - 180) / (wedgeIndex - thetaS - 180 - truth));
+        i = (thetaR - thetaS - 180) / (wedgeIndex - thetaS - 180);
         tfmag = ((1 - i) * scaledResponse + i * tfmag);
         
         % Adjust magnitude of tfcomplex

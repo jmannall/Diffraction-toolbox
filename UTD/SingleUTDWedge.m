@@ -30,4 +30,6 @@ function [tfmag, fvec, tfcomplex] = SingleUTDWedge(thetaS, thetaR, radiusS, radi
 
     tfcomplex = frontFactor .* (EquationHalf(thetaR - thetaS, n, k, L, B) + EquationHalf(thetaR + thetaS, n, k, L, B)); % 4 + 2 * eqHalf -> 146
     tfmag = mag2db(abs(tfcomplex));
+    % tfmag = 20 * log10(sqrt(real(tfcomplex) ^ 2 + imag(tfcomplex) ^ 2));
+    % 8
 end
