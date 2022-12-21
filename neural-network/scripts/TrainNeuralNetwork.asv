@@ -5,6 +5,16 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     sqGradDecay = x.sGD;
     maxGradient = x.mG;
 
+    worker = getCurrentWorker;
+    if ~isempty(worker)
+        disp(['Worker: ', num2str(worker.ProcessId), ', Network: ' num2str(x.nL), '-', num2str(x.hL)]);
+    else
+        disp(['Network: ' num2str(x.nL), '-', num2str(x.hL)]);
+    end
+%     gradDecay = 0.9;
+%     sqGradDecay = 0.99;
+%     maxGradient = 1.5;
+
     averageGrad = [];
     averageSqGrad = [];
     losses = zeros(1, numEpochs * numIterationsPerEpoch);
@@ -12,7 +22,6 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     epochLosses = zeros(1, numEpochs);
     iteration = 0;
     start = tic;
-    count = 1;
     i = 1;
 
     [lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
@@ -21,9 +30,9 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     numLayers = length(net.Learnables.Value);
     numNodes = numel(net.Learnables.Value{2});
     if nargin < 9
-        idx = DataHash({numLayers, numNodes, trainingData, extractdata(targetData), numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc});
+        idx = DataHash({numLayers, numNodes, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc});
     else
-        idx = DataHash({numLayers, numNodes, trainingData, extractdata(targetData), numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x});
+        idx = DataHash({numLayers, numNodes, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x});
     end
 
     filePath = 'tempNN';
@@ -47,6 +56,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
         if nargin > 8 && epoch > 1
             [trainingData, targetData] = dataFunc(epoch);
         end
+        targetData = dlarray(targetData);
         % Shuffle data.
         idx = randperm(size(trainingData, 2));
         targetData = targetData(:,idx);
@@ -77,26 +87,18 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             iterationLosses(i) = loss;
         end
         epochLosses(epoch) = mean(iterationLosses);
-        if epoch > 1 && (isnan(loss) || (epochLosses(epoch) - epochLosses(epoch - 1))  
+        improvement = epochLosses(max(1, epoch - 1)) - epochLosses(epoch);
+        if epoch > 1 && (isnan(loss) || improvement < -1e3)
             % Revert results to last epoch and end training
+            disp(['End training early: ', ])
             lastEpoch = max(epoch - 1, 1);
             epochLosses = epochLosses(1:lastEpoch);
             losses = losses(1:lastEpoch * numIterationsPerEpoch);
             net = oldNet;
             break
         end
-        if count > 10
-            idx = max(epoch - 10, 1):epoch - 1;
-            runningMean = mean(epochLosses(idx));
-            improvement = runningMean - epochLosses(epoch);
-            count = 1;
-        else
-            improvement = 1;
-            count = count + 1;
-        end
-        if improvement < 0
-            disp('Decrease learn rate')
-            learnRate = learnRate / 2;
+        if epoch == 200 || epoch == 400
+            learnRate = learnRate / 10;
         end
 
         UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numIterationsPerEpoch, epoch, start)

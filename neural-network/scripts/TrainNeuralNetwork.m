@@ -34,7 +34,6 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     else
         idx = DataHash({numLayers, numNodes, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x});
     end
-    targetData = dlarray(targetData);
 
     filePath = 'tempNN';
     CheckFileDir(filePath);
@@ -57,6 +56,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
         if nargin > 8 && epoch > 1
             [trainingData, targetData] = dataFunc(epoch);
         end
+        targetData = dlarray(targetData);
         % Shuffle data.
         idx = randperm(size(trainingData, 2));
         targetData = targetData(:,idx);
@@ -90,7 +90,11 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
         improvement = epochLosses(max(1, epoch - 1)) - epochLosses(epoch);
         if epoch > 1 && (isnan(loss) || improvement < -1e3)
             % Revert results to last epoch and end training
-            disp('End training early')
+            if ~isempty(worker)
+                disp(['End training early: ', num2str(worker.ProcessId)])
+            else
+                disp('End training early')
+            end
             lastEpoch = max(epoch - 1, 1);
             epochLosses = epochLosses(1:lastEpoch);
             losses = losses(1:lastEpoch * numIterationsPerEpoch);
