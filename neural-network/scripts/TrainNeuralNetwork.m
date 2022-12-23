@@ -98,8 +98,10 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             end
             net = oldNet;
             count = count + 1;
+        else
+            count = 0;
         end
-        if count > 5
+        if count == 6
             disp(['Reduce learn rate early: ', num2srt(epoch)])
             learnRate = learnRate / 10;
         end
