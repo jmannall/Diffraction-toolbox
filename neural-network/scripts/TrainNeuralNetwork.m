@@ -108,6 +108,8 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             epochLosses = epochLosses(1:lastEpoch);
             losses = losses(1:lastEpoch * numIterationsPerEpoch);
             disp(['End training early: ', num2srt(epoch)])
+            net = oldNet;
+            break
         end
         if epoch == 200 || epoch == 400
             count = 0;
