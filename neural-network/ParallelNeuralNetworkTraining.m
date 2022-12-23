@@ -71,6 +71,7 @@ weight = 20;
 
 %% Run grid search
 
+rng(2)
 disp('Start parallel training')
 parfor i = 1:2 * numNetworks
     
