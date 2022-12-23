@@ -96,9 +96,6 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             else
                 disp(['Return to previous epoch net: ', num2str(epoch)])
             end
-            lastEpoch = max(epoch - 1, 1);
-            epochLosses = epochLosses(1:lastEpoch);
-            losses = losses(1:lastEpoch * numIterationsPerEpoch);
             net = oldNet;
             count = count + 1;
         end
@@ -107,6 +104,9 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             learnRate = learnRate / 10;
         end
         if count > 10
+            lastEpoch = max(epoch - 1, 1);
+            epochLosses = epochLosses(1:lastEpoch);
+            losses = losses(1:lastEpoch * numIterationsPerEpoch);
             disp(['End training early: ', num2srt(epoch)])
         end
         if epoch == 200 || epoch == 400
