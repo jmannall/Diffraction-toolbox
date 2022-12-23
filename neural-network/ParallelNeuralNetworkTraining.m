@@ -58,7 +58,7 @@ x = [x; x];
 numFilters = 2;
 nBands = 8;
 [~, tfmag, ~, fvec, ~] = DefaultBTM(controlparameters);
-[~, ~, fidx] = CreateFrequencyNBands(tfmag, fvec, nBands);
+[~, fc, fidx] = CreateFrequencyNBands(tfmag, fvec, nBands);
 controlparameters.fs = 2 * fs;
 controlparameters.nfft = 2 * nfft;
 

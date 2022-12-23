@@ -42,7 +42,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     savePath = [filePath filesep fileName];
     loadPath = [savePath '.mat'];
 
-    backupRate = 10;
+    backupRate = 5;
     restart = exist([cd filesep loadPath], "file");
 
     if restart == 2
@@ -102,22 +102,16 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             net = oldNet;
             count = count + 1;
         end
-        if count > 5
-            disp(['Reduce learn rate early: ', num2srt(epoch)])
-            learnRate = learnRate / 10;
-        end
         if count > 10
             disp(['End training early: ', num2srt(epoch)])
-        end
         if epoch == 200 || epoch == 400
-            count = 0;
             learnRate = learnRate / 10;
         end
 
         UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numIterationsPerEpoch, epoch, start)
         oldNet = net;
 
-        % Backup result every 10 epochs
+        % Backup result every 5 epochs
         if mod(epoch, backupRate) == 0
             i = epoch;
             worker = getCurrentWorker;

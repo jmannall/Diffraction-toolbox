@@ -6,8 +6,8 @@ function [output, ir] = DelayLineIIRFilter(audio, pathLength, windowLength, vali
     a = extractdata(a); 
 
     [delay, fracDelay, amplitude] = CalculateDelay(pathLength, c, fs, doFilter);
-    b(:,1,:) = b(:,1,:) .* amplitude;
-    amplitude = ones(size(amplitude));  % Including amplitude with b here reduces number of operations (Not here as still includiong amplitude as 1).
+    %b(:,1,:) = b(:,1,:) .* amplitude;
+    %amplitude = ones(size(amplitude));  % Including amplitude with b here reduces number of operations (Not here as still including amplitude as 1).
 
     [buffer, read, write, window, overlap, numBuffers, inputBuffer, output] = InitialiseBuffers(delay, windowLength, audio, pathLength);
 

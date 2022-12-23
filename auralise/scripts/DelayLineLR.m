@@ -25,14 +25,14 @@ function [output, ir] = DelayLineLR(audio, pathLength, windowLength, validPath, 
 
     disp('Process L-R filterbank and delay line')
     for k = 1:numBuffers
-%         [read, write] = UpdateReadWrite(read, write, overlap, delay, k);
-%         for i = 1:windowLength
-%             [idx, read, write, inputBuffer, input] = ProcessSampleData(windowLength, overlap, read, write, inputBuffer, amplitude, validPath, buffer, k, i);
-%             if doFilter(k)
-%                 [inputBufferLR, outputBufferLR, input] = ProcessLRFilterBank(input, b, a, inputBufferLR, outputBufferLR, tfmag(k,:), numBands);
-%             end
-%             [inputBuffer, output, buffer] = ProcessSampleOutput(audio, buffer, input, inputBuffer, fracDelay, window, write, idx, k, i, output);
-%         end
+        [read, write] = UpdateReadWrite(read, write, overlap, delay, k);
+        for i = 1:windowLength
+            [idx, read, write, inputBuffer, input] = ProcessSampleData(windowLength, overlap, read, write, inputBuffer, amplitude, validPath, buffer, k, i);
+            if doFilter(k)
+                [inputBufferLR, outputBufferLR, input] = ProcessLRFilterBank(input, b, a, inputBufferLR, outputBufferLR, tfmag(k,:), numBands);
+            end
+            [inputBuffer, output, buffer] = ProcessSampleOutput(audio, buffer, input, inputBuffer, fracDelay, window, write, idx, k, i, output);
+        end
         irIn = zeros(maxDelay + iirLength + 1, 1);
         irIn(delay(k)) = validPath(k) * amplitude(k) * (1 - fracDelay(k));
         irIn(delay(k) + 1) = validPath(k) * amplitude(k) * fracDelay(k);

@@ -217,11 +217,13 @@ end
 
 %% Transfer functions
 
-[tfmag, tfcomplex] = IrToTf(ir, nfft);
+[~, tfcomplex] = IrToTf(ir, nfft);
 
 %% NN audio
 
-loadPath = ['NNSaves', filesep, 'IIR-10000_0001-1-09-099-5.mat'];
+%loadPath = ['NNSaves', filesep, 'IIR-10000_0001-1-09-099-5.mat'];
+loadPath = ['NNSaves', filesep, 'iir-10067_0001-1-09-099-5-45.mat'];
+%loadPath = ['NNSaves', filesep, 'iir-6118_0001-1-09-099-5-34.mat'];
 
 load(loadPath, "net");
 
@@ -229,20 +231,21 @@ output.NN = CreateNNOutput(net, wedgeIndex, wedgeLength, thetaR, thetaS, rS, rR,
 output.vNN = CreateNNOutput(net, wedgeIndex, wedgeLength, thetaR, vThetaS(2), vRS(2), rR, vZS(2), zR);
 
 biquad = false;
-[tfcomplex.NN, b.NN, a.NN] = CalculateNN(output.NN, tfcomplex.dir, validPath.NN, pathLength.NN, nfft, fs, biquad);
-[tfcomplex.vNN, b.vNN, a.vNN] = CalculateNN(output.vNN, tfcomplex.floorRef, validPath.vNN, pathLength.vNN, nfft, fs, biquad);
+[~, b.NN, a.NN] = CalculateNN(output.NN, tfcomplex.dir, validPath.NN, pathLength.NN, nfft, fs, biquad);
+[~, b.vNN, a.vNN] = CalculateNN(output.vNN, tfcomplex.floorRef, validPath.vNN, pathLength.vNN, nfft, fs, biquad);
 
 [audioPath.NN, ir.NN] = DelayLineIIRFilter(audio, [pathLength.NN, pathLength.dir], windowLength, validPath.ed, b.NN, a.NN, c, fs, validPath.NN);
 [audioPath.vNN, ir.vNN] = DelayLineIIRFilter(audio, [pathLength.vNN, pathLength.floorRef], windowLength, validPath.ed, b.vNN, a.vNN, c, fs, validPath.vNN);
 
 %% Transfer functions
 
-[tfmag, tfcomplex] = IrToTf(ir, nfft);
+[~, tfcomplex.NN] = IrToTf(ir.NN, nfft);
+[~, tfcomplex.vNN] = IrToTf(ir.vNN, nfft);
 
 %% NN Reference
 
-[tfcomplexRef.NN, irTest] = CalculateNNRef(wedgeLength, wedgeIndex, thetaS, thetaR, rS, rR, zS, zR, controlparameters, validPath.dir, pathLength.dir, pathLength.NN);
-[tfcomplexRef.vNN, irFloorTest] = CalculateNNRef(wedgeLength, wedgeIndex, vThetaS(2), thetaR, vRS(2), rR, vZS(2), zR, controlparameters, validPath.dir, pathLength.floorRef, pathLength.vNN);
+tfcomplexRef.NN = CalculateNNRef(wedgeLength, wedgeIndex, thetaS, thetaR, rS, rR, zS, zR, controlparameters, validPath.dir, pathLength.dir, pathLength.NN);
+tfcomplexRef.vNN = CalculateNNRef(wedgeLength, wedgeIndex, vThetaS(2), thetaR, vRS(2), rR, vZS(2), zR, controlparameters, validPath.dir, pathLength.floorRef, pathLength.vNN);
 
 %% NN loss
 
@@ -365,3 +368,5 @@ PlotSpectrogramOfWAV([audioFilePath, '_Geometric.wav'], [-70 0], nfft, savePlot)
 PlotSpectrogramOfWAV([audioFilePath, '_Utd.wav'], [-70 0], nfft, savePlot);
 PlotSpectrogramOfWAV([audioFilePath, '_SchisslerUtd.wav'], [-70 0], nfft, savePlot);
 PlotSpectrogramOfWAV([audioFilePath, '_NN.wav'], [-70 0], nfft, savePlot);
+
+close all

@@ -13,8 +13,7 @@ idx = [];
 for i = 1:length(listingStore)
     idx(i) = matches(filterType{i}, "iir") || matches(filterType{i}, "iirW");
 end
-listingStore = listingStore(idx == 1);
-listing = {listingStore.name};
+listing = {listingStore(idx == 1).name};
 networks.filterType = extractBefore(listing, '-');
 networks.networkSize = extractBetween(listing, '-', '_');
 networkStructure = extractBetween(listing, '099-', '.');
@@ -22,19 +21,16 @@ networks.numLayers = extractBefore(networkStructure, '-');
 networks.numNodes = extractAfter(networkStructure, '-');
 
 numNetworks = length(listing);
-[numEpochs, allLoss] = deal(zeros(1, numNetworks));
+numEpochs = zeros(1, numNetworks);
 for i = 1:numNetworks
     load([loadDir, filesep, listing{i}], 'loss', 'net', 'epochLosses', 'losses');
     numEpochs(i) = length(epochLosses);
-    allLoss(i) = loss;
-    % PlotNNTrainingLossess(losses, epochLosses, listing{i})
+    
+    PlotNNTrainingLossess(losses, epochLosses, listing{i})
 end
 
 finishedTraining = numEpochs == 500;
-wellTrained = allLoss < 10;
 numTrained = sum(finishedTraining);
-numWellTrained = sum(wellTrained);
-listingWell = {listingStore(wellTrained).name};
 listing = {listingStore(finishedTraining).name};
 
 %% Create Data
@@ -66,7 +62,7 @@ lossFunc = @(net, X, targetData, filterFunc)NNFilterLoss(net, X, targetData, fil
 gradFunc = @(net, X, targetData, filterFunc)CalculateSalientMapping(net, X, targetData, filterFunc);
 
 inputNames = {'wI', 'bA', 'mA', 'wL', 'rS', 'rR', 'zS', 'zR'};
-for i = 1:numTrained
+for i = 1:numNetworks
     if matches(networks.filterType{i}, 'iir')
         filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
         numOutputs = 2 * numFilters + 1;
