@@ -13,8 +13,8 @@ filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
 saveDir = 'NNSaves';
 CheckFileDir(saveDir)
 
-iir = 'iir';
-iirW = 'iirW';
+iir = '2_iir';
+iirW = '2_iirW';
 
 %% NN complexity
 
