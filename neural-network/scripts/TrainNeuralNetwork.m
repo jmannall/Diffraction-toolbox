@@ -1,4 +1,4 @@
-function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc)
+function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, restartFunc, dataFunc)
     
     learnRate = x.lR;
     gradDecay = x.gD;
@@ -31,9 +31,9 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     numLayers = length(net.Learnables.Value);
     numNodes = numel(net.Learnables.Value{2});
     if nargin < 9
-        idx = DataHash({numLayers, numNodes, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, dataFunc});
+        idx = DataHash({numLayers, numNodes, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, restartFunc, dataFunc});
     else
-        idx = DataHash({numLayers, numNodes, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x});
+        idx = DataHash({numLayers, numNodes, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, restartFunc});
     end
 
     filePath = 'tempNN';
@@ -88,15 +88,23 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             iterationLosses(i) = loss;
         end
         epochLosses(epoch) = mean(iterationLosses);
-        improvement = epochLosses(max(1, epoch - 1)) - epochLosses(epoch);
-        if epoch > 1 && (isnan(loss) || improvement < -100)
+        if (isnan(loss) || epochLosses(epoch) > 1e3)
             % Revert results to last epoch and end training
-            if ~isempty(worker)
-                disp(['Return to previous epoch net: ', num2str(epoch), '_', num2str(worker.ProcessId)])
+            if epoch == 1
+                if ~isempty(worker)
+                    disp(['Reinitialise net: ', num2str(epoch), '_', num2str(worker.ProcessId)])
+                else
+                    disp(['Reinitialise net: ', num2str(epoch)])
+                end
+                net = restartFunc();
             else
-                disp(['Return to previous epoch net: ', num2str(epoch)])
+                if ~isempty(worker)
+                    disp(['Return to previous epoch net: ', num2str(epoch), '_', num2str(worker.ProcessId)])
+                else
+                    disp(['Return to previous epoch net: ', num2str(epoch)])
+                end
+                net = oldNet;
             end
-            net = oldNet;
             count = count + 1;
         else
             count = 0;

@@ -11,7 +11,7 @@ store = {listingStore.name};
 filterType = extractBefore(store, '-');
 idx = [];
 for i = 1:length(listingStore)
-    idx(i) = matches(filterType{i}, "iir") || matches(filterType{i}, "iirW") || matches(filterType{i}, "2_iir") || matches(filterType{i}, "2_iirW");
+    idx(i) = matches(filterType{i}, "2_iir") || matches(filterType{i}, "2_iirW");
 end
 listingStore = listingStore(idx == 1);
 listing = {listingStore.name};
@@ -27,212 +27,209 @@ for i = 1:numNetworks
     load([loadDir, filesep, listing{i}], 'loss', 'net', 'epochLosses', 'losses');
     numEpochs(i) = length(epochLosses);
     allLoss(i) = loss;
-    firstLoss(i) = epochLosses(1);
     % PlotNNTrainingLossess(losses, epochLosses, listing{i})
 end
-
-maxFirstLoss = max(firstLoss);
 
 finishedTraining = numEpochs == 500;
 wellTrained = allLoss < 20;
 numTrained = sum(finishedTraining);
 numWellTrained = sum(wellTrained);
-listing = {listingStore(finishedTraining).name};
+listing = {listingStore(wellTrained).name};
 
 %% 
 
-% close all
-% 
-% layers = 2:7;
-% sizes = 2000:2000:10000;
-% 
-% loadDir = 'NNSaves';
-% listingStore = dir(loadDir);
-% listingStore = listingStore(3:end);
-% store = {listingStore.name};
-% filterType = extractBefore(store, '-');
-% idx = [];
-% for i = 1:length(listingStore)
-%     idx(i) = matches(filterType{i}, "iir");
-% end
-% listingStore = listingStore(idx == 1);
-% 
-% [lossGrid, trainedGrid] = deal(zeros(length(layers), length(sizes)));
-% for i = 1:numNetworks / 4
-%     load([loadDir, filesep, listingStore(i).name], 'loss', 'net', 'epochLosses', 'losses');
-%     layer = str2double(networks.numLayers{i});
-%     size = round(str2double(networks.networkSize{i}) / 1e3) * 1e3;
-%     lossGrid(layer - 1, size / 2e3) = loss;
-%     numEpochs = length(epochLosses);
-%     trainedGrid(layer - 1, size / 2e3) = numEpochs == 500;
-% end
-% 
-% figure
-% surf(trainedGrid, 'FaceColor','none','EdgeColor','interp')
-% title('Finished training iir')
-% xlabel('network size')
-% ylabel('number of layers')
-% xticks(1:5)
-% yticks(1:6)
-% xlim([1 5])
-% ylim([1 6])
-% xticklabels(sizes)
-% yticklabels(layers)
-% 
-% figure
-% surf(lossGrid, 'FaceColor','none','EdgeColor','interp')
-% zlim([0 10])
-% clim([0 10])
-% title('End loss iir')
-% xlabel('network size')
-% ylabel('number of layers')
-% xticks(1:5)
-% yticks(1:6)
-% xlim([1 5])
-% ylim([1 6])
-% xticklabels(sizes)
-% yticklabels(layers)
-% 
-% loadDir = 'NNSaves';
-% listingStore = dir(loadDir);
-% listingStore = listingStore(3:end);
-% store = {listingStore.name};
-% filterType = extractBefore(store, '-');
-% idx = [];
-% for i = 1:length(listingStore)
-%     idx(i) = matches(filterType{i}, "iirW");
-% end
-% listingStore = listingStore(idx == 1);
-% 
-% [lossGrid, trainedGrid] = deal(zeros(length(layers), length(sizes)));
-% for i = 1:numNetworks / 4
-%     load([loadDir, filesep, listingStore(i).name], 'loss', 'net', 'epochLosses', 'losses');
-%     layer = str2double(networks.numLayers{i});
-%     size = round(str2double(networks.networkSize{i}) / 1e3) * 1e3;
-%     lossGrid(layer - 1, size / 2e3) = loss;
-%     numEpochs = length(epochLosses);
-%     trainedGrid(layer - 1, size / 2e3) = numEpochs == 500;
-% end
-% 
-% figure
-% surf(trainedGrid, 'FaceColor','none','EdgeColor','interp')
-% title('Finished training iirW')
-% xlabel('network size')
-% ylabel('number of layers')
-% xticks(1:5)
-% yticks(1:6)
-% xlim([1 5])
-% ylim([1 6])
-% xticklabels(sizes)
-% yticklabels(layers)
-% 
-% figure
-% surf(lossGrid, 'FaceColor','none','EdgeColor','interp')
-% zlim([0 10])
-% clim([0 10])
-% title('End loss iirW')
-% xlabel('network size')
-% ylabel('number of layers')
-% xticks(1:5)
-% yticks(1:6)
-% xlim([1 5])
-% ylim([1 6])
-% xticklabels(sizes)
-% yticklabels(layers)
-% 
-% loadDir = 'NNSaves';
-% listingStore = dir(loadDir);
-% listingStore = listingStore(3:end);
-% store = {listingStore.name};
-% filterType = extractBefore(store, '-');
-% idx = [];
-% for i = 1:length(listingStore)
-%     idx(i) = matches(filterType{i}, "2_iir");
-% end
-% listingStore = listingStore(idx == 1);
-% 
-% [lossGrid, trainedGrid] = deal(zeros(length(layers), length(sizes)));
-% for i = 1:numNetworks / 4
-%     load([loadDir, filesep, listingStore(i).name], 'loss', 'net', 'epochLosses', 'losses');
-%     layer = str2double(networks.numLayers{i});
-%     size = round(str2double(networks.networkSize{i}) / 1e3) * 1e3;
-%     lossGrid(layer - 1, size / 2e3) = loss;
-%     numEpochs = length(epochLosses);
-%     trainedGrid(layer - 1, size / 2e3) = numEpochs == 500;
-% end
-% 
-% figure
-% surf(trainedGrid, 'FaceColor','none','EdgeColor','interp')
-% title('Finished training 2 iir')
-% xlabel('network size')
-% ylabel('number of layers')
-% xticks(1:5)
-% yticks(1:6)
-% xlim([1 5])
-% ylim([1 6])
-% xticklabels(sizes)
-% yticklabels(layers)
-% 
-% figure
-% surf(lossGrid, 'FaceColor','none','EdgeColor','interp')
-% zlim([0 10])
-% clim([0 10])
-% title('End loss 2 iir')
-% xlabel('network size')
-% ylabel('number of layers')
-% xticks(1:5)
-% yticks(1:6)
-% xlim([1 5])
-% ylim([1 6])
-% xticklabels(sizes)
-% yticklabels(layers)
-% 
-% loadDir = 'NNSaves';
-% listingStore = dir(loadDir);
-% listingStore = listingStore(3:end);
-% store = {listingStore.name};
-% filterType = extractBefore(store, '-');
-% idx = [];
-% for i = 1:length(listingStore)
-%     idx(i) = matches(filterType{i}, "2_iirW");
-% end
-% listingStore = listingStore(idx == 1);
-% 
-% [lossGrid, trainedGrid] = deal(zeros(length(layers), length(sizes)));
-% for i = 1:numNetworks / 4
-%     load([loadDir, filesep, listingStore(i).name], 'loss', 'net', 'epochLosses', 'losses');
-%     layer = str2double(networks.numLayers{i});
-%     size = round(str2double(networks.networkSize{i}) / 1e3) * 1e3;
-%     lossGrid(layer - 1, size / 2e3) = loss;
-%     numEpochs = length(epochLosses);
-%     trainedGrid(layer - 1, size / 2e3) = numEpochs == 500;
-% end
-% 
-% figure
-% surf(trainedGrid, 'FaceColor','none','EdgeColor','interp')
-% title('Finished training 2 iirW')
-% xlabel('network size')
-% ylabel('number of layers')
-% xticks(1:5)
-% yticks(1:6)
-% xlim([1 5])
-% ylim([1 6])
-% xticklabels(sizes)
-% yticklabels(layers)
-% 
-% figure
-% surf(lossGrid, 'FaceColor','none','EdgeColor','interp')
-% zlim([0 10])
-% clim([0 10])
-% title('End loss 2 iirW')
-% xlabel('network size')
-% ylabel('number of layers')
-% xticks(1:5)
-% yticks(1:6)
-% xlim([1 5])
-% ylim([1 6])
-% xticklabels(sizes)
-% yticklabels(layers)
+close all
+
+layers = 2:7;
+sizes = 2000:2000:10000;
+
+loadDir = 'NNSaves';
+listingStore = dir(loadDir);
+listingStore = listingStore(3:end);
+store = {listingStore.name};
+filterType = extractBefore(store, '-');
+idx = [];
+for i = 1:length(listingStore)
+    idx(i) = matches(filterType{i}, "iir");
+end
+listingStore = listingStore(idx == 1);
+
+[lossGrid, trainedGrid] = deal(zeros(length(layers), length(sizes)));
+for i = 1:numNetworks / 4
+    load([loadDir, filesep, listingStore(i).name], 'loss', 'net', 'epochLosses', 'losses');
+    layer = str2double(networks.numLayers{i});
+    size = round(str2double(networks.networkSize{i}) / 1e3) * 1e3;
+    lossGrid(layer - 1, size / 2e3) = loss;
+    numEpochs = length(epochLosses);
+    trainedGrid(layer - 1, size / 2e3) = numEpochs == 500;
+end
+
+figure
+surf(trainedGrid, 'FaceColor','none','EdgeColor','interp')
+title('Finished training iir')
+xlabel('network size')
+ylabel('number of layers')
+xticks(1:5)
+yticks(1:6)
+xlim([1 5])
+ylim([1 6])
+xticklabels(sizes)
+yticklabels(layers)
+
+figure
+surf(lossGrid, 'FaceColor','none','EdgeColor','interp')
+zlim([0 10])
+clim([0 10])
+title('End loss iir')
+xlabel('network size')
+ylabel('number of layers')
+xticks(1:5)
+yticks(1:6)
+xlim([1 5])
+ylim([1 6])
+xticklabels(sizes)
+yticklabels(layers)
+
+loadDir = 'NNSaves';
+listingStore = dir(loadDir);
+listingStore = listingStore(3:end);
+store = {listingStore.name};
+filterType = extractBefore(store, '-');
+idx = [];
+for i = 1:length(listingStore)
+    idx(i) = matches(filterType{i}, "iirW");
+end
+listingStore = listingStore(idx == 1);
+
+[lossGrid, trainedGrid] = deal(zeros(length(layers), length(sizes)));
+for i = 1:numNetworks / 4
+    load([loadDir, filesep, listingStore(i).name], 'loss', 'net', 'epochLosses', 'losses');
+    layer = str2double(networks.numLayers{i});
+    size = round(str2double(networks.networkSize{i}) / 1e3) * 1e3;
+    lossGrid(layer - 1, size / 2e3) = loss;
+    numEpochs = length(epochLosses);
+    trainedGrid(layer - 1, size / 2e3) = numEpochs == 500;
+end
+
+figure
+surf(trainedGrid, 'FaceColor','none','EdgeColor','interp')
+title('Finished training iirW')
+xlabel('network size')
+ylabel('number of layers')
+xticks(1:5)
+yticks(1:6)
+xlim([1 5])
+ylim([1 6])
+xticklabels(sizes)
+yticklabels(layers)
+
+figure
+surf(lossGrid, 'FaceColor','none','EdgeColor','interp')
+zlim([0 10])
+clim([0 10])
+title('End loss iirW')
+xlabel('network size')
+ylabel('number of layers')
+xticks(1:5)
+yticks(1:6)
+xlim([1 5])
+ylim([1 6])
+xticklabels(sizes)
+yticklabels(layers)
+
+loadDir = 'NNSaves';
+listingStore = dir(loadDir);
+listingStore = listingStore(3:end);
+store = {listingStore.name};
+filterType = extractBefore(store, '-');
+idx = [];
+for i = 1:length(listingStore)
+    idx(i) = matches(filterType{i}, "2_iir");
+end
+listingStore = listingStore(idx == 1);
+
+[lossGrid, trainedGrid] = deal(zeros(length(layers), length(sizes)));
+for i = 1:numNetworks / 4
+    load([loadDir, filesep, listingStore(i).name], 'loss', 'net', 'epochLosses', 'losses');
+    layer = str2double(networks.numLayers{i});
+    size = round(str2double(networks.networkSize{i}) / 1e3) * 1e3;
+    lossGrid(layer - 1, size / 2e3) = loss;
+    numEpochs = length(epochLosses);
+    trainedGrid(layer - 1, size / 2e3) = numEpochs == 500;
+end
+
+figure
+surf(trainedGrid, 'FaceColor','none','EdgeColor','interp')
+title('Finished training 2 iir')
+xlabel('network size')
+ylabel('number of layers')
+xticks(1:5)
+yticks(1:6)
+xlim([1 5])
+ylim([1 6])
+xticklabels(sizes)
+yticklabels(layers)
+
+figure
+surf(lossGrid, 'FaceColor','none','EdgeColor','interp')
+zlim([0 10])
+clim([0 10])
+title('End loss 2 iir')
+xlabel('network size')
+ylabel('number of layers')
+xticks(1:5)
+yticks(1:6)
+xlim([1 5])
+ylim([1 6])
+xticklabels(sizes)
+yticklabels(layers)
+
+loadDir = 'NNSaves';
+listingStore = dir(loadDir);
+listingStore = listingStore(3:end);
+store = {listingStore.name};
+filterType = extractBefore(store, '-');
+idx = [];
+for i = 1:length(listingStore)
+    idx(i) = matches(filterType{i}, "2_iirW");
+end
+listingStore = listingStore(idx == 1);
+
+[lossGrid, trainedGrid] = deal(zeros(length(layers), length(sizes)));
+for i = 1:numNetworks / 4
+    load([loadDir, filesep, listingStore(i).name], 'loss', 'net', 'epochLosses', 'losses');
+    layer = str2double(networks.numLayers{i});
+    size = round(str2double(networks.networkSize{i}) / 1e3) * 1e3;
+    lossGrid(layer - 1, size / 2e3) = loss;
+    numEpochs = length(epochLosses);
+    trainedGrid(layer - 1, size / 2e3) = numEpochs == 500;
+end
+
+figure
+surf(trainedGrid, 'FaceColor','none','EdgeColor','interp')
+title('Finished training 2 iirW')
+xlabel('network size')
+ylabel('number of layers')
+xticks(1:5)
+yticks(1:6)
+xlim([1 5])
+ylim([1 6])
+xticklabels(sizes)
+yticklabels(layers)
+
+figure
+surf(lossGrid, 'FaceColor','none','EdgeColor','interp')
+zlim([0 10])
+clim([0 10])
+title('End loss 2 iirW')
+xlabel('network size')
+ylabel('number of layers')
+xticks(1:5)
+yticks(1:6)
+xlim([1 5])
+ylim([1 6])
+xticklabels(sizes)
+yticklabels(layers)
 
 %% Create Data
 
@@ -263,7 +260,7 @@ lossFunc = @(net, X, targetData, filterFunc)NNFilterLoss(net, X, targetData, fil
 gradFunc = @(net, X, targetData, filterFunc)CalculateSalientMapping(net, X, targetData, filterFunc);
 
 inputNames = {'wI', 'bA', 'mA', 'wL', 'rS', 'rR', 'zS', 'zR'};
-for i = 1:numTrained
+for i = 1:wellTrained
     filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
     numOutputs = 2 * numFilters + 1;
 %     if matches(networks.filterType{i}, '2_iir')
@@ -276,7 +273,7 @@ for i = 1:numTrained
     load([loadDir, filesep, listing{i}], 'loss', 'net', 'epochLosses', 'losses');
     figTitle = [networks.filterType{i}, ' Size: ', num2str(networks.networkSize{i}), ' Layers: ', num2str(networks.numLayers{i})];
 
-    PlotNNTrainingLossess(losses, epochLosses, figTitle)
+    % PlotNNTrainingLossess(losses, epochLosses, figTitle)
 
     X = dlarray(single(inputData), "CB");
     gradients = dlfeval(gradFunc, net, X, targetData, filterFunc);
