@@ -4,10 +4,10 @@ function [net, loss, epochLosses, losses] = CreateNeuralNetwork(trainingData, ta
 
     net = InitialiseNeuralNetwork(numInputs, numLayers, hiddenLayerSize, numOutputs, alpha);
     restartFunc = @()InitialiseNeuralNetwork(numInputs, numLayers, hiddenLayerSize, numOutputs, alpha);
-    
+
     numIterationsPerEpoch = floor(dataSize./miniBatchSize);
     
-    if nargin > 11
+    if nargin > 10
         [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, restartFunc, dataFunc);
     else
         [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targetData, numEpochs, miniBatchSize, numIterationsPerEpoch, lossFunc, x, restartFunc);
