@@ -24,6 +24,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
     start = tic;
     i = 1;
     count = 0;
+    firstEpoch = true;
 
     [lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
     oldNet = [];
@@ -90,7 +91,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
         epochLosses(epoch) = mean(iterationLosses);
         if (isnan(loss) || epochLosses(epoch) > 1e3)
             % Revert results to last epoch and end training
-            if epoch == 1
+            if firstEpoch
                 if ~isempty(worker)
                     disp(['Reinitialise net: ', num2str(epoch), '_', num2str(worker.ProcessId)])
                 else
@@ -98,6 +99,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
                 end
                 net = restartFunc();
             else
+                firstEpoch = false;
                 if ~isempty(worker)
                     disp(['Return to previous epoch net: ', num2str(epoch), '_', num2str(worker.ProcessId)])
                 else
@@ -110,14 +112,14 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             count = 0;
         end
         if count == 6
-            disp(['Reduce learn rate early: ', num2srt(epoch)])
+            disp(['Reduce learn rate early: ', num2str(epoch)])
             learnRate = learnRate / 10;
         end
         if count > 10
             lastEpoch = max(epoch - 1, 1);
             epochLosses = epochLosses(1:lastEpoch);
             losses = losses(1:lastEpoch * numIterationsPerEpoch);
-            disp(['End training early: ', num2srt(epoch)])
+            disp(['End training early: ', num2str(epoch)])
             net = oldNet;
             break
         end
