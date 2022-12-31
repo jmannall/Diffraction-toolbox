@@ -109,9 +109,10 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             end
             count = count + 1;
         else
+            firstEpoch = false;
             count = 0;
         end
-        if count == 6
+        if count == 5
             disp(['Reduce learn rate early: ', num2str(epoch)])
             learnRate = learnRate / 10;
         end
@@ -120,7 +121,6 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             epochLosses = epochLosses(1:lastEpoch);
             losses = losses(1:lastEpoch * numIterationsPerEpoch);
             disp(['End training early: ', num2str(epoch)])
-            net = oldNet;
             break
         end
         if epoch == 200 || epoch == 400
