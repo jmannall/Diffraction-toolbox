@@ -11,7 +11,7 @@ store = {listingStore.name};
 filterType = extractBefore(store, '-');
 idx = [];
 for i = 1:length(listingStore)
-    idx(i) = matches(filterType{i}, "iir") || matches(filterType{i}, "iirW") || matches(filterType{i}, "2_iir") || matches(filterType{i}, "2_iirW");
+    idx(i) = matches(filterType{i}, "iir") || matches(filterType{i}, "iirW") || matches(filterType{i}, "2_iir") || matches(filterType{i}, "2_iirW") || matches(filterType{i}, "3_iir") || matches(filterType{i}, "3_iirW");
 end
 listingStore = listingStore(idx == 1);
 listing = {listingStore.name};
@@ -32,12 +32,14 @@ for i = 1:numNetworks
 end
 
 maxFirstLoss = max(firstLoss);
-
+ 
 finishedTraining = numEpochs == 500;
 wellTrained = allLoss < 20;
 numTrained = sum(finishedTraining);
 numWellTrained = sum(wellTrained);
-listing = {listingStore(finishedTraining).name};
+idx = finishedTraining & wellTrained;
+num = sum(idx);
+listing = {listingStore(idx).name};
 
 %% 
 
@@ -263,7 +265,7 @@ lossFunc = @(net, X, targetData, filterFunc)NNFilterLoss(net, X, targetData, fil
 gradFunc = @(net, X, targetData, filterFunc)CalculateSalientMapping(net, X, targetData, filterFunc);
 
 inputNames = {'wI', 'bA', 'mA', 'wL', 'rS', 'rR', 'zS', 'zR'};
-for i = 1:numTrained
+for i = 1:num
     filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
     numOutputs = 2 * numFilters + 1;
 %     if matches(networks.filterType{i}, '2_iir')

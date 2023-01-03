@@ -13,8 +13,8 @@ filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
 saveDir = 'NNSaves';
 CheckFileDir(saveDir)
 
-iir = '4_iir';
-iirW = '4_iirW';
+iir = '3_iir';
+iirW = '3_iirW';
 
 %% NN complexity
 
@@ -22,7 +22,7 @@ nI = 8;
 nO = 5;
 gx = 5;
 
-networkSizes = [2e3; 2e3];
+networkSizes = 2e3;
 layers = [2, 3, 4, 5, 6, 7];
 
 CcPZTransform = 5;
@@ -43,7 +43,6 @@ numLayers = length(layers);
 numNetworks = numLayers * numSizes;
 
 lR(1:numNetworks,1) = 1e-3;
-lR(numNetworks / 2 + 1:end,1) = 1e-4;
 gD(1:numNetworks,1) = 0.9;
 sGD(1:numNetworks,1) = 0.99;
 mG(1:numNetworks,1) = 1;
