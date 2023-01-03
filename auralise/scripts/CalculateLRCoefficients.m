@@ -42,14 +42,14 @@ function [b, a] = CalculateLRCoefficients(fc, fs, freqResponse)
     totalTfmag = mag2db(sum(10 .^ (tfmag / 20), 2));
 
     % Plot bands
-    figure
-    semilogx(fvec, tfmag)
-    hold on
-    semilogx(fvec, totalTfmag)
-    xlim([20 20e3])
-    ylim([-70 10])
-    xlabel('Frequency (Hz)')
-    ylabel('Magnitude (dB)')
-    title('Linkwitz Riley filterbank frequency response')
-    grid on
+%     figure
+%     semilogx(fvec, tfmag)
+%     hold on
+%     semilogx(fvec, totalTfmag)
+%     xlim([20 20e3])
+%     ylim([-70 10])
+%     xlabel('Frequency (Hz)')
+%     ylabel('Magnitude (dB)')
+%     title('Linkwitz Riley filterbank frequency response')
+%     grid on
 end

@@ -13,7 +13,7 @@ function [output, ir] = DelayLineLR(audio, pathLength, windowLength, validPath, 
     numBands = 4;
     [inputBufferLR, outputBufferLR] = InitialiseLRBuffers();     % Linwitz-Riley IIR filters input/output buffers
     
-    fc = [300 1000 4000];
+    fc = [250 1000 4000];
     
     numFreqResponses = size(tfmag, 1);
     if numFreqResponses == 1

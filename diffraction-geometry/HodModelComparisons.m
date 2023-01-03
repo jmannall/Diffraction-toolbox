@@ -128,20 +128,11 @@ for i = n:numPaths
     updateRate = 100;
     windowLength = 2 * fs / updateRate;
     pathLength = data(i).rS + sum(data(i).W) + data(i).rR;
-    [~, utdTfmagApexLR] = DelayLineLRFilter(input, utdTfmagApex(:,end), pathLength, windowLength, 1, c, fs, nfft);
-    [~, utdTfmagExtLR] = DelayLineLRFilter(input, utdTfmagExt(:,end), pathLength, windowLength, 1, c, fs, nfft);
-    for k = 1:numEdges + 1
-        utdTfmagApexInterp(:,k) = interp1(x, [utdTfmagApex(1,k); utdTfmagApex(:,k); utdTfmagApex(end,k)], xq);
-        utdTfmagExtInterp(:,k) = interp1(x, [utdTfmagExt(1,k); utdTfmagExt(:,k); utdTfmagExt(end,k)], xq);
-    end
-
-    xq = log10(fvecBTM(idx));
-    xq(1:3) = log10(fvecBTM(2));
-
-    for k = 1:numEdges + 1
-        utdTfmagApex2(:,k) = interp1(x, [utdTfmagApex(1,k); utdTfmagApex(:,k); utdTfmagApex(end,k)], xq);
-        utdTfmagExt2(:,k) = interp1(x, [utdTfmagExt(1,k); utdTfmagExt(:,k); utdTfmagExt(end,k)], xq);
-    end
+    [~, utdIrApexLR] = DelayLineLR(input, pathLength, windowLength, 1, utdTfmagApex(:,end)', c, fs, 1);
+    [~, utdIrExtLR] = DelayLineLR(input, pathLength, windowLength, 1, utdTfmagExt(:,end)', c, fs, 1);
+    test = find(utdIrApexLR > 0, 1);
+    utdTfmagApexLR = IrToTf(utdIrApexLR(test:end), nfft);
+    utdTfmagExtLR = IrToTf(utdIrExtLR, nfft);
 
     meanUtdApex(i) = mean((utdTfmagApexLR(idx) - tfmagDiff2) .^ 2);
     meanUtdExt(i) = mean((utdTfmagExtLR(idx) - tfmagDiff2) .^ 2);

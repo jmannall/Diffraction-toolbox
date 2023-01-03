@@ -13,7 +13,7 @@ function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, file
         load([inFilePath,filesep,'results',filesep,filehandlingparameters.filestem,'_irhod.mat'], 'irhod');
         maxdifforder = length(irhod);
         ndiff = size(irhod{2}, 1);
-        padding = zeros(ndiff - nir, numReceiers, 1);
+        padding = zeros(ndiff - nir, numReceivers, 1);
         irdirect = [irdirect; padding];
         irgeom = [irgeom; padding];
         irdiff = [irdiff; padding];

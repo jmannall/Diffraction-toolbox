@@ -13,8 +13,8 @@ filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
 saveDir = 'NNSaves';
 CheckFileDir(saveDir)
 
-iir = '4_iir';
-iirW = '4_iirW';
+iir = '5_iir';
+iirW = '5_iirW';
 
 %% NN complexity
 
@@ -22,10 +22,10 @@ nI = 8;
 nO = 5;
 gx = 5;
 
-networkSizes = [2e3; 2e3];
+networkSizes = [2e3; 4e3; 6e3; 8e3; 10e3];
 layers = [2, 3, 4, 5, 6, 7];
 
-CcPZTransform = 5;
+CcPZTransform = 6;
 numPZ = nO - 1;
 CcKTransform = 1;
 CcOutputTransform = numPZ * CcPZTransform + CcKTransform;
@@ -43,7 +43,7 @@ numLayers = length(layers);
 numNetworks = numLayers * numSizes;
 
 lR(1:numNetworks,1) = 1e-3;
-lR(numNetworks / 2 + 1:end,1) = 1e-4;
+%lR(numNetworks / 2 + 1:end,1) = 1e-4;
 gD(1:numNetworks,1) = 0.9;
 sGD(1:numNetworks,1) = 0.99;
 mG(1:numNetworks,1) = 1;
@@ -74,7 +74,7 @@ weight = 20;
 
 rng(2)
 disp('Start parallel training')
-parfor i = 1:2 * numNetworks
+for i = 1:2 * numNetworks
     
     if i > numNetworks
         dataFunc = @(i) CreateBtmTrainingDataWeighted(epochSize, controlparameters, weight, i);
@@ -98,7 +98,7 @@ parfor i = 1:2 * numNetworks
         disp('Already trained')
     else
         worker = getCurrentWorker;
-        disp(['Begin worker: ' num2str(worker.ProcessId)])
+        %disp(['Begin worker: ' num2str(worker.ProcessId)])
     
         lossFunc = @(net, trainingData, targetData) NNFilterLoss(net, trainingData, targetData, filterFunc, true);
     
