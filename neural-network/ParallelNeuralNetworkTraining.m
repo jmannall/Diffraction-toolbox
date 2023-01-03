@@ -1,6 +1,6 @@
 
 close all
-clear all
+%clear all
 
 %% Data
 
@@ -52,6 +52,14 @@ nL = reshape(nL, numNetworks, 1);
 hL = reshape(hL, numNetworks, 1);
 
 x = table(lR, gD, sGD, mG, nL, hL, 'VariableNames', ["lR", "gD", "sGD", "mG", "nL", "hL"]);
+
+% gx = 5;
+% numInputs = 8;
+% numOutputs = 5;
+% for i = 1:30
+%     input = x(i,:);
+%     networkSize(i) = CalculateNNIIRCost(input.nL, input.hL, numInputs, numOutputs, gx);
+% end
 x = [x; x];
 
 %% Create loss function
@@ -68,13 +76,15 @@ numEpochs = 500;
 
 filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
 numOutputs = 2 * numFilters + 1;
+gx = 5;
+numInputs = 8;
 weight = 20;
 
 %% Run grid search
 
 rng(2)
 disp('Start parallel training')
-for i = 1:2 * numNetworks
+parfor i = 1:2 * numNetworks
     
     if i > numNetworks
         dataFunc = @(i) CreateBtmTrainingDataWeighted(epochSize, controlparameters, weight, i);
@@ -85,8 +95,7 @@ for i = 1:2 * numNetworks
     end
     input = x(i,:);
 
-    gx = 5;
-    numInputs = 8;
+
     networkSize = CalculateNNIIRCost(input.nL, input.hL, numInputs, numOutputs, gx);
     %hiddenLayerSize = round((-gx + sqrt(gx ^ 2 - 4 * (-networkSize / numLayers))) / 2); % (-b + sqrt(b^2 - 4ac)) / 2a
 
@@ -98,7 +107,7 @@ for i = 1:2 * numNetworks
         disp('Already trained')
     else
         worker = getCurrentWorker;
-        %disp(['Begin worker: ' num2str(worker.ProcessId)])
+        disp(['Begin worker: ' num2str(worker.ProcessId)])
     
         lossFunc = @(net, trainingData, targetData) NNFilterLoss(net, trainingData, targetData, filterFunc, true);
     
