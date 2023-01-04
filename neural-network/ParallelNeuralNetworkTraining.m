@@ -4,13 +4,13 @@ close all
 
 %% Set up GPU
 
-[availableGPUs,gpuIndx] = gpuDeviceCount("available");
+[availableGPUs,gpuIdx] = gpuDeviceCount("available");
 useGPUs = [];
 for i = 1:availableGPUs
-    D = gpuDevice(gpuIndx(i));
+    D = gpuDevice(gpuIdx(i));
     freeSpace = D.AvailableMemory / D.TotalMemory;
     if freeSpace > 0.75
-        useGPUs = [useGPUs, gpuIndx(i)];
+        useGPUs = [useGPUs, gpuIdx(i)];
     end
 end
 
@@ -19,6 +19,7 @@ if isempty(useGPUs)
 end
 
 gpuDevice(useGPUs)
+disp(['Running on GPU: ', num2str(useGPUs)])
 
 %% Data
 
