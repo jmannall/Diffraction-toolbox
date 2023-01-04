@@ -10,15 +10,9 @@ for i = 1:availableGPUs
     D = gpuDevice(gpuIndx(i));
     freeSpace = D.AvailableMemory / D.TotalMemory;
     if freeSpace > 0.75
-        useGPUs = [useGPUs, gpuIndx(i)];
-    end
+        useGPUs = useGPUs, 
 end
 
-if isempty(useGPUs)
-    return
-end
-
-gpuDevice(useGPUs)
 
 %% Data
 
