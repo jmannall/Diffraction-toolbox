@@ -89,7 +89,8 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
             iterationLosses(i) = loss;
         end
         epochLosses(epoch) = mean(iterationLosses);
-        if (isnan(loss) || epochLosses(epoch) > 1e3)
+        improvement = epochLosses(max(1, epoch - 1)) - epochLosses(epoch);
+        if epoch > 1 && (isnan(loss) || improvement < -100)
             % Revert results to last epoch and end training
             if firstEpoch
                 if ~isempty(worker)

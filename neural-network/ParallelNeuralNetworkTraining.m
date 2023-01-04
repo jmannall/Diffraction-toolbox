@@ -4,6 +4,8 @@ close all
 
 %% Data
 
+gpudevice(4)
+
 fs = 48e3;
 nfft = 8192;
 c = 344;
@@ -13,8 +15,9 @@ filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
 saveDir = 'NNSaves';
 CheckFileDir(saveDir)
 
-iir = '5_iir';
-iirW = '5_iirW';
+run = 5;
+iir = [num2str(run), '_iir'];
+iirW = [num2str(run), '_iirW'];
 
 %% NN complexity
 
@@ -82,7 +85,7 @@ weight = 20;
 
 %% Run grid search
 
-rng(2)
+rng(run)
 disp('Start parallel training')
 parfor i = 1:2 * numNetworks
     
