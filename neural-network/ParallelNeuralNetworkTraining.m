@@ -18,8 +18,9 @@ if isempty(useGPUs)
     return
 end
 
-gpuDevice(useGPUs)
-disp(['Running on GPU: ', num2str(useGPUs)])
+gpuDevice(useGPUs);
+disp(['Running on GPUs: ', num2str(useGPUs)])
+parpool('Processes',6);
 
 %% Data
 

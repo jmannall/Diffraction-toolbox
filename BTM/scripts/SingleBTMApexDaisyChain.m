@@ -8,6 +8,6 @@ function [tfmag, fvec, tfcomplex] = SingleBTMApexDaisyChain(source, receiver, ap
 
     rS = [data.rS, data.W];
     rR = [data.W, data.rR];
-    
+
     [tfmag, fvec, tfcomplex] = ProcessBTMDaisyChain(vSource, vReceiver, corners, planeCorners, controlparameters, numEdges, rS, rR, data.L);
 end

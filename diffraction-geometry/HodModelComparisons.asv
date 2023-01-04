@@ -1,5 +1,5 @@
 close all
-%clear all
+% clear all
 
 %% Data
 fs = 96e3;
@@ -57,13 +57,13 @@ if n == 1
     [meanBtmApex, meanBtmExt, meanBtmPlane, meanUtdApex, meanUtdExt] = deal(zeros(numPaths, 1));
 end
 
-[~, tfmagDefault, ~, fvec] = DefaultBTM(controlparameters);
-octBand = 8;
-[~, fc, fidx] = CreateFrequencyNBands(tfmagDefault.complete, fvec, octBand);
-
 AWeighting = weightingFilter('A-weighting',fs);
-aWeight = freqz(AWeighting, fc, fs);
-aWeight = abs(aWeight)';
+aWeight = freqz(AWeighting, fvec, fs);
+aWeight = abs(aWeight(idx))';
+
+[tfmag, fvec] = DefaultBTM(controlparameters);
+octBand = 10;
+[tfmagNBand, fc, fidx] = CreateFrequencyNBands(tfmag, fvec, octBand);
 
 disp('Start')
 for i = n:numPaths
@@ -143,7 +143,7 @@ for i = n:numPaths
     utdTfmagApexLRNBand = CreateNBandMagnitude(utdTfmagApexLR, fidx);
     utdTfmagExtLRNBand = CreateNBandMagnitude(utdTfmagExtLR, fidx);
     meanUtdApex(i) = mean(aWeight .* abs(utdTfmagApexLRNBand - tfmagDiff2));
-    meanUtdExt(i) = mean(aWeight .* abs(utdTfmagExtLRNBand - tfmagDiff2));
+    meanUtdExt(i) = mean(aWeight .* abs(utdTfmagExtLR(idx) - tfmagDiff2));
     
     %% Figures
     if plotFigures
@@ -186,6 +186,7 @@ close all
 
 meanBtmApexTot = mean(meanBtmApex);
 meanBtmExtTot = mean(meanBtmExt);
+meanBtmPlaneTot = mean(meanBtmPlane);
 meanUtdApexTot = mean(meanUtdApex);
 meanUtdExtTot = mean(meanUtdExt);
 
@@ -204,6 +205,11 @@ ylim([0 30])
 figure
 histogram(sqrt(meanBtmExt), length(N), 'BinEdges',edges)
 title('BTM Ext')
+ylim([0 30])
+
+figure
+histogram(sqrt(meanBtmPlane), length(N), 'BinEdges',edges)
+title('BTM Plane')
 ylim([0 30])
 
 figure

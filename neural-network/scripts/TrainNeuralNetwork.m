@@ -107,6 +107,7 @@ function [net, epochLosses, losses] = TrainNeuralNetwork(net, trainingData, targ
                     disp(['Return to previous epoch net: ', num2str(epoch)])
                 end
                 net = oldNet;
+                epochLosses(epoch) = epochLosses(epoch - 1);
             end
             count = count + 1;
         else
