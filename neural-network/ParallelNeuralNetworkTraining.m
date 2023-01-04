@@ -20,7 +20,7 @@ end
 
 gpuDevice(useGPUs);
 disp(['Running on GPUs: ', num2str(useGPUs)])
-parpool('Processes',6);
+parpool('Processes',12);
 
 %% Data
 
