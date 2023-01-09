@@ -28,8 +28,8 @@ numPaths = 100;
 
 index = DataHash({numPaths, fs, nfft, numEdges, height});
 [loadPath, savePath] = deal(['geometry/NthOrderPaths_3mTo10m_', num2str(index), '.mat']);
-restart = false;
-generate = true;
+restart = true;
+generate = false;
 plotFigures = false;
 createPlot = false;
 if restart
@@ -59,7 +59,12 @@ end
 
 [~, tfmagDefault, ~, fvec] = DefaultBTM(controlparameters);
 octBand = 8;
-[~, fc, fidx] = CreateFrequencyNBands(tfmagDefault.complete, fvec, octBand);
+tfmagDefault = tfmagDefault(1:end / 2,:);
+
+fs = controlparameters.fs / 2;
+nfft = controlparameters.nfft / 2;
+fvec = fs/nfft*[0:nfft/2-1];
+[targetData, fc, fidx] = CreateFrequencyNBands(tfmagDefault, fvec, octBand);
 
 AWeighting = weightingFilter('A-weighting',fs);
 aWeight = freqz(AWeighting, fc, fs);

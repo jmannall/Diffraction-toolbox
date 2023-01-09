@@ -222,8 +222,10 @@ end
 %% NN audio
 
 %loadPath = ['NNSaves', filesep, 'IIR-10000_0001-1-09-099-5.mat'];
-loadPath = ['NNSaves', filesep, 'iir-10067_0001-1-09-099-5-45.mat'];
+%loadPath = ['NNSaves', filesep, 'iir-10067_0001-1-09-099-5-45.mat'];
 %loadPath = ['NNSaves', filesep, 'iir-6118_0001-1-09-099-5-34.mat'];
+%loadPath = ['NNSaves', filesep, '2_iirW-2096_0001-1-09-099-6-16.mat'];
+loadPath = ['NNSaves', filesep, 'iir-2057_0001-1-09-099-3-25.mat'];
 
 load(loadPath, "net");
 

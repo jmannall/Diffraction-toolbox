@@ -11,7 +11,7 @@ store = {listingStore.name};
 filterType = extractBefore(store, '-');
 idx = [];
 for i = 1:length(listingStore)
-    idx(i) = matches(filterType{i}, "iir") || matches(filterType{i}, "iirW") || matches(filterType{i}, "2_iir") || matches(filterType{i}, "2_iirW") || matches(filterType{i}, "3_iir") || matches(filterType{i}, "3_iirW");
+    idx(i) = matches(filterType{i}, "iir") || matches(filterType{i}, "iirW") || matches(filterType{i}, "2_iir") || matches(filterType{i}, "2_iirW") || matches(filterType{i}, "3_iir") || matches(filterType{i}, "3_iirW") || matches(filterType{i}, "5_iir") || matches(filterType{i}, "5_iirW");
 end
 listingStore = listingStore(idx == 1);
 listing = {listingStore.name};
@@ -34,7 +34,7 @@ end
 maxFirstLoss = max(firstLoss);
  
 finishedTraining = numEpochs == 500;
-wellTrained = allLoss < 20;
+wellTrained = allLoss < 5;
 numTrained = sum(finishedTraining);
 numWellTrained = sum(wellTrained);
 idx = finishedTraining & wellTrained;
@@ -370,19 +370,17 @@ for i = 1:num
     disp(i)
 end
 
-
+[allPercentiles, order] = sortrows(allPercentiles, 19);
+idx = allPercentiles(:,end) < 20;
 
 %% End
 
 close all
 
-[allPercentiles, order] = sortrows(allPercentiles, 19);
-idx = allPercentiles(:,end) < 20;
-
 figure
-plot(percentileBounds, allPercentiles(idx, :))
+plot(percentileBounds, allPercentiles(1:7, :))
 grid on
-ylim([0 6])
+ylim([0 4])
 ylabel('error (dB)')
 xlabel('percentile')
 legend(listing{order(idx)}, 'Location', 'eastoutside')
@@ -393,13 +391,22 @@ legend(listing{order(idx)}, 'Location', 'eastoutside')
 %     runningMean(i) = mean(epochLosses(idx));
 %     cost(i) = runningMean(i) - epochLosses(i);
 % end
-% 
+% Create
 % xEpoch = 1:numEpochs;
 % figure
 % plot(xEpoch, runningMean)
 % 
 % figure
 % plot(xEpoch, cost)
+edges = 0:0.1:4;
+
+figure
+t = tiledlayout(3, 3, 'TileSpacing', 'compact');
+for i = 1:9
+    nexttile
+    histogram(allPercentiles(i,:), edges)
+    title(listing{order(i)})
+end
 
 %% Best
 

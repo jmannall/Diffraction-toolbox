@@ -6,7 +6,7 @@ clear all
 numObservations = 20e3;
 
 weight = 25;
-geometry = RandomGeometryWedgeWeighted(numObservations, 20);
+geometry = RandomGeometryWedge(numObservations);
 
 wedgeIndex = geometry.wedgeIndex;
 bendingAngle = geometry.bendingAngle;
@@ -52,6 +52,16 @@ histogram(radiusR,10.^edges)
 set(gca, 'xscale','log')
 title('radiusR')
 
+[~,edges] = histcounts(radiusS);
+figure
+histogram(radiusS,edges)
+title('radiusS')
+
+[~,edges] = histcounts(radiusR);
+figure
+histogram(radiusR,edges)
+title('radiusR')
+
 figure
 histogram(zS)
 title('zS')
@@ -74,7 +84,7 @@ figure
 histogram(zAProp)
 title('zA')
 
-controlparameters = struct('fs', 96e3, 'nfft', 16384, 'difforder', 1);
+controlparameters = struct('fs', 96e3, 'nfft', 16384, 'difforder', 1, 'c', 344);
 
 %% Figure
 for i = 1:20

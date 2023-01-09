@@ -1,6 +1,6 @@
 %% IIR filter loss function
 
-function [loss, tfmagNBand] = IIRFilterLoss(output, target, numIIRFilters, nfft, fs, fidx)
+function [loss, tfmagNBand, tfmag] = IIRFilterLoss(output, target, numIIRFilters, nfft, fs, fidx)
     
     [z, p, k] = CreateIIRFromNNOutput(output, numIIRFilters);
 

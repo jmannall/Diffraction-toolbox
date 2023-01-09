@@ -46,6 +46,8 @@ function geometry = RandomGeometryWedge(numObservations)
     radius = [0.1 50];
     radiusOne = RandomLoguniformDistribution(radius, numObservations);
     radiusTwo = RandomLoguniformDistribution(radius, numObservations);
+    radiusOne = RandomUniformDistribution(radius, numObservations);
+    radiusTwo = RandomUniformDistribution(radius, numObservations);
 
     r1 = min(radiusOne, radiusTwo);
     r2 = max(radiusOne, radiusTwo);
@@ -61,6 +63,7 @@ function geometry = RandomGeometryWedge(numObservations)
     dZ = sqrt(maxL ^ 2 - r .^ 2);
     deltaZ = [0 * const dZ];
     dZ = RandomTriangularDistribution(deltaZ, false, numObservations);
+    dZ = RandomUniformDistribution(deltaZ, numObservations);
     apex = [0 * const wL];
     zA = RandomUniformDistribution(apex, numObservations);
     zOne = [zA - r1Part .* dZ, zA + r1Part .* dZ];
