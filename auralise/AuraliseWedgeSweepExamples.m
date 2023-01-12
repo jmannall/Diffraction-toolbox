@@ -5,26 +5,31 @@ fileStem = 'audio\whiteNoise';
 audioFilePath  = [fileStem, '.wav'];
 exampleLength = 10;
 nfft = 8192;
+fs = 48e3;
+c = 344;    % speed of sound
 
-[audio, fs] = NormaliseAudio(audioFilePath, nfft);
+% [audio, fs] = NormaliseAudio(audioFilePath, nfft);
+% 
+% audiowrite([fileStem, '_Normalised.wav'], audio, fs)
+% 
+% [audio, fs, audioLength] = LoopAudio([fileStem, '_Normalised.wav'], exampleLength);
+% 
+% updateRate = 20;
+% samplesPerUpdate = fs / updateRate;
+% 
+% numWindows = 2 * floor(audioLength / samplesPerUpdate) - 2;
 
-audiowrite([fileStem, '_Normalised.wav'], audio, fs)
-
-[audio, fs, audioLength] = LoopAudio([fileStem, '_Normalised.wav'], exampleLength);
-
-updateRate = 20;
-samplesPerUpdate = fs / updateRate;
-
-numWindows = 2 * floor(audioLength / samplesPerUpdate) - 2;
-
-wedgeIndex = 350;
+wedgeIndex = 270;
 minBendingAngle = 5;
-minAngle = 30;
+minAngle = 10;
 rS = 1;
 rR = 1;
+numWindows = wedgeIndex - (minAngle + minBendingAngle);
 
-controlparameters = struct('nfft', nfft, 'fs', fs);
-[result, geometry, pathLength, validPath] = CreateWedgeSweep(wedgeIndex, minAngle, minBendingAngle, rS, rR, controlparameters, numWindows);
+%% BTM
+
+controlparameters = struct('nfft', 2 * nfft, 'fs', 2 * fs, 'c', c, 'diffOrder', 1, 'saveFiles', 2, 'noDirect', false);
+[result, geometry, pathLength, validPath] = CreateWedgeSweep(wedgeIndex, minAngle, minBendingAngle, rS, rR, controlparameters, numWindows, false);
 
 ir = [result.ir];
 tfmag = [result.tfmag];
@@ -32,25 +37,59 @@ tfcomplex = [result.tfcomplex];
 fvec = result(1).fvec;
 bendingAngle = geometry.bendingAngle';
 
-c = 344;    % speed of sound
 
-numBiquads = 2;
-NNidx = '015b';
-[tfmagNN, tfcomplexNN, b, a,] = ProcessBiquadNNOutputWedgeSweep(NNidx, wedgeIndex, bendingAngle, minAngle, numBiquads, pathLength.diff, c, nfft, fs);
+%% BTM interpolated
+[result, geometry, ~, ~] = CreateWedgeSweep(wedgeIndex, minAngle, minBendingAngle, rS, rR, controlparameters, numWindows, true);
+irI = [result.ir];
+tfmagI = [result.tfmag];
+tfcomplexI = [result.tfcomplex];
 
-dir = DelayLine(audio, pathLength.dir, samplesPerUpdate, validPath.dir, c, fs);
-spec = DelayLine(audio, pathLength.spec, samplesPerUpdate, validPath.spec, c, fs);
-diffNN = DelayLineBiquad(audio, pathLength.diff, samplesPerUpdate, validPath.diff, b, a, numBiquads, c, fs);
-BTM = ConvolveIR(audio, [ir.diff1], samplesPerUpdate, validPath.diff);
+tfcomplexI(:,validPath.dir) = 1 ./ pathLength.dir(validPath.dir) .* tfcomplexI(:,validPath.dir);
+tfcomplexI(:,validPath.diffShadow) = 1 ./ pathLength.diff(validPath.diffShadow) .* tfcomplexI(:,validPath.diffShadow);
+
+%% Neural network
+
+loadPath = ['NNSaves', filesep, 'iir-2057_0001-1-09-099-3-25.mat'];
+
+load(loadPath, "net");
+
+wedgeLength = 20;
+[zS, zR] = deal(wedgeLength / 2);
+rS = 1;
+rR = 1;
+
+const = ones(size(bendingAngle'));
+rR = const .* rR;
+zR = const .* zR;
+
+output.NN = CreateNNOutput(net, wedgeIndex, wedgeLength, minAngle + bendingAngle', minAngle, rS, rR, zS, zR);
+
+biquad = false;
+output, tfcomplex, validPath, pathLength, nfft, fs, biquad
+[tfcomplexNN, b.NN, a.NN] = CalculateNN(output.NN, [tfcomplex.direct], validPath.diffShadow, pathLength.diff', nfft, fs, biquad);
+
+%[audioPath.NN, ir.NN] = DelayLineIIRFilter(audio, [pathLength.diff, pathLength.dir], windowLength, validPath.diff, b.NN, a.NN, c, fs, validPath.diffShadow);
+
+%[~, tfcomplex.NN] = IrToTf(ir.NN, nfft);
+
+
+%numBiquads = 2;
+%NNidx = '015b';
+%[tfmagNN, tfcomplexNN, b, a,] = ProcessBiquadNNOutputWedgeSweep(NNidx, wedgeIndex, bendingAngle, minAngle, numBiquads, pathLength.diff, c, nfft, fs);
+
+%dir = DelayLine(audio, pathLength.dir, samplesPerUpdate, validPath.dir, c, fs);
+%spec = DelayLine(audio, pathLength.spec, samplesPerUpdate, validPath.spec, c, fs);
+%diffNN = DelayLineBiquad(audio, pathLength.diff, samplesPerUpdate, validPath.diff, b, a, numBiquads, c, fs);
+%BTM = ConvolveIR(audio, [ir.diff1], samplesPerUpdate, validPath.diff);
 % BTMcomplete= ConvolveIR(audio, [ir.complete], samplesPerUpdate, validPath.diff);
 
-disp('Write audio files')
-audiowrite([fileStem, '_dir.wav'], dir, fs)
-audiowrite([fileStem, '_spec.wav'], spec, fs)
-audiowrite([fileStem, '_NN', NNidx, 'diff.wav'], diffNN, fs)
-audiowrite([fileStem, '_NN', NNidx, 'All.wav'], dir + spec + diffNN, fs)
-audiowrite([fileStem, '_BTM.wav'], BTM, fs)
-audiowrite([fileStem, '_BTMAll.wav'], dir + spec + BTM, fs)
+%disp('Write audio files')
+%audiowrite([fileStem, '_dir.wav'], dir, fs)
+%audiowrite([fileStem, '_spec.wav'], spec, fs)
+%audiowrite([fileStem, '_NN', NNidx, 'diff.wav'], diffNN, fs)
+%audiowrite([fileStem, '_NN', NNidx, 'All.wav'], dir + spec + diffNN, fs)
+%audiowrite([fileStem, '_BTM.wav'], BTM, fs)
+%audiowrite([fileStem, '_BTMAll.wav'], dir + spec + BTM, fs)
 % audiowrite([fileStem, '_BTMTest.wav'], BTMcomplete, fs)
 
 %% Plots
@@ -66,9 +105,14 @@ limits = [-70 0];
 % PlotSpectogramOfWAV([fileStem, '_BTMAll.wav'], limits, nfft)
 % PlotSpectogramOfWAV([fileStem, '_BTMTest.wav'], limits, nfft)
 
-PlotSpectogram([tfcomplex.direct], fvec, bendingAngle, limits, 'Direct', false, 'Bending Angle')
-PlotSpectogram([tfcomplex.geom], fvec, bendingAngle, limits, 'Specular', false, 'Bending Angle')
-PlotSpectogram(tfcomplexNN, fvec, bendingAngle, limits, ['NN', NNidx, ' diffraction'], false, 'Bending Angle')
-PlotSpectogram([tfcomplex.direct] + [tfcomplex.geom] + tfcomplexNN, fvec, bendingAngle, limits, ['NN', NNidx, ' All'], false, 'Bending Angle')
-PlotSpectogram([tfcomplex.diff1], fvec, bendingAngle, limits, 'BTM diffraction', false, 'Bending Angle')
-PlotSpectogram([tfcomplex.complete], fvec, bendingAngle, limits, 'BTM All', false, 'Bending Angle')
+phase = false;
+save = true;
+PlotSpectrogram([tfcomplex.direct], fvec, bendingAngle, limits, 'Direct', phase, save, 'Bending Angle')
+PlotSpectrogram([tfcomplex.geom], fvec, bendingAngle, limits, 'Specular', phase, save, 'Bending Angle')
+%PlotSpectogram([tfcomplex.direct] + [tfcomplex.geom] + tfcomplexNN, fvec, bendingAngle, limits, ['NN', NNidx, ' All'], false, 'Bending Angle')
+PlotSpectrogram([tfcomplex.diff1], fvec, bendingAngle, limits, 'BTM diffraction', phase, save, 'Bending Angle')
+PlotSpectrogram([tfcomplex.complete], fvec, bendingAngle, limits, 'BTM All', phase, save, 'Bending Angle')
+PlotSpectrogram(tfcomplexI, fvec, bendingAngle, limits, 'BTM Interpolated', phase, save, 'Bending Angle')
+PlotSpectrogram(tfcomplexNN, fvec(1:end/2), bendingAngle, limits, 'NN diffraction', phase, save, 'Bending Angle')
+
+PlotSpectrogram(tfcomplexNN ./ tfcomplexI(1:end/2,:), fvec(1:end/2), bendingAngle, [-6 6], 'NN error', phase, save, 'Bending Angle')

@@ -11,7 +11,7 @@ store = {listingStore.name};
 filterType = extractBefore(store, '-');
 idx = [];
 for i = 1:length(listingStore)
-    idx(i) = matches(filterType{i}, "iir") || matches(filterType{i}, "iirW") || matches(filterType{i}, "2_iir") || matches(filterType{i}, "2_iirW") || matches(filterType{i}, "3_iir") || matches(filterType{i}, "3_iirW") || matches(filterType{i}, "5_iir") || matches(filterType{i}, "5_iirW");
+    idx(i) = matches(filterType{i}, "5_iir") || matches(filterType{i}, "5_iirW");
 end
 listingStore = listingStore(idx == 1);
 listing = {listingStore.name};
@@ -33,14 +33,25 @@ end
 
 maxFirstLoss = max(firstLoss);
  
+%% Go
 finishedTraining = numEpochs == 500;
-wellTrained = allLoss < 5;
+wellTrained = allLoss < 20;
 numTrained = sum(finishedTraining);
 numWellTrained = sum(wellTrained);
 idx = finishedTraining & wellTrained;
 num = sum(idx);
 listing = {listingStore(idx).name};
 
+idx = finishedTraining;
+listing2 = {listingStore(idx).name};
+
+networkStructure = extractBetween(listing, '099-', '.');
+layers1 = cell2mat(extractBefore(networkStructure, '-'));
+networkStructure = extractBetween(listing2, '099-', '.');
+layers2 = cell2mat(extractBefore(networkStructure, '-'));
+
+size2 = extractBetween(listing2, '-', '_');
+x = 1;
 %% 
 
 % close all

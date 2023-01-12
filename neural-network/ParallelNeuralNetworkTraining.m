@@ -105,7 +105,7 @@ weight = 20;
 
 rng(run)
 disp('Start parallel training')
-parfor i = 1:2 * numNetworks
+parfor i = 1:numNetworks
     
     if i > numNetworks
         dataFunc = @(i) CreateBtmTrainingDataWeighted(epochSize, controlparameters, weight, i);

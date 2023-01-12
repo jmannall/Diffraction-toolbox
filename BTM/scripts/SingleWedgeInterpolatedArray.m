@@ -1,4 +1,4 @@
-function [result, geometry] = SingleWedgeArray(geometry, wedgeLength, radiusS, radiusR, zS, zR, controlparameters)
+function [result, geometry] = SingleWedgeInterpolatedArray(geometry, wedgeLength, radiusS, radiusR, zS, zR, controlparameters)
     
     numInputs = length(geometry.wedgeIndex);
             
@@ -10,7 +10,7 @@ function [result, geometry] = SingleWedgeArray(geometry, wedgeLength, radiusS, r
     saveCount = 1;
     if resultExists
         load(loadPath, "result");
-        result = UniformResult(result);
+        %result = UniformResult(result);
         saveCount = CreateSaveCount(result, numInputs, numSaves, filesPerSave);
     end
     if saveCount <= numSaves
@@ -18,7 +18,7 @@ function [result, geometry] = SingleWedgeArray(geometry, wedgeLength, radiusS, r
         thetaSi = ReshapeForParfor(geometry.source, extra, filesPerSave);
         thetaRi = ReshapeForParfor(geometry.receiver, extra, filesPerSave);
         tic
-        parfor j = saveCount:numSaves
+        for j = saveCount:numSaves
             result = repmat(rtemplate, 1, 1);
             count = (j - 1) * filesPerSave;
             start = rem(count, filesPerSave);
@@ -27,8 +27,7 @@ function [result, geometry] = SingleWedgeArray(geometry, wedgeLength, radiusS, r
                 wedgeIndex = wedgeIndexi(i,j);
                 thetaS = thetaSi(i,j);
                 thetaR = thetaRi(i,j);
-
-                [result(i).ir, result(i).tfmag, result(i).tvec, result(i).fvec, result(i).tfcomplex] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters,false);
+                [result(i).tfmag, result(i).fvec, result(i).tfcomplex] = SingleWedgeInterpolated(wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters,false);
                 result(i).i = (j - 1) * filesPerSave + i;
             end
             savepathI = [savePath, '_', num2str(j)];

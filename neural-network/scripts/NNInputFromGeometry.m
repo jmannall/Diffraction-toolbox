@@ -4,6 +4,7 @@ function input = NNInputFromGeometry(wedgeIndex, wedgeLength, thetaR, thetaS, rS
     
     % r1 defined as min(rS, rR)
     sourceIsROne = rS < rR;
+    [rOne, rTwo, zOne, zTwo] = deal(zeros(size(sourceIsROne)));
     rOne(sourceIsROne, 1) = rS;
     rOne(~sourceIsROne, 1) = rR(~sourceIsROne);
     rTwo(sourceIsROne, 1) = rR(sourceIsROne);

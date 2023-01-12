@@ -71,7 +71,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = DefaultBTM(controlparameters)
 
         % Find BTM response
         geofiledata = struct('geoinputfile',cadFilePath);
-        Sindata = struct('coordinates',source);
+        Sindata = struct('coordinates',source,'noDirect',controlparameters.noDirect);
         Rindata = struct('coordinates',receiver);
         controlparameters.savealldifforders = 1;
         filehandlingparameters = struct('outputdirectory',[inFilePath,filesep,'results']);

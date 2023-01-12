@@ -12,5 +12,6 @@ function [tfcomplex, b, a] = CalculateNN(output, tfcomplex, validPath, pathLengt
         [~, ~, tfcomplexNN] = CreateIIRFilter(z, p, k, nfft, fs);
     end
 
+    tfcomplex = tfcomplex(1:nfft / 2,:);
     tfcomplex(:,validPath) = extractdata(tfcomplexNN(:,validPath) ./ pathLength(validPath)');
 end
