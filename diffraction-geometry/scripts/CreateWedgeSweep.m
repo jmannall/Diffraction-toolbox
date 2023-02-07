@@ -1,6 +1,6 @@
 function [result, geometry, pathLength, validPath] = CreateWedgeSweep(wedgeIndex, minAngle, minBendingAngle, rS, rR, controlparameters, n, interpolated)
     
-    bendingAngle = linspace(minAngle + minBendingAngle, wedgeIndex - minAngle - 0.001, n);
+    bendingAngle = linspace(minBendingAngle, wedgeIndex - minAngle - 0.001, n);
     geometry = GeometryWedge(wedgeIndex, bendingAngle, minAngle, false, false);
 
     disp('Create wedge sweep')

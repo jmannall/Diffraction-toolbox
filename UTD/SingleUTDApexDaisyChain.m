@@ -9,6 +9,16 @@ function [tfmag, fvec, tfcomplex] = SingleUTDApexDaisyChain(data, phii, controlp
     thetaR = [wedgeIndex(1:end - 1), data.thetaR];
     
     tfcomplex = zeros(4, numEdges + 1);
+
+    if controlparameters.interpolated
+        minAngle = min(thetaS, wedgeIndex - thetaR);
+        bendingAngle = thetaR - thetaS;
+        thetaS = minAngle;
+        thetaR = minAngle + bendingAngle;
+        UTDWedge = @(thetaS, thetaR, radiusS, radiusR, wedgeIndex, phii)SingleUTDWedgeInterpolated(thetaS, thetaR, radiusS, radiusR, wedgeIndex, phii, controlparameters);
+    else
+        UTDWedge = @(thetaS, thetaR, radiusS, radiusR, wedgeIndex, phii)SingleUTDWedge(thetaS, thetaR, radiusS, radiusR, wedgeIndex, phii, controlparameters);
+    end
     if withCorrection
         [A, B] = KimCorrection(data, numEdges);    
         for i = 1:numEdges
@@ -20,7 +30,7 @@ function [tfmag, fvec, tfcomplex] = SingleUTDApexDaisyChain(data, phii, controlp
         front = exp(-1i .* k .* data.L);
     else
         for i = 1:numEdges
-            [~, fvec, tfcomplexStore] = SingleUTDWedge(thetaS(i), thetaR(i), rS(i), rR(i), wedgeIndex(i), phii, controlparameters);
+            [~, fvec, tfcomplexStore] = UTDWedge(thetaS(i), thetaR(i), rS(i), rR(i), wedgeIndex(i), phii);
             tfcomplex(:,i) = (rS(i) + rR(i)) * tfcomplexStore;
         end
         front = 1;

@@ -1,6 +1,31 @@
 close all
-clear all
+%clear all
 
+% dz = abs(trainingData(7,:) - trainingData(8,:));
+% 
+% figure
+% histogram(dz)
+% title('true dz')
+% 
+mA = trainingData(3,:);
+% 
+% figure
+% histogram(mA)
+% title('true mA')
+% 
+bA = trainingData(2,:);
+% 
+% figure
+% histogram(bA)
+% title('true bA')
+
+s = [sin(mA); cos(mA)];
+r = [sin(mA + bA); cos(mA + bA)];
+
+figure
+plot(s(1,:), s(2,:), 'o')
+hold on
+plot(r(1,:), r(2,:), 'x')
 
 %% Distributions
 numObservations = 20e3;

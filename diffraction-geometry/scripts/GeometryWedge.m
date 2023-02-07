@@ -38,7 +38,7 @@ function geometry = GeometryWedge(wedgeIndex, bendingAngle, minAngle, reciprocit
 
     geometry.wedgeIndex = input(:,1);
     geometry.bendingAngle = input(:,2);
-    geometry.minAngle = input(:,3);
-    geometry.source = geometry.minAngle;
-    geometry.receiver = geometry.minAngle + geometry.bendingAngle;
+    geometry.minAngle = min(input(:,3), input(:,1) - (input(:,3) + input(:,2)));
+    geometry.source = input(:,3);
+    geometry.receiver = input(:,3) + input(:,2);
 end

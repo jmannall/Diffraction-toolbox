@@ -38,8 +38,13 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SinglePanel(width, depth, height, 
     
         planeRigid = [1 1 1 1 1 1];
         
-        source = [-1, 1, height / 2];
-        receiver = [1, -1, height / 2];
+        rS = 2.5;
+        thetaS = -45;
+        source = [rS * sind(thetaS), rS * cosd(thetaS), height / 2 * ones(size(thetaS))];
+
+        rR = 0.8;
+        thetaR = (0.1:1:180.1)';
+        receiver = [rR * sind(thetaR), rR * cosd(thetaR), height / 2 * ones(size(thetaR))];
     
         % Plot geometry
         if createPlot
@@ -52,7 +57,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SinglePanel(width, depth, height, 
     
         % Find BTM response
         geofiledata = struct('geoinputfile',cadFilePath);
-        Sindata = struct('coordinates',source);
+        Sindata = struct('coordinates',source,'noDirect',controlparameters.noDirect);
         Rindata = struct('coordinates',receiver);
         controlparameters.savealldifforders = 1;
         filehandlingparameters = struct('outputdirectory',[inFilePath,filesep,'results']);

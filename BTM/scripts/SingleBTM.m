@@ -23,7 +23,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleBTM(source, receiver, corner
         % Find BTM response
         geofiledata = struct('geoinputfile',cadFilePath);
         %geofiledata = struct('corners',corners, 'planecorners', planeCorners);
-        Sindata = struct('coordinates',source);
+        Sindata = struct('coordinates',source,'noDirect',controlparameters.noDirect);
         Rindata = struct('coordinates',receiver);
         controlparameters.savealldifforders = 1;
         filehandlingparameters = struct('outputdirectory',[inFilePath,filesep,'results']);

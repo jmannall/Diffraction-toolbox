@@ -209,7 +209,6 @@ for i = 1:length(specularPathLengthThree)
     tfcomplexThree = tfcomplexThree + tfcomplexStore;
 end
 
-
 fvec = fs/nfft*[0:nfft/2-1];
 tfmagAll = mag2db(abs(tfcomplexAll));
 tfmagThree = mag2db(abs(tfcomplexThree));

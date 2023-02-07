@@ -3,8 +3,8 @@ function [source, receiver, Q, apex, corners, planeCorners, planeRigid, data] = 
     valid = false;
     while ~valid
         
-        shift = 3;
-        scale = 10 - shift;
+        shift = 0.1;
+        scale = 3 - shift;
         rS = shift + scale * rand(1);
         rR = shift + scale * rand(1);
         W = shift + scale * rand(1, numEdges - 1);

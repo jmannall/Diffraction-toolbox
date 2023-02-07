@@ -20,6 +20,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = DefaultBTM(controlparameters)
     % Create file info
     mFile = mfilename('fullpath');
     controlparameters.difforder = 1;
+    controlparameters.saveFiles = 2;
     index = DataHash({wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters});
     [inFilePath, fileName, savePath, loadPath, resultExists] = BTMFileHandling(mFile, index);
 

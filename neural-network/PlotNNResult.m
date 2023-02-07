@@ -11,7 +11,7 @@ store = {listingStore.name};
 filterType = extractBefore(store, '-');
 idx = [];
 for i = 1:length(listingStore)
-    idx(i) = matches(filterType{i}, "5_iir") || matches(filterType{i}, "5_iirW");
+    idx(i) = matches(filterType{i}, "5_iir") || matches(filterType{i}, "5_iirW") || matches(filterType{i}, "iir") || matches(filterType{i}, "iirW");
 end
 listingStore = listingStore(idx == 1);
 listing = {listingStore.name};
@@ -254,7 +254,7 @@ nfft = 8192;
 c = 344;
 testSize = 20e3;
 
-controlparameters = struct('fs', fs, 'nfft',nfft, 'difforder', 1, 'c', c, 'saveFiles', 2);
+controlparameters = struct('fs', fs, 'nfft',nfft, 'difforder', 1, 'c', c, 'saveFiles', 2, 'noDirect', false);
 numFilters = 2;
 nBands = 8;
 [~, tfmag, ~, fvec, ~] = DefaultBTM(controlparameters);
@@ -293,7 +293,7 @@ for i = 1:num
 
     X = dlarray(single(inputData), "CB");
     gradients = dlfeval(gradFunc, net, X, targetData, filterFunc);
-    [loss, ~, ~, prediction] = dlfeval(lossFunc, net, X, targetData, filterFunc);
+    [lossOut(i), ~, ~, prediction] = dlfeval(lossFunc, net, X, targetData, filterFunc);
     iLosses = sum(abs(prediction - targetData), 1) / numFreq;
     iSqLosses = sum((prediction - targetData) .^ 2, 1) / numFreq;
 
@@ -380,6 +380,8 @@ for i = 1:num
 %     title(['Square losses: ', figTitle])
     disp(i)
 end
+
+[~, select] = min(lossOut);
 
 [allPercentiles, order] = sortrows(allPercentiles, 19);
 idx = allPercentiles(:,end) < 20;

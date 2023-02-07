@@ -69,11 +69,11 @@ function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, file
     % Clear up and delete files
     delete(cadFilePath);
     path = [inFilePath,filesep,'results',filesep,filehandlingparameters.filestem];
-    delete([path, '_eddata.mat']);
-    delete([path, '_ir.mat']);
-    delete([path, '_paths.mat']);
-    delete([path, '_Rdata.mat']);
-    delete([path, '_Sdata.mat']);
+%     delete([path, '_eddata.mat']);
+%     delete([path, '_ir.mat']);
+%     delete([path, '_paths.mat']);
+%     delete([path, '_Rdata.mat']);
+%     delete([path, '_Sdata.mat']);
     if difforder > 1
         delete([path, '_irhod.mat']);
         delete([path, '_ed2data.mat']);

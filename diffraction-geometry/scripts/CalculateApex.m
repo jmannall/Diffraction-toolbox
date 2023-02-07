@@ -16,7 +16,7 @@ function [zA, phii] = CalculateApex(radiusS, radiusR, zS, zR, zE, noClip)
             dZ = abs(zR(i) - zS(i));
             dZA = dZ * radiusS(i) / (radiusS(i) + radiusR(i));
             if zS(i) > zR(i)
-                dZA = -dZA(i);
+                dZA = -dZA;
             end
             zA(i,3) = zS(i) + dZA;
         end

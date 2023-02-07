@@ -14,8 +14,17 @@ function [tfmag, fvec, tfcomplex] = SingleUTDExtDaisyChain(data, phii, controlpa
     
     tfcomplex = zeros(4, numEdges + 1);
 
+    if controlparameters.interpolated
+        minAngle = min(thetaS, wedgeIndex - thetaR);
+        bendingAngle = thetaR - thetaS;
+        thetaS = minAngle;
+        thetaR = minAngle + bendingAngle;
+        UTDWedge = @(thetaS, thetaR, radiusS, radiusR, wedgeIndex, phii)SingleUTDWedgeInterpolated(thetaS, thetaR, radiusS, radiusR, wedgeIndex, phii, controlparameters);
+    else
+        UTDWedge = @(thetaS, thetaR, radiusS, radiusR, wedgeIndex, phii)SingleUTDWedge(thetaS, thetaR, radiusS, radiusR, wedgeIndex, phii, controlparameters);
+    end
     for i = 1:numEdges
-        [~, fvec, tfcomplexStore] = SingleUTDWedge(thetaS(i), thetaR(i), cumRs(i), cumRr(i), wedgeIndex(i), phii, controlparameters);
+        [~, fvec, tfcomplexStore] = UTDWedge(thetaS(i), thetaR(i), cumRs(i), cumRr(i), wedgeIndex(i), phii);
         tfcomplex(:,i) = (cumRs(i) + cumRr(i)) * tfcomplexStore;
     end
     

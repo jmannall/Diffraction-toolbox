@@ -7,7 +7,7 @@ fs = 48e3;
 nfft = 4096;
 c = 344;
 batchSize = 200;
-controlparameters = struct('fs', fs, 'nfft', nfft, 'c', c, 'difforder', 1, 'saveFiles', 3);
+controlparameters = struct('fs', fs, 'nfft', nfft, 'c', c, 'difforder', 1, 'saveFiles', 3, 'noDirect', false);
 createPlot = false;
 
 speed = 1.3; % Average walking speed
@@ -36,13 +36,13 @@ wedgeIndex = 270;
 
 receiverPath = [-4 2 1.6
     8 2 1.6];
-receiverHeading = [0 -1 0];
+receiverHeading = [1 0 0];
 source = [1 -2 1.6];
 vSources = [-1 -2 1.6
     1 -2 -1.6
     -1 -2 -1.6];
 
-scene = 'scene_1';
+scene = 'scene_2';
 [receivers, receiverDirection, receiverHeading, receiverData, speed] = CreatePath(receiverPath, updateRate, frameRate, scene, wedgeIndex, source, receiverHeading, speed);
 numReceivers = length(receivers);
 
@@ -229,8 +229,9 @@ loadPath = ['NNSaves', filesep, 'iir-2057_0001-1-09-099-3-25.mat'];
 
 load(loadPath, "net");
 
-output.NN = CreateNNOutput(net, wedgeIndex, wedgeLength, thetaR, thetaS, rS, rR, zS, zR);
-output.vNN = CreateNNOutput(net, wedgeIndex, wedgeLength, thetaR, vThetaS(2), vRS(2), rR, vZS(2), zR);
+doReflection = true;
+output.NN = CreateNNOutput(net, wedgeIndex, wedgeLength, thetaR, thetaS, rS, rR, zS, zR, doReflection);
+output.vNN = CreateNNOutput(net, wedgeIndex, wedgeLength, thetaR, vThetaS(2), vRS(2), rR, vZS(2), zR, doReflection);
 
 biquad = false;
 [~, b.NN, a.NN] = CalculateNN(output.NN, tfcomplex.dir, validPath.NN, pathLength.NN, nfft, fs, biquad);
@@ -359,7 +360,7 @@ PlotSpectrogram(completeFieldNNRef, fvec, thetaR - thetaS, [-70 0], 'NN Ref Comp
 
 close all
 
-PlotSpectrogramOfWAV([audioFilePath, '_bRBtm.wav'], [-70 0], nfft, savePlot);
+PlotSpectrogramOfWAV([audixfgnoFilePath, '_bRBtm.wav'], [-70 0], nfft, savePlot);
 PlotSpectrogramOfWAV([audioFilePath, '_bRGeometric.wav'], [-70 0], nfft, savePlot);
 PlotSpectrogramOfWAV([audioFilePath, '_bRUtd.wav'], [-70 0], nfft, savePlot);
 PlotSpectrogramOfWAV([audioFilePath, '_bRSchisslerUtd.wav'], [-70 0], nfft, savePlot);

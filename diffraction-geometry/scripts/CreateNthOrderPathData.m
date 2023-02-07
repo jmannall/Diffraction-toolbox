@@ -1,4 +1,4 @@
-function [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid] = CreateNthOrderPathData(wedgeIndex, thetaS, thetaR, rS, rR, W, height)
+function [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid, vReceiver] = CreateNthOrderPathData(wedgeIndex, thetaS, thetaR, rS, rR, W, height)
 
     numEdges = length(wedgeIndex);
     W = [mean(W) / 2, W, mean(W) / 2];
@@ -34,6 +34,16 @@ function [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid] =
     vector = rR * ([sind(arg(numEdges) + 180 * (numEdges - 1) + thetaR), cosd(arg(numEdges) + 180 * (numEdges - 1) + thetaR), 0]);
     receiver = Q(numEdges + 1,:) + vector;
     
+    epsilon = 1e-2;
+    angleR = arg(numEdges) - 180 * (numEdges - 1) + thetaR;
+    angle = arg(numEdges) - 180 * (numEdges - 1) + 180;
+    vector = rR * ([sind(angle - epsilon), cosd(angle - epsilon), 0]);
+    vReceiver{1} = Q(numEdges + 1,:) + vector;
+    
+    vector = rR * ([sind(angle + epsilon), cosd(angle + epsilon), 0]);
+    vReceiver{2} = Q(numEdges + 1,:) + vector;
+
+
     % Check path is valid (no intersections)
     valid = true;
     for i = 1:numEdges - 1
@@ -66,7 +76,7 @@ function [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid] =
     corners = [Q; Q];
     corners(numEdges + 3:end,3) = height;
     
-    [source(3), receiver(3), Q(:,3), apex(:,3)] = deal(height / 2);
+    [source(3), receiver(3), Q(:,3), apex(:,3), vReceiver{1}(:,3), vReceiver{2}(:,3)] = deal(height / 2);
     
     numEdges = numEdges + 2;
     planeCorners = zeros(numEdges + 2, numEdges);

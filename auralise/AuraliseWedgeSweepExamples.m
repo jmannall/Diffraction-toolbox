@@ -19,9 +19,9 @@ c = 344;    % speed of sound
 % 
 % numWindows = 2 * floor(audioLength / samplesPerUpdate) - 2;
 
-wedgeIndex = 270;
-minBendingAngle = 5;
-minAngle = 10;
+wedgeIndex = 350;
+minBendingAngle = 160;
+minAngle = 20;
 rS = 1;
 rR = 1;
 numWindows = wedgeIndex - (minAngle + minBendingAngle);
@@ -37,6 +37,7 @@ tfcomplex = [result.tfcomplex];
 fvec = result(1).fvec;
 bendingAngle = geometry.bendingAngle';
 
+fvec2 = fs/nfft*[0:nfft/2-1];
 
 %% BTM interpolated
 [result, geometry, ~, ~] = CreateWedgeSweep(wedgeIndex, minAngle, minBendingAngle, rS, rR, controlparameters, numWindows, true);
@@ -57,15 +58,15 @@ wedgeLength = 20;
 [zS, zR] = deal(wedgeLength / 2);
 rS = 1;
 rR = 1;
+thetaS = minAngle;
 
-const = ones(size(bendingAngle'));
+const = ones(size(geometry.receiver));
 rR = const .* rR;
 zR = const .* zR;
 
-output.NN = CreateNNOutput(net, wedgeIndex, wedgeLength, minAngle + bendingAngle', minAngle, rS, rR, zS, zR);
+output.NN = CreateNNOutput(net, wedgeIndex, wedgeLength, geometry.receiver, thetaS, rS, rR, zS, zR);
 
 biquad = false;
-output, tfcomplex, validPath, pathLength, nfft, fs, biquad
 [tfcomplexNN, b.NN, a.NN] = CalculateNN(output.NN, [tfcomplex.direct], validPath.diffShadow, pathLength.diff', nfft, fs, biquad);
 
 %[audioPath.NN, ir.NN] = DelayLineIIRFilter(audio, [pathLength.diff, pathLength.dir], windowLength, validPath.diff, b.NN, a.NN, c, fs, validPath.diffShadow);
@@ -112,7 +113,8 @@ PlotSpectrogram([tfcomplex.geom], fvec, bendingAngle, limits, 'Specular', phase,
 %PlotSpectogram([tfcomplex.direct] + [tfcomplex.geom] + tfcomplexNN, fvec, bendingAngle, limits, ['NN', NNidx, ' All'], false, 'Bending Angle')
 PlotSpectrogram([tfcomplex.diff1], fvec, bendingAngle, limits, 'BTM diffraction', phase, save, 'Bending Angle')
 PlotSpectrogram([tfcomplex.complete], fvec, bendingAngle, limits, 'BTM All', phase, save, 'Bending Angle')
-PlotSpectrogram(tfcomplexI, fvec, bendingAngle, limits, 'BTM Interpolated', phase, save, 'Bending Angle')
-PlotSpectrogram(tfcomplexNN, fvec(1:end/2), bendingAngle, limits, 'NN diffraction', phase, save, 'Bending Angle')
+PlotSpectrogram(tfcomplexI + [tfcomplex.geom], fvec, bendingAngle, limits, 'BTM Interpolated', phase, save, 'Bending Angle')
+geomNN = [tfcomplex.geom];
+PlotSpectrogram(tfcomplexNN + geomNN(1:end/2,:), fvec(1:end/2), bendingAngle, limits, 'NN diffraction', phase, save, 'Bending Angle')
 
-PlotSpectrogram(tfcomplexNN ./ tfcomplexI(1:end/2,:), fvec(1:end/2), bendingAngle, [-6 6], 'NN error', phase, save, 'Bending Angle')
+PlotSpectrogram(tfcomplexNN ./ tfcomplexI(1:end/2,:), fvec(1:end/2), bendingAngle, [-5 5], 'NN error', phase, save, 'Bending Angle')
