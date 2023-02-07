@@ -28,6 +28,7 @@ function geometry = RandomGeometryWedge(numObservations)
     bendingAngle = [(180 + epsilon) * const, wI - epsilon];
     bA = RandomTriangularDistribution(bendingAngle, false, numObservations);
     
+    epsilon = 1e-2;
     minAngle = [epsilon * const, (wI - bA) / 2];
     mA = RandomUniformDistribution(minAngle, numObservations);
 
@@ -46,8 +47,8 @@ function geometry = RandomGeometryWedge(numObservations)
     radius = [0.1 50];
     radiusOne = RandomLoguniformDistribution(radius, numObservations);
     radiusTwo = RandomLoguniformDistribution(radius, numObservations);
-    radiusOne = RandomUniformDistribution(radius, numObservations);
-    radiusTwo = RandomUniformDistribution(radius, numObservations);
+    %radiusOne = RandomUniformDistribution(radius, numObservations);
+    %radiusTwo = RandomUniformDistribution(radius, numObservations);
 
     r1 = min(radiusOne, radiusTwo);
     r2 = max(radiusOne, radiusTwo);
@@ -64,7 +65,8 @@ function geometry = RandomGeometryWedge(numObservations)
     deltaZ = [0 * const dZ];
     dZ = RandomTriangularDistribution(deltaZ, false, numObservations);
     %dZ = RandomUniformDistribution(deltaZ, numObservations);
-    apex = [0 * const wL];
+    epsilon = 1e-4;
+    apex = [epsilon * const wL - epsilon];
     zA = RandomUniformDistribution(apex, numObservations);
     zOne = [zA - r1Part .* dZ, zA + r1Part .* dZ];
     zTwo = [zOne(:,1) + dZ, zOne(:,2) - dZ];

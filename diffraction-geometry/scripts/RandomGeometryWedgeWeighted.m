@@ -28,6 +28,7 @@ function geometry = RandomGeometryWedgeWeighted(numObservations, weight)
     bendingAngle = [181 * const, wI - epsilon];
     bA = RandomTriangularDistribution(bendingAngle, false, numObservations);
 
+    epsilon = 1e-2;
     idx = 100 * rand(size(bA));
     bendingAngle = [180 + epsilon, 181];
     bA(idx <= weight) = RandomTriangularDistribution(bendingAngle, false, sum(idx <= weight));
@@ -65,7 +66,8 @@ function geometry = RandomGeometryWedgeWeighted(numObservations, weight)
     dZ = sqrt(maxL ^ 2 - r .^ 2);
     deltaZ = [0 * const dZ];
     dZ = RandomTriangularDistribution(deltaZ, false, numObservations);
-    apex = [0 * const wL];
+    epsilon = 1e-4;
+    apex = [epsilon * const wL - epsilon];
     zA = RandomUniformDistribution(apex, numObservations);
     zOne = [zA - r1Part .* dZ, zA + r1Part .* dZ];
     zTwo = [zOne(:,1) + dZ, zOne(:,2) - dZ];
