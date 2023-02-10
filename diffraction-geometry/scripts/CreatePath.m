@@ -31,7 +31,7 @@ function [path, direction, heading, data, speed] = CreatePath(landmarks, updateR
     end
 
     for i = 1:count
-        idx = ceil((i - 1 +ratio) / ratio);
+        idx = ceil((i - 1 + ratio) / ratio);
         saveIdx = 2 * (idx - 1) + 1:2 * idx;
         data(saveIdx,:) = [direction(idx,:); heading(idx,:)];
     end

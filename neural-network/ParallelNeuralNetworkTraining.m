@@ -18,7 +18,7 @@ if isempty(useGPUs)
     return
 end
 
-gpuDevice(useGPUs);
+gpuDevice(useGPUs(1));
 disp(['Running on GPUs: ', num2str(useGPUs)])
 parpool('Processes',12);
 
@@ -27,7 +27,7 @@ parpool('Processes',12);
 fs = 48e3;
 nfft = 8192;
 c = 344;
-controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'saveFiles', 2);
+controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'saveFiles', 2, 'noDirect', true);
 
 filePath = ['bayesoptResults', filesep, 'BayespotResult_Size'];
 saveDir = 'NNSaves';
@@ -116,7 +116,6 @@ parfor i = 1:numNetworks
     end
     input = x(i,:);
 
-
     networkSize = CalculateNNIIRCost(input.nL, input.hL, numInputs, numOutputs, gx);
     %hiddenLayerSize = round((-gx + sqrt(gx ^ 2 - 4 * (-networkSize / numLayers))) / 2); % (-b + sqrt(b^2 - 4ac)) / 2a
 
@@ -143,6 +142,6 @@ loss = lossStore(1:numNetworks);
 net = netStore(1:numNetworks);
 save([saveDir, filesep, 'NN-', num2str(round(fs / 1e3))], "loss", "net")
 
-loss = lossStore(numNetworks + 1:end);
-net = netStore(numNetworks + 1:end);
-save([saveDir, filesep, 'NN-', num2str(round(fs / 1e3)), '_Weighted'], "loss", "net")
+% loss = lossStore(numNetworks + 1:end);
+% net = netStore(numNetworks + 1:end);
+% save([saveDir, filesep, 'NN-', num2str(round(fs / 1e3)), '_Weighted'], "loss", "net")
