@@ -1,10 +1,11 @@
-function ir = CreateHRTF(azimuth, elevation)
+function ir = CreateHRTF(azimuth, elevation, hrtfData, sourcePosition)
 
-    load 'ReferenceHRTF.mat' hrtfData sourcePosition
+    if nargin < 3
+        load 'ReferenceHRTF.mat' hrtfData sourcePosition
 
-    hrtfData = permute(double(hrtfData),[2,3,1]);
-    
-    sourcePosition = sourcePosition(:,[1,2]);
+        hrtfData = permute(double(hrtfData),[2,3,1]);
+        sourcePosition = sourcePosition(:,[1,2]);
+    end
 
     structInput = isstruct(azimuth);
 

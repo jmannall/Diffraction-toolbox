@@ -18,7 +18,7 @@ if isempty(useGPUs)
     return
 end
 
-gpuDevice(useGPUs(1));
+gpuDevice(useGPUs);
 disp(['Running on GPUs: ', num2str(useGPUs)])
 parpool('Processes',12);
 
