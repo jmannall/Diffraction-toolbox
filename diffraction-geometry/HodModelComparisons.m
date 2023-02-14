@@ -79,7 +79,7 @@ aWeight = abs(aWeight)';
     
 loadDir = 'NNSaves';
 
-netName = 'iir-2057_0001-1-09-099-3-25.mat';
+netName = '5_iir-2057_0001-1-09-099-3-25.mat';
 
 numFilters = 2;
 filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
@@ -516,8 +516,8 @@ xlabel('W_1 (m)')
 ylabel('Mean absolute error (dBA)')
 
 saveDir = 'figures';
-saveas(gcf, [saveDir filesep 'HODComparison_Test_' num2str(k)], 'epsc')
-saveas(gcf, [saveDir filesep 'HODComparison_Test_' num2str(k)], 'svg')
+saveas(gcf, [saveDir filesep 'HODComparison_TestNew_' num2str(k)], 'epsc')
+saveas(gcf, [saveDir filesep 'HODComparison_TestNew_' num2str(k)], 'svg')
 
 save(['hod workspace_Test_', num2str(k)])
 end
