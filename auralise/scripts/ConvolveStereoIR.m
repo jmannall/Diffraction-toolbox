@@ -1,5 +1,5 @@
 function audio = ConvolveStereoIR(input, ir, windowLength)
-    index = DataHash(input, ir, windowLength);
+    index = DataHash({input, ir, windowLength});
     file = mfilename('fullpath');
     [~,fileName] = fileparts(file);
     fileStem = [fileName, '_', num2str(index)];
