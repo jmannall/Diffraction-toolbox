@@ -1,0 +1,202 @@
+function [points, viewHeading] = RyanPathGeneration(checkPoints, checkPointSpeeds, updateRate, frameRate, source, cattOffset)
+
+    start = checkPoints(1,:);
+    
+    distanceVector = checkPoints(2:end,:) - checkPoints(1:end-1,:);
+    
+    distanceToTravel = sqrt(distanceVector(:,1).^2 + distanceVector(:,2).^2)';
+    
+    a = (checkPointSpeeds(2:end).^2 - checkPointSpeeds(1:end-1).^2) ./ (2 * distanceToTravel) / 100;
+    
+    numSegments = length(checkPointSpeeds) - 1;
+    speeds = [];
+    for i = 1:numSegments
+        if a(i) == 0
+            distancePerUpdate = checkPointSpeeds(i) / updateRate;
+            numPoints(i) = floor(distanceToTravel(i) / distancePerUpdate);
+            v{i} = checkPointSpeeds(i) * ones(1,numPoints(i));
+        else
+            v{i} = checkPointSpeeds(i):a(i):checkPointSpeeds(i+1);
+            numPoints(i) = length(v{i});
+        end
+        distancePerSample{i} = v{i} / updateRate;
+        speeds = [speeds, v{i}];
+    end
+    
+    totalnumReceivers = sum(numPoints);
+    
+    idx = 0;
+    points = [];
+    idx = idx + 1;
+    travelHeading(idx,:) = distanceVector(1,:) ./ distanceToTravel(1);
+    points(idx,:) = checkPoints(1,:);
+    lastPoint = points(idx,:);
+    
+    for i = 1:numSegments
+%         if i == 1
+%             for j = 2:numPoints(i)
+%                 idx = idx + 1;
+%                 travelHeadingStart = distanceVector(i,:) ./ distanceToTravel(i);
+%                 travelHeadingEnd = distanceVector(i ,:) ./ distanceToTravel(i);
+%     
+%                 travelHeading(idx,:) = (numPoints(i) - j) / numPoints(i) .* travelHeadingStart + j / numPoints(i) .* travelHeadingEnd;
+%                 
+%                 travelHeading(idx,:) = distanceVector(i,:) ./ distanceToTravel(i);
+%                 points(idx,:) = lastPoint + distancePerSample{i}(j) .* travelHeading(idx,:);
+%                 lastPoint = points(idx,:);
+%             end
+        if i == numSegments
+            for j = 2:numPoints(i)
+                idx = idx + 1;
+                travelHeadingStart = distanceVector(i,:) ./ distanceToTravel(i);
+                travelHeadingEnd = [0 -1 0];
+    
+                travelHeading(idx,:) = (numPoints(i) - j) / numPoints(i) .* travelHeadingStart + j / numPoints(i) .* travelHeadingEnd;
+                points(idx,:) = lastPoint + distancePerSample{i}(j) .* travelHeading(idx,:);
+                lastPoint = points(idx,:);
+            end
+        else
+            for j = 2:numPoints(i)
+                idx = idx + 1;
+                travelHeadingStart = distanceVector(i,:) ./ distanceToTravel(i);
+                travelHeadingEnd = distanceVector(i + 1,:) ./ distanceToTravel(i + 1);
+    
+                travelHeading(idx,:) = (numPoints(i) - j) / numPoints(i) .* travelHeadingStart + j / numPoints(i) .* travelHeadingEnd;
+                points(idx,:) = lastPoint + distancePerSample{i}(j) .* travelHeading(idx,:);
+                lastPoint = points(idx,:);
+            end
+        end
+    end
+    
+    figure
+    plot(points(:,1), points(:,2), 'x')
+    xlim([0 7])
+    ylim([0 7])
+    
+    %% 
+    endTurn = 6.75;
+    startTurn = 4.5;
+
+    idxStart = find(points(:,1) > startTurn(1), 1);
+    idxEnd = find(points(:,1) > endTurn(1), 1);
+
+    totalTurn = 70; 
+
+    endOffset = 20;
+    adj = source(1) - points(:,1);
+    distance = PathLength(source, points);
+    anglesTarget = acosd(adj ./ distance);
+    anglesOld = ([zeros(1,idxStart - 1), linspace(0, totalTurn - 0.2, idxEnd - idxStart + 1), linspace(totalTurn, 90, (idx - endOffset) - idxEnd), 90 * ones(1, endOffset)])';
+    
+    startTurn = 4.7;
+    idxStart = find(points(:,1) > startTurn(1), 1);
+
+    anglesMoving = ([zeros(1,idxStart - 1), linspace(0, 200, idx - idxStart + 1)])';
+
+%     startTurn = 4.8;
+%     endTurn = 6.8;
+%     
+%     idxStart = find(points(:,1) > startTurn(1), 1);
+%     idxEnd = find(points(:,1) > endTurn(1), 1);
+% 
+%     totalTurn = 90; 
+%     turn1 = totalTurn - asind(0.5);
+%     
+%     angles = ([zeros(1,idxStart - 1), linspace(0, turn1, idxEnd - idxStart + 1), linspace(turn1, totalTurn, idx - idxEnd)])';
+
+
+
+    angles = min(anglesMoving, anglesTarget);
+    viewHeading = [cosd(angles) -sind(angles) zeros(size(angles))];
+    target = points + viewHeading;
+    num = (0:99)';
+        
+    figure
+    plot(1:idx, anglesMoving)
+    hold on
+    plot(1:idx, anglesOld)
+    plot(1:idx, anglesTarget)
+    plot(1:idx, angles)
+    legend('new', 'old', 'target', 'used')
+
+    figure
+    plot(points(:,1), points(:,2))
+    hold on
+    plot(target(:,1), target(:,2))
+    plot(checkPoints(:,1), checkPoints(:,2), 'x')
+    xlim([4 8])
+    ylim([4 8])
+
+    scene = 'scene_';
+    saveFolder = 'CATTData';
+    
+    numFiles = ceil(idx / 100);
+    
+    for i = 1:numFiles
+        file = ['path_', num2str(i)];
+        writePath = [saveFolder filesep file];
+    
+        numPoints = idx - 100 * (i - 1);
+        pointIdx = 100 * (i - 1) + 1:min(100 * i, idx);
+        writematrix([num(1:min(100, numPoints)) points(pointIdx,:) target(pointIdx,:)], writePath)
+    end
+    
+    saveFolder = 'unity-control';
+    numScenes = 9;
+    gridOffsets = [75 75 0
+        75 0 0
+        75 -75 0
+        0 75 0
+        0 0 0
+        0 -75 0
+        -75 75 0
+        -75 0 0
+        -75 -75 0];
+    
+    ratio = updateRate / frameRate;
+    
+    for k = 1:numScenes
+        writePath = [saveFolder filesep scene num2str(k) '.csv'];
+    
+        offset = cattOffset + gridOffsets(k,:);
+        sourceWrite = source - offset;
+        receiver = start - offset;
+        writematrix(frameRate, writePath)
+        writematrix([sourceWrite; receiver; viewHeading(1,:)], writePath, 'WriteMode', 'append')
+        writematrix(speeds(1), writePath, 'WriteMode', 'append')
+        
+        [travelHeadingData, viewHeadingData, speedData] = deal([]);
+        for i = 1:idx
+            saveIdx = ceil(i / ratio);
+            %saveIdx = 2 * (loadIdx - 1) + 1:2 * loadIdx;
+            for j = 1:length(saveIdx)
+                travelHeadingData(saveIdx(j),:) = travelHeading(i,:);
+                viewHeadingData(saveIdx(j),:) = viewHeading(i,:);
+            end
+            speedData(saveIdx) = speeds(i);
+        end
+            numEntries = length(speedData);
+            
+        lastPoint = start;
+        for i = 1:numEntries
+            writematrix([travelHeadingData(i,:); viewHeadingData(i,:)], writePath, 'WriteMode', 'append')
+            writematrix(speedData(i), writePath, 'WriteMode', 'append')
+            pointsUnity(i,:) = lastPoint + travelHeadingData(i,:) .* speedData(i) ./ frameRate;
+            lastPoint = pointsUnity(i,:);
+        end
+    end
+
+    figure
+    plot(points(:,1), points(:,2))
+    hold on
+    plot(pointsUnity(:,1), pointsUnity(:,2))
+    xlim([4 8])
+    ylim([4 8])
+    legend('Catt', 'Unity')
+
+%     figure
+%     plot(1:idx, PathLength(points(:,1:2) - pointsUnity(:,1:2)))
+%     xlim([4 8])
+%     ylim([4 8])
+%     legend('Error')
+end

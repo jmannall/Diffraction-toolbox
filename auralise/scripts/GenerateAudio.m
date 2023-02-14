@@ -1,5 +1,6 @@
-function GenerateAudio(audioFile, sceneIdx)
+function GenerateAudio(sceneIdx)
 
+    audioFile = 'music.wav';
     disp(audioFile)
     
     height = 1.6;
