@@ -2,8 +2,10 @@
 
 function [output, ir] = DelayLineIIRFilter(audio, pathLength, windowLength, validPath, b, a, c, fs, doFilter)
 
-    b = extractdata(b);
-    a = extractdata(a); 
+    if isdlarray(b)
+        b = extractdata(b);
+        a = extractdata(a); 
+    end
 
     [delay, fracDelay, amplitude] = CalculateDelay(pathLength, c, fs, doFilter);
     %b(:,1,:) = b(:,1,:) .* amplitude;
