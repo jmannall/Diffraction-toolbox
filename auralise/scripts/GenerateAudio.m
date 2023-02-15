@@ -1,5 +1,5 @@
 function GenerateAudio(audioFile, sceneIdx)
-    
+
     %% Create audio input
 
     disp('Load audio file')
@@ -38,6 +38,7 @@ function GenerateAudio(audioFile, sceneIdx)
     
     disp('Write audio files')
     audioFolder = 'audio';
+    CheckFileDir(audioFolder)
     audioFilePath = [audioFolder filesep];
     saveName = [scene '_' audioFile '_'];
     models = fieldnames(audioOut);
