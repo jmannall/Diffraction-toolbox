@@ -37,18 +37,19 @@ function GenerateAudio(audioFile, sceneIdx)
     audioOut.catt.(scene) = ConvolveStereoIR(audio, brir.catt.(scene), windowLength);
     
     disp('Write audio files')
-    audioFolder = 'audio';
+    audioFolder = ['audio'];
     CheckFileDir(audioFolder)
-    audioFilePath = [audioFolder filesep];
+    audioFilePath = [audioFolder filesep filesep audioFile];
+    CheckFileDir(audioFilePath)
     saveName = [scene '_' audioFile '_'];
     models = fieldnames(audioOut);
     numModels = length(models) - 2;
     
-    audiowrite([audioFilePath saveName 'catt.wav'], [audioOut.catt.(scene).L audioOut.catt.(scene).R], fs);
-    audiowrite([audioFilePath saveName 'reverb.wav'], [audioOut.reverb.(scene).L audioOut.reverb.(scene).R], fs);
+    audiowrite([audioFilePath filesep saveName 'catt.wav'], [audioOut.catt.(scene).L audioOut.catt.(scene).R], fs);
+    audiowrite([audioFilePath filesep saveName 'reverb.wav'], [audioOut.reverb.(scene).L audioOut.reverb.(scene).R], fs);
     for i = 1:numModels
         model = models{i};
-        audiowrite([audioFilePath saveName model '.wav'], [audioOut.reverb.(scene).L + audioOut.(model).L audioOut.reverb.(scene).R + audioOut.(model).R], fs);
+        audiowrite([audioFilePath filesep saveName model '.wav'], [audioOut.reverb.(scene).L + audioOut.(model).L audioOut.reverb.(scene).R + audioOut.(model).R], fs);
     end
-    audiowrite([audioFilePath saveName 'anchor.wav'], audioOut.reverb.(scene).L + audioOut.reverb.(scene).R, fs);
+    audiowrite([audioFilePath filesep saveName 'anchor.wav'], audioOut.reverb.(scene).L + audioOut.reverb.(scene).R, fs);
 end
