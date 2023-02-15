@@ -61,6 +61,7 @@ function [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, file
     if controlparameters.saveFiles >= 1
         binary = fliplr(dec2bin(controlparameters.saveFiles));
         if binary(1) == '1'
+            CheckFileDir(savePath)
             save(savePath, "ir", "tfmag", "tvec", "fvec", "tfcomplex");
             disp('Result saved')
         end
