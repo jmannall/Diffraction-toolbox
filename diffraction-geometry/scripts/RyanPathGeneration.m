@@ -129,6 +129,7 @@ function [points, viewHeading] = RyanPathGeneration(checkPoints, checkPointSpeed
 
     scene = 'scene_';
     saveFolder = 'CATTData';
+    CheckFileDir(saveFolder)
     
     numFiles = ceil(idx / 100);
     
@@ -142,6 +143,7 @@ function [points, viewHeading] = RyanPathGeneration(checkPoints, checkPointSpeed
     end
     
     saveFolder = 'unity-control';
+    CheckFileDir(saveFolder)
     numScenes = 9;
     gridOffsets = [75 75 0
         75 0 0
