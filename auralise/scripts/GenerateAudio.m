@@ -17,18 +17,23 @@ function GenerateAudio(audioFile, sceneIdx)
     %% Load BRIRs
 
     disp('Load BRIRs')
-    loadPath = ['BRIR' filesep 'brir_scenes1to6'];
+    if sceneIdx == 7
+        loadPath = ['BRIR' filesep 'brir_scene7'];
+        idx = 1:328;
+    else
+        loadPath = ['BRIR' filesep 'brir_scenes1to6'];
+        idx = 1:324;
+    end
     load(loadPath, 'brir')
 
     %% Audio
     
     disp('Convolve audio')
 
-    
     audioOut.btm = ConvolveStereoIR(audio, brir.ed, windowLength);
-    audioOut.utd = ConvolveStereoIR(audio, brir.utd, windowLength);
-    audioOut.NN = ConvolveStereoIR(audio, brir.NN, windowLength);
-    audioOut.IIR = ConvolveStereoIR(audio, brir.IIR, windowLength);
+    audioOut.utd = ConvolveStereoIR(audio, brir.utd(:,idx), windowLength);
+    audioOut.NN = ConvolveStereoIR(audio, brir.NN(:,idx), windowLength);
+    audioOut.IIR = ConvolveStereoIR(audio, brir.IIR(:,idx), windowLength);
     
     scene = ['scene_' num2str(sceneIdx)];
     disp(scene)
@@ -37,14 +42,14 @@ function GenerateAudio(audioFile, sceneIdx)
     audioOut.catt.(scene) = ConvolveStereoIR(audio, brir.catt.(scene), windowLength);
     
     disp('Write audio files')
-    audioFolder = ['audio'];
+    audioFolder = 'audio';
     CheckFileDir(audioFolder)
     audioFilePath = [audioFolder filesep filesep audioFile];
     CheckFileDir(audioFilePath)
     saveName = [scene '_' audioFile '_'];
     models = fieldnames(audioOut);
     numModels = length(models) - 2;
-    
+
     audiowrite([audioFilePath filesep saveName 'catt.wav'], [audioOut.catt.(scene).L audioOut.catt.(scene).R], fs);
     audiowrite([audioFilePath filesep saveName 'reverb.wav'], [audioOut.reverb.(scene).L audioOut.reverb.(scene).R], fs);
     for i = 1:numModels

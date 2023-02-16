@@ -12,7 +12,7 @@ function [tfmag, b, a, fvec] = SingleIIRWedge(wedgeIndex, thetaS, thetaR, rS, rR
     
     bendingAngle = abs(thetaR - thetaS);
     minAngle = min(thetaS, wedgeIndex - thetaR);
-    bendingAngle = deg2rad(bendingAngle) - pi;  % Adjust bending angle
+    bendingAngle = max(0.001, deg2rad(bendingAngle) - pi);  % Adjust bending angle
     minAngle = deg2rad(minAngle);
     wedgeIndex = deg2rad(wedgeIndex);
     phii = deg2rad(phii);
@@ -31,19 +31,21 @@ function [tfmag, b, a, fvec] = SingleIIRWedge(wedgeIndex, thetaS, thetaR, rS, rR
     [bLpf, aLpf] = EDlpf(f0, T); % 5
 
     pathLength = dS + dR;
-    aLpf = aLpf / aLpf(1);
-    bLpf = bLpf / (aLpf(1) * pathLength);
+    k = aLpf(1);
+    aLpf = aLpf / k;
+    bLpf = bLpf / (k * pathLength);
     
     %% Hsh
-    actual = (log2(fs / 2) - log2(f0)) * 6; % 4
-    target = (log2(fs / 2) - log2(fc)) * 3; % 4
+    actual = (log2(fs / 2) - log2(min(f0, fs / 2))) * 6; % 4
+    target = (log2(fs / 2) - log2(min(fc, fs / 2))) * 3; % 4
     
-    fsh =   209 * fc * (15.6 / fc) ^ 0.827; % 4
+    fsh = 209 * fc * (15.6 / fc) ^ 0.827; % 4
     G = max(0, actual - target); % 1
     [bHsh, aHsh] = EDhsh(fsh, G, T); % 10
     
-    aHsh = aHsh / aHsh(1);
-    bHsh = bHsh / aHsh(1);
+    k = aHsh(1);
+    aHsh = aHsh / k;
+    bHsh = bHsh / k;
 
     %% Combine filters
 

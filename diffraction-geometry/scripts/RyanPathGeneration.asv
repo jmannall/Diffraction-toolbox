@@ -152,13 +152,13 @@ function [points, viewHeading] = RyanPathGeneration(checkPoints, checkPointSpeed
     numScenes = 9;
     gridOffsets = [75 75 0
         75 0 0
+        75 -75 0
         0 75 0
         0 0 0
+        0 -75 0
         -75 75 0
         -75 0 0
-        -75 -75 0
-        75 -75 0
-        0 -75 0];
+        -75 -75 0];
     
     ratio = updateRate / frameRate;
     
