@@ -31,9 +31,9 @@ function GenerateAudio(audioFile, sceneIdx)
     disp('Convolve audio')
 
     audioOut.btm = ConvolveStereoIR(audio, brir.ed, windowLength);
-    audioOut.utd = ConvolveStereoIR(audio, brir.utd(:,idx), windowLength);
-    audioOut.NN = ConvolveStereoIR(audio, brir.NN(:,idx), windowLength);
-    audioOut.IIR = ConvolveStereoIR(audio, brir.IIR(:,idx), windowLength);
+    audioOut.utd = ConvolveStereoIR(audio, brir.utd, windowLength);
+    audioOut.NN = ConvolveStereoIR(audio, brir.NN, windowLength);
+    audioOut.IIR = ConvolveStereoIR(audio, brir.IIR, windowLength);
     
     scene = ['scene_' num2str(sceneIdx)];
     disp(scene)
