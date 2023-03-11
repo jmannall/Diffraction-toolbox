@@ -1,6 +1,6 @@
 %% Plot geometry from corner and plane corner data
 
-function PlotGeometry(corners, planeCorners, source, receiver, vSources, intersections, validPath)
+function PlotGeometry(corners, planeCorners, source, receiver, lineOfSight, vSources, intersections, validPath)
 
     [numPlanes, numCornersPerPlane] = size(planeCorners);
     numCorners = numPlanes * numCornersPerPlane;
@@ -20,9 +20,11 @@ function PlotGeometry(corners, planeCorners, source, receiver, vSources, interse
     plot3(source(:,1), source(:,2), source(:,3), 'o')
     hold on
     plot3(receiver(:,1), receiver(:,2), receiver(:,3), 'o')
-    plot3(direct(:,1), direct(:,2), direct(:,3))
-    if nargin > 4
-        plot3(vSources(:,1), vSources(:,2), vSources(:,3), 'o')
+    if nargin > 4 && lineOfSight
+        plot3(direct(:,1), direct(:,2), direct(:,3), 'b')
+    end
+    if nargin > 5
+        plot3(vSources(:,1), vSources(:,2), vSources(:,3), 'o', 'Color', 'm')
         numVSources = size(vSources, 1);
         for j = 1:numVSources
             if validPath(j)
@@ -44,9 +46,9 @@ function PlotGeometry(corners, planeCorners, source, receiver, vSources, interse
         plot3(planePlot(:,1), planePlot(:,2), planePlot(:,3))
         plot3(normalsPlot(:,1), normalsPlot(:,2), normalsPlot(:,3), 'k')
     end
-%     xlim([min(plane(:,1)) - 2 max(plane(:,1)) + 2])
-%     ylim([min(plane(:,2)) - 2 max(plane(:,2)) + 2])
-%     zlim([min(plane(:,3)) - 2 max(plane(:,3)) + 2])
+    xlim([min(plane(:,1)) - 2 max(plane(:,1)) + 2])
+    ylim([min(plane(:,2)) - 2 max(plane(:,2)) + 2])
+    zlim([min(plane(:,3)) - 2 max(plane(:,3)) + 2])
     grid on
     hold off
 end

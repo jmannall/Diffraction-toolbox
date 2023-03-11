@@ -15,8 +15,7 @@ z = 3;
 %source = [1.1 0.9 1];
 %receiver = [3 3.8 1];
 
-refOrder = 8;
-maxPathLength = 100;
+refOrder = 8;   
 
 numPlanes = size(planes, 1);
 normals = zeros(numPlanes, 3);
@@ -68,59 +67,48 @@ end
 % First order reflections
 idx = 0;
 count = 0;
-disp('Reflection order: 1')
 for i = 1:numPlanes
-    disp(['Plane: ', num2str(i)])
     % Check if source behind the plane
     [k, validSource] = PointPlanePosition(source, normals(i,:), d(i));
 
     if validSource
         % Create virtual source
-        vSourceStore = source - 2 * normals(i,:) * k;
-        pathLength = norm(vSourceStore - receiver);
-        if pathLength > maxPathLength
-            validSource = false;
-        end
-        if validSource
-            idx = idx + 1;
-            vSources(idx,:) = vSourceStore;
-            refPlanePath(idx,:) = [i, zeros(1, refOrder - 1)];
-            vSourceIdxPath(idx,:) = [idx, zeros(1, refOrder - 1)];
-    
-            % Find intersection point and check it is valid
-            [intersection, validPath(idx,:)] = CheckValidLinePlaneIntersection(receiver, vSources(idx,:), normals(i,:), d(i), planes, corners, numPlaneCorners, i);
-            intersections{idx} = intersection;
-    
-            if validPath(idx)
-                if validPlane(i)
-                    % Check if path is blocked
-                    obstruction = false;
-                    obstruction = CheckForObstruction(intersection, receiver, planes, normals, d, corners, numPlaneCorners, numPlanes, i, obstruction);
-                    obstruction = CheckForObstruction(source, intersection, planes, normals, d, corners, numPlaneCorners, numPlanes, i, obstruction);
-                    if obstruction
-                        validPath(idx) = false;
-                    else
-                        count = count + 1;
-                        validPath(idx) = true;
-                        pathIdx(count) = idx;
-                        specularPathLength(count) = norm(vSources(idx,:) - receiver);
-                        refOrderPaths(count) = 1;
-                    end
+        idx = idx + 1;
+        vSources(idx,:) = source - 2 * normals(i,:) * k;
+        refPlanePath(idx,:) = [i, zeros(1, refOrder - 1)];
+        vSourceIdxPath(idx,:) = [idx, zeros(1, refOrder - 1)];
+
+        % Find intersection point and check it is valid
+        [intersection, validPath(idx,:)] = CheckValidLinePlaneIntersection(receiver, vSources(idx,:), normals(i,:), d(i), planes, corners, numPlaneCorners, i);
+        intersections{idx} = intersection;
+
+        if validPath(idx)
+            if validPlane(i)
+                % Check if path is blocked
+                obstruction = false;
+                obstruction = CheckForObstruction(intersection, receiver, planes, normals, d, corners, numPlaneCorners, numPlanes, i, obstruction);
+                obstruction = CheckForObstruction(source, intersection, planes, normals, d, corners, numPlaneCorners, numPlanes, i, obstruction);
+                if obstruction
+                    validPath(idx) = false;
+                else
+                    count = count + 1;
+                    validPath(idx) = true;
+                    pathIdx(count) = idx;
+                    specularPathLength(count) = norm(vSources(idx,:) - receiver);
+                    refOrderPaths(count) = 1;
                 end
             end
         end
     end
 end
-PlotGeometry(corners, planes, source, receiver, lineOfSight, vSources, intersections, validPath)
+PlotGeometry(corners, planes, source, receiver, vSources, intersections, validPath)
 
 % Correct up to first order reflection not including accounting for
 % obstructions
 % Higher order reflections
 numVSources(1) = idx;
 for j = 2:refOrder
-    disp(['Reflection order: ', num2str(j)])
     for i = 1:numPlanes
-        disp(['Plane: ', num2str(i)])
         for n = 1:numVSources(j - 1)
             vSourceIdx = sum(numVSources(1:j - 2)) + n;
             lastRefPlane = refPlanePath(vSourceIdx,j - 1);
@@ -132,9 +120,11 @@ for j = 2:refOrder
                         
                 if validSource
                     % Create virtual source
-                    vSourceStore = vSource - 2 * normals(i,:) * k;
-                    pathLength = norm(vSourceStore - receiver);
+                    idx = idx + 1;
+                    vSources(idx,:) = vSource - 2 * normals(i,:) * k;
+                    pathLength = norm(vSources(idx,:) - receiver);
                     if pathLength > maxPathLength
+                        idx = idx - 1;
                         validSource = false;
                     end
                     if validSource
@@ -186,7 +176,7 @@ for j = 2:refOrder
             end
         end
     end
-    PlotGeometry(corners, planes, source, receiver, lineOfSight, vSources, intersections, validPath)
+    PlotGeometry(corners, planes, source, receiver, vSources, intersections, validPath)
     numVSources(j) = idx - sum(numVSources(1:j - 1));
 end
 
@@ -197,14 +187,9 @@ refPlanePathsValid = refPlanePath(validPath,:);
 
 %% Audio
 
-close all
+[audio, fs] = audioread('sourceAudio/piano.wav');
 
-PlotGeometry(corners, planes, source, receiver, lineOfSight, vSources, intersections, validPath)
-
-audioFile = 'piano';
-[audio, fs] = audioread(['sourceAudio/' audioFile '.wav']);
-
-scale = 20;
+scale = 1;
 audio = audio * scale;
 c = 344;
 % fs = 96e3;
@@ -225,7 +210,6 @@ planeRigid = [1 1 1 1 0 1];
 [azimuthD(1,1), elevationD(1,1)] = CalculateAzimuthElevation(heading, receiver, [x(2) y(2) z / 2]);
 
 irD{1} = ir.diff2;
-
 planeRigid = [1 1 0 1 1 1];
 
 [ir, tfmag, tvec, fvec, tfcomplex] = SingleBTM(source, receiver, corners([5:8, 13:16],:), planeCorners, planeRigid, controlparameters, true);
@@ -279,7 +263,7 @@ end
 outputL = conv(audio, brirL);
 outputR = conv(audio, brirR);
 
-audiowrite(['audio/' audioFile '_All.wav'], [outputL, outputR], fs)
+audiowrite('audio/piano_All.wav', [outputL, outputR], fs)
 
 brirLRev = brirL;
 brirRRev = brirR;
@@ -311,7 +295,7 @@ tfcomplexDiffOnly = tfcomplexDiffOnly + tfcomplexStore;
 outputL = conv(audio, brirL);
 outputR = conv(audio, brirR);
 
-audiowrite(['audio/' audioFile '_AllDiff.wav'], [outputL, outputR], fs)
+audiowrite('audio/piano_AllDiff.wav', [outputL, outputR], fs)
 
 fvec = fs/nfft*[0:nfft/2-1];
 tfmagAll = mag2db(abs(tfcomplexAll));
@@ -352,19 +336,6 @@ xlim([2000 4000])
 
 nexttile
 plot(tvec, brirR)
-grid on
-xlim([2000 4000])
-
-figure
-tiledlayout(2,1)
-
-nexttile
-plot(tvec, brirLRev + brirRRev)
-grid on
-xlim([2000 4000])
-
-nexttile
-plot(tvec, brirL + brirR)
 grid on
 xlim([2000 4000])
 

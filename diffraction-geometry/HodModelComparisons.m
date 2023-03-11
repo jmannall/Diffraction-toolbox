@@ -33,7 +33,7 @@ numPaths = 500;
 index = DataHash({numPaths, fs, nfft, numEdges, 20});
 [loadPath, savePath] = deal(['geometry/NthOrderPaths_01mTo3m_', num2str(index), '.mat']);
 restart = true;
-generate = false;
+generate = true;
 plotFigures = false;
 createPlot = false;
 if restart

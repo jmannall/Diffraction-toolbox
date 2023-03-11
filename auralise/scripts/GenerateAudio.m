@@ -19,10 +19,8 @@ function GenerateAudio(audioFile, sceneIdx)
     disp('Load BRIRs')
     if sceneIdx == 7
         loadPath = ['BRIR' filesep 'brir_scene7'];
-        idx = 1:328;
     else
         loadPath = ['BRIR' filesep 'brir_scenes1to6'];
-        idx = 1:324;
     end
     load(loadPath, 'brir')
 
@@ -44,7 +42,7 @@ function GenerateAudio(audioFile, sceneIdx)
     disp('Write audio files')
     audioFolder = 'audio';
     CheckFileDir(audioFolder)
-    audioFilePath = [audioFolder filesep filesep audioFile];
+    audioFilePath = [audioFolder filesep audioFile];
     CheckFileDir(audioFilePath)
     saveName = [scene '_' audioFile '_'];
     models = fieldnames(audioOut);
