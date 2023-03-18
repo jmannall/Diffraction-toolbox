@@ -1,6 +1,14 @@
 close all
 clear all
 
+file = 'audio\ESS.wav';
+fs = 44.1e3;
+duration = 1.5;
+scilence = 2;
+ess = sweeptone(duration,scilence,fs);
+
+audiowrite(file, ess, fs)
+
 x = [2 4];
 y = [3 5];
 z = 2.5;
@@ -10,12 +18,14 @@ z = 2.5;
 x = [20 1.5 18.5];
 y = [24 2 19];
 z = 3;
-[corners, planes, source, receiver] = CreateRingShapedRoomGeometry(x, y, z);
+
+receiver = [19.25, 1, 1.5];
+[corners, planes, source, receiver] = CreateRingShapedRoomGeometry(x, y, z, receiver);
 
 %source = [1.1 0.9 1];
 %receiver = [3 3.8 1];
 
-refOrder = 8;
+refOrder = 6;
 maxPathLength = 100;
 
 numPlanes = size(planes, 1);
@@ -318,6 +328,22 @@ tfmagAll = mag2db(abs(tfcomplexAll));
 tfmagDiff = mag2db(abs(tfcomplexDiff));
 tfmagDiffOnly = mag2db(abs(tfcomplexDiffOnly));
 
+
+t = (1:length(impulse_response)) / 44.1e3;
+figure
+plot(t, impulse_response(:,1))
+grid on
+title('Left rtSOFE')
+xlim([0 0.15])
+ylim([-0.01 0.01])
+
+figure
+plot(t, impulse_response(:,2))
+grid on
+title('Right rtSOFE')
+xlim([0 0.15])
+ylim([-0.01 0.01])
+
 figure
 semilogx(fvec, tfmagAll)
 hold on
@@ -328,32 +354,32 @@ legend('All', 'Diff', 'DiffOnly')
 xlim([20 20e3])
 ylim([-70 20])
 
-tvec = 1:length(brirL);
+tvec = (1:length(brirL)) / fs;
 figure
-tiledlayout(2,1)
+% tiledlayout(2,1)
 
-nexttile
+% nexttile
 plot(tvec, brirLRev)
 grid on
-xlim([2000 4000])
+title('Left IS')
+ylim([-0.01 0.01])
 
-nexttile
-plot(tvec, brirL)
-grid on
-xlim([2000 4000])
+% nexttile
+% plot(tvec, brirL)
+% grid on
 
 figure
-tiledlayout(2,1)
+% tiledlayout(2,1)
 
-nexttile
+% nexttile
 plot(tvec, brirRRev)
 grid on
-xlim([2000 4000])
+title('Right IS')
+ylim([-0.01 0.01])
 
-nexttile
-plot(tvec, brirR)
-grid on
-xlim([2000 4000])
+% nexttile
+% plot(tvec, brirR)
+% grid on
 
 figure
 tiledlayout(2,1)
@@ -361,10 +387,8 @@ tiledlayout(2,1)
 nexttile
 plot(tvec, brirLRev + brirRRev)
 grid on
-xlim([2000 4000])
 
 nexttile
 plot(tvec, brirL + brirR)
 grid on
-xlim([2000 4000])
 

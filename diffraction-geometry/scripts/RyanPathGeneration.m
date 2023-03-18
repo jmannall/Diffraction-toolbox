@@ -206,4 +206,5 @@ function [points, viewHeading] = RyanPathGeneration(checkPoints, checkPointSpeed
 %     xlim([4 8])
 %     ylim([4 8])
 %     legend('Error')
+
 end
