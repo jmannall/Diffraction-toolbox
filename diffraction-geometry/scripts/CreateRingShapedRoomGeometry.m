@@ -1,7 +1,7 @@
 function [corners, planeCorners, source, receiver] = CreateRingShapedRoomGeometry(x, y, height, receiver)
 
     if nargin < 4
-        receiver = [x(2)  / 2 y(2) + 1 height / 2];
+        receiver = [x(3) + 0.73 5.32 - 1.57 1.67];
     end
     corners = [0 0 0
         x(1) 0 0
@@ -31,5 +31,5 @@ function [corners, planeCorners, source, receiver] = CreateRingShapedRoomGeometr
           7 8 16 15
           8 5 13 16];
 
-    source = [x(3) + (x(1) - x(3)) / 2 y(2) + 1 height / 2];
+    source = [x(2) - 0.8 y(1) - 18.39 - 1.84 1.46];
 end

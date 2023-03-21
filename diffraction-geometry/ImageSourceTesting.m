@@ -1,26 +1,17 @@
 close all
 clear all
 
-file = 'audio\ESS.wav';
-fs = 44.1e3;
-duration = 1.5;
-scilence = 2;
-ess = sweeptone(duration,scilence,fs);
-
-audiowrite(file, ess, fs)
-
 x = [2 4];
 y = [3 5];
 z = 2.5;
 
-[corners, planes, source, receiver] = CreateLShapedRoomGeometry(x, y, z);
+% [corners, planes, source, receiver] = CreateLShapedRoomGeometry(x, y, z);
 
-x = [20 1.5 18.5];
-y = [24 2 19];
-z = 3;
+x = [15.73 1.73 14];
+y = [23.72 2.33 19.58];
+z = 2.6;
 
-receiver = [19.25, 1, 1.5];
-[corners, planes, source, receiver] = CreateRingShapedRoomGeometry(x, y, z, receiver);
+[corners, planes, source, receiver] = CreateRingShapedRoomGeometry(x, y, z);
 
 %source = [1.1 0.9 1];
 %receiver = [3 3.8 1];
@@ -211,10 +202,10 @@ close all
 
 PlotGeometry(corners, planes, source, receiver, lineOfSight, vSources, intersections, validPath)
 
-audioFile = 'piano';
+audioFile = 'music';
 [audio, fs] = audioread(['sourceAudio/' audioFile '.wav']);
 
-scale = 20;
+scale = 1;
 audio = audio * scale;
 c = 344;
 % fs = 96e3;
@@ -328,21 +319,20 @@ tfmagAll = mag2db(abs(tfcomplexAll));
 tfmagDiff = mag2db(abs(tfcomplexDiff));
 tfmagDiffOnly = mag2db(abs(tfcomplexDiffOnly));
 
-
-t = (1:length(impulse_response)) / 44.1e3;
-figure
-plot(t, impulse_response(:,1))
-grid on
-title('Left rtSOFE')
-xlim([0 0.15])
-ylim([-0.01 0.01])
-
-figure
-plot(t, impulse_response(:,2))
-grid on
-title('Right rtSOFE')
-xlim([0 0.15])
-ylim([-0.01 0.01])
+% t = (1:length(impulse_response)) / 44.1e3;
+% figure
+% plot(t, impulse_response(:,1))
+% grid on
+% title('Left rtSOFE')
+% xlim([0 0.15])
+% ylim([-0.01 0.01])
+% 
+% figure
+% plot(t, impulse_response(:,2))
+% grid on
+% title('Right rtSOFE')
+% xlim([0 0.15])
+% ylim([-0.01 0.01])
 
 figure
 semilogx(fvec, tfmagAll)
@@ -392,3 +382,54 @@ nexttile
 plot(tvec, brirL + brirR)
 grid on
 
+load(['RIR' filesep 'BCCorridor_2ndOrder']);
+irData = measurementData{"omni_ESS_6dBFS", "ImpulseResponse"};
+
+figure
+plot(irData.Time, irData.Amplitude)
+title('Omni Measured')
+
+irDataL = measurementData{"binaural_L_ESS_7dBFS", "ImpulseResponse"};
+figure
+plot(irDataL.Time, irDataL.Amplitude)
+title('L Measured')
+grid on
+xlim([0.1 0.2])
+ylim([-0.04 0.04])
+
+irDataR = measurementData{"binaural_R_ESS_7dBFS", "ImpulseResponse"};
+
+figure
+plot(irDataR.Time, irDataR.Amplitude)
+title('R Measured')
+grid on
+xlim([0.1 0.2])
+ylim([-0.04 0.04])
+
+%%
+audioFiles = {'music_DoubleBass', 'music_Guitar', 'music_Saxophone', 'music_Violin'};
+numFiles = length(audioFiles);
+for i = 1:numFiles
+    audioFile = audioFiles{i};
+    [audioStore, fs] = audioread(['sourceAudio/' audioFile '.wav']);
+    if i == 1
+        audio = audioStore;
+    else
+        audio = audio + audioStore;
+    end
+end
+audioFile = 'music';
+audioOutL = conv(audio, irDataL.Amplitude);
+audioOutR = conv(audio, irDataR.Amplitude);
+    
+audiowrite(['audio' filesep audioFile '_binaural.wav'], [audioOutL audioOutR], fs)
+
+for i = 1:numFiles
+    audioFile = audioFiles{i};
+    [audio, fs] = audioread(['sourceAudio/' audioFile '.wav']);
+    
+    audioOutL = conv(audio, irDataL.Amplitude);
+    audioOutR = conv(audio, irDataR.Amplitude);
+    
+    audiowrite(['audio' filesep audioFile '_binaural.wav'], [audioOutL audioOutR], fs)
+end
