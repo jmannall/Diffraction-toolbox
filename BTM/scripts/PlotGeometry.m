@@ -1,6 +1,6 @@
 %% Plot geometry from corner and plane corner data
 
-function PlotGeometry(corners, planeCorners, source, receiver, lineOfSight, vSources, intersections, validPath)
+function PlotGeometry(corners, planeCorners, source, receiver, lineOfSight, vSources, intersections, validPath, edgePaths)
 
     [numPlanes, numCornersPerPlane] = size(planeCorners);
     numCorners = numPlanes * numCornersPerPlane;
@@ -20,6 +20,7 @@ function PlotGeometry(corners, planeCorners, source, receiver, lineOfSight, vSou
     plot3(source(:,1), source(:,2), source(:,3), 'o')
     hold on
     plot3(receiver(:,1), receiver(:,2), receiver(:,3), 'o')
+    legend('Source', 'Receiver')
     if nargin > 4 && lineOfSight
         plot3(direct(:,1), direct(:,2), direct(:,3), 'b')
     end
@@ -36,7 +37,12 @@ function PlotGeometry(corners, planeCorners, source, receiver, lineOfSight, vSou
             end
         end
     end
-    legend('Source', 'Receiver')
+    if nargin > 8
+        numEdgePaths = length(edgePaths);
+        for j = 1:numEdgePaths
+            plot3(edgePaths{j}(:,1), edgePaths{j}(:,2), edgePaths{j}(:,3), 'b')
+        end
+    end
     % Loops through planes
     for j = 1:numPlanes
         i = (j - 1) * numCornersPerPlane + 1;

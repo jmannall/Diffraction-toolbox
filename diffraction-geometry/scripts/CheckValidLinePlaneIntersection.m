@@ -1,21 +1,19 @@
-function [intersection, validPath] = CheckValidLinePlaneIntersection(lineStart, lineEnd, normal, d, planes, corners, numPlaneCorners, i)
-    [intersection, validPath] = LinePlaneIntersection(lineStart, lineEnd, normal, d);
+function [intersection, validPath] = CheckValidLinePlaneIntersection(lineStart, lineEnd, room, i)
+
+    [intersection, validPath] = LinePlaneIntersection(lineStart, lineEnd, room.planeNormals(i,:), room.d(i));
 
     if validPath
-        validCorners = planes(i,:) > 0;
-        planeCorners = [corners(planes(i,validCorners),:); corners(planes(i,1),:)];
-        angleRotation = zeros(numPlaneCorners(i), 1);
-        for j = 1:numPlaneCorners(i)
-            vecOne = intersection - planeCorners(j,:);
-            vecTwo = intersection - planeCorners(j + 1,:);
-            dotProduct = dot(normal, cross(vecOne, vecTwo));
+        % validCorners = room.planeCorners(i,:) > 0;
+        % planeCorners = [room.corners(room.planeCorners(i,validCorners),:); room.corners(room.planeCorners(i,1),:)];
+        angleRotation = zeros(room.numCorners(i), 1);
+        for j = 1:room.numCorners(i)
+            vecOne = intersection - room.planeCornersCoords{i}(j,:);
+            vecTwo = intersection - room.planeCornersCoords{i}(j + 1,:);
+            dotProduct = dot(room.planeNormals(i,:), cross(vecOne, vecTwo));
             angleRotation(j) = sign(dotProduct) * acosd(dot(vecOne, vecTwo) / (norm(vecOne) * norm(vecTwo)));
         end
         if round(sum(angleRotation), 5) ~= 360
             validPath = false;
         end
-%         else
-%             validPath = true;
-%         end
     end
 end

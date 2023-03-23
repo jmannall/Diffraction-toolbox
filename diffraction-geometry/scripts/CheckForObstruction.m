@@ -1,12 +1,15 @@
-function obstruction = CheckForObstruction(source, receiver, planes, normals, d, corners, numPlaneCorners, numPlanes, i, obstruction)
-    
+function obstruction = CheckForObstruction(source, receiver, room, i, obstruction)
+
+    if nargin < 5
+        obstruction = false;
+    end
     j = 1;
-    while ~obstruction && j <= numPlanes
+    while ~obstruction && j <= room.numPlanes
             if j ~= i
-                [kS, ~] = PointPlanePosition(source, normals(j,:), d(j));
-                [kR, ~] = PointPlanePosition(receiver, normals(j,:), d(j));
+                [kS, ~] = PointPlanePosition(source, room.planeNormals(j,:), room.d(j));
+                [kR, ~] = PointPlanePosition(receiver, room.planeNormals(j,:), room.d(j));
                 if kS * kR < 0
-                    [~, obstruction] = CheckValidLinePlaneIntersection(receiver, source, normals(j,:), d(j), planes, corners, numPlaneCorners, j);
+                    [~, obstruction] = CheckValidLinePlaneIntersection(receiver, source, room, j);
                 end
             end
             j = j + 1;

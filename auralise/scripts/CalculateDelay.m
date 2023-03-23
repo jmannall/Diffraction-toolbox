@@ -19,4 +19,7 @@ function [delay, fracDelay, amplitude] = CalculateDelay(pathLength, c, fs, diffP
         amplitude = amplitudeStore(:, end);
         amplitude(diffPart) = amplitudeStore(diffPart, 1);
     end
+    if pathLength == 0
+        amplitude = 1;
+    end
 end

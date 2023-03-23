@@ -1,5 +1,5 @@
 close all
-%clear all
+clear all
 
 audioFile = 'music';
 [audio, fs] = audioread(['sourceAudio/' audioFile '.wav']);
@@ -14,21 +14,20 @@ x = [15.73 1.73 14];
 y = [23.72 2.33 19.58];
 z = 2.6;
 
-% x = [4.97 2 3];
-% y = [4.12 2 3];
-% z = 3;
-% 
-% [corners, planes, source] = CreateRingShapedRoomGeometry(x, y, z);
-% 
-% source = [1.40, 3.02, 1.36];
-% receiver = [2.77, 1.30, 1.51];
-
-x = 4.97;
-y = 4.12;
+x = [4.97 2 3];
+y = [4.12 2 3];
 z = 3;
+
+[corners, planes, source,] = CreateRingShapedRoomGeometry(x, y, z, );
+
 source = [1.40, 3.02, 1.36];
 receiver = [2.77, 1.30, 1.51];
-[corners, planes, source, receiver] = CreateShoeboxRoomGeometry(x, y, z, source, receiver);
+% x = 4.97;
+% y = 4.12;
+% z = 3;
+% source = [1.40, 3.02, 1.36];
+% receiver = [2.77, 1.30, 1.51];
+% [corners, planes, source, receiver] = CreateShoeboxRoomGeometry(x, y, z, source, receiver);
 PlotGeometry(corners, planes, source, receiver)
 
 alphaFreq = [250 500 1e3 2e3 4e3];
@@ -40,27 +39,28 @@ alpha = [0.06 0.15 0.4 0.6 0.6  % floor
     0.7 0.6 0.7 0.7 0.5         % y
     0.2 0.2 0.1 0.07 0.04];     % x
 
-f1 = 20;
-f2 = max(alphaFreq)^(0.1) * (fs/2)^(0.9);
 
-[bpB, bpA] = butter(1, [f1 ,f2]/fs*2);
-
-refBTemp = ism_setup.b_refl;
-refATemp = ism_setup.a_refl;
-
-idx = [1 6 2 3 5 4];
-for i = 1:6
-    refB{1,i} = refBTemp{1,idx(i)};
-    refA{1,i} = refATemp{1,idx(i)};
-
-    refB{2,i} = refBTemp{2,idx(i)};
-    refA{2,i} = refATemp{2,idx(i)};
-end
+% f1 = 20;
+% f2 = max(alphaFreq)^(0.1) * (fs/2)^(0.9);
+% 
+% [bpB, bpA] = butter(1, [f1 ,f2]/fs*2);
+% 
+% refBTemp = ism_setup.b_refl;
+% refATemp = ism_setup.a_refl;
+% 
+% idx = [1 6 2 3 5 4];
+% for i = 1:6
+%     refB{1,i} = refBTemp{1,idx(i)};
+%     refA{1,i} = refATemp{1,idx(i)};
+% 
+%     refB{2,i} = refBTemp{2,idx(i)};
+%     refA{2,i} = refATemp{2,idx(i)};
+% end
 
 %source = [1.1 0.9 1];
 %receiver = [3 3.8 1];
-tic
-refOrder = 5;
+
+refOrder = 6;
 maxPathLength = 200;
 
 numPlanes = size(planes, 1);
@@ -156,7 +156,6 @@ for i = 1:numPlanes
         end
     end
 end
-toc
 PlotGeometry(corners, planes, source, receiver, lineOfSight, vSources, intersections, validPath)
 
 % Correct up to first order reflection not including accounting for
@@ -245,6 +244,10 @@ refPlanePathsValid = refPlanePath(validPath,:);
 
 close all
 
+delay1 = CalculateDelay(21.3, c, fs);
+delay2 = CalculateDelay(15.73, c, fs);
+
+
 PlotGeometry(corners, planes, source, receiver, lineOfSight, vSources, intersections, validPath)
 scale = 1;
 audio = audio * scale;
@@ -255,35 +258,33 @@ windowLength = 100;
 controlparameters = struct('fs', fs, 'c', c, 'nfft', nfft, 'difforder', 2, 'saveFiles', 1, 'noDirect', false);
 
 heading = [0 1 0];
-% planeCorners = [1 4 3 2
-%     5 6 7 8
-%     1 2 6 5
-%     2 3 7 6
-%     3 4 8 7
-%     4 1 5 8];
-% planeRigid = [0 0 1 1 1 1];
-% 
-% [ir, tfmag, tvec, fvec, tfcomplex] = SingleBTM(source, receiver, corners([5:8, 13:16],:), planeCorners, planeRigid, controlparameters, true);
-% [azimuthD(1,1), elevationD(1,1)] = CalculateAzimuthElevation(heading, receiver, [x(2) y(2) z / 2]);
-% [azimuthD(2,1), elevationD(2,1)] = CalculateAzimuthElevation(heading, receiver, [x(2) y(3) z / 2]);
-% 
-% irD{1} = ir.diff1;
-% irD{2} = ir.diff2;
+planeCorners = [1 4 3 2
+    5 6 7 8
+    1 2 6 5
+    2 3 7 6
+    3 4 8 7
+    4 1 5 8];
+planeRigid = [0 0 1 1 0 1];
 
-%planeRigid = [0 0 0 1 1 1];
+[ir, tfmag, tvec, fvec, tfcomplex] = SingleBTM(source, receiver, corners([5:8, 13:16],:), planeCorners, planeRigid, controlparameters, true);
+[azimuthD(1,1), elevationD(1,1)] = CalculateAzimuthElevation(heading, receiver, [x(2) y(2) z / 2]);
 
-%[ir, tfmag, tvec, fvec, tfcomplex] = SingleBTM(source, receiver, corners([5:8, 13:16],:), planeCorners, planeRigid, controlparameters, true);
-%[azimuthD(2,1), elevationD(2,1)] = CalculateAzimuthElevation(heading, receiver, [x(2) y(3) z / 2]);
+irD{1} = ir.diff2;
 
-%irD{2} = ir.diff2;
+planeRigid = [0 0 0 1 1 1];
+
+[ir, tfmag, tvec, fvec, tfcomplex] = SingleBTM(source, receiver, corners([5:8, 13:16],:), planeCorners, planeRigid, controlparameters, true);
+[azimuthD(2,1), elevationD(2,1)] = CalculateAzimuthElevation(heading, receiver, [x(2) y(3) z / 2]);
+
+irD{2} = ir.diff2;
 
 %heading = zeros(size([source; vSources(pathIdx,:)])) .* NormaliseVector(source - receiver);
 heading = ones(size([source; vSources(pathIdx,:)])) .* (heading);
 
 [azimuth, elevation] = CalculateAzimuthElevation(heading, receiver, [source; vSources(pathIdx,:)]);
 
-% azimuth = [azimuth; azimuthD];
-% elevation = [elevation; elevationD];
+azimuth = [azimuth; azimuthD];
+elevation = [elevation; elevationD];
 
 hrtf = CreateHRTF(azimuth, elevation);
 
@@ -309,14 +310,14 @@ for i = start:length(specularPathLength)
     delay = pathLength * fs / c;
     pathLength = round(delay) * c / fs;
     [output, ir] = DelayLine(audio, pathLength, windowLength, true, c, fs);
-    if i > 0
-        ir = [ir; zeros(1e4, 1)];
-        numRef = find(refPlanePathsValid(i,:), 1, "last");
-        for j = 1:numRef
-            ir = filter(refB{1,refPlanePathsValid(i,j)}, refA{1,refPlanePathsValid(i,j)}, ir);
-            ir = filter(refB{2,refPlanePathsValid(i,j)}, refA{2,refPlanePathsValid(i,j)}, ir);
-        end
-    end
+%     if i > 0
+%         ir = [ir; zeros(1e4, 1)];
+%         numRef = find(refPlanePathsValid(i,:), 1, "last");
+%         for j = 1:numRef
+%             ir = filter(refB{1,refPlanePathsValid(i,j)}, refA{1,refPlanePathsValid(i,j)}, ir);
+%             ir = filter(refB{2,refPlanePathsValid(i,j)}, refA{2,refPlanePathsValid(i,j)}, ir);
+%         end
+%     end
     [~, tfcomplexStore] = IrToTf(ir, nfft);
     tfcomplexAll = tfcomplexAll + tfcomplexStore;
 
@@ -334,7 +335,7 @@ for i = start:length(specularPathLength)
     brirR(1:birLength) = brirR(1:birLength) + birR;
 end
 
-irStoreBP = filter(bpB, bpA, irStore);
+% irStoreBP = filter(bpB, bpA, irStore);
 
 %irStoreBP = DelayLineIIRFilter(irStore, 0, length(irStore), true, bpB, bpA, c, fs, true);
 
@@ -362,11 +363,11 @@ xlim([0 0.2])
 ylim([-0.1 0.5])
 
 figure
-% tvec = (1:length(irD{1})) / fs;
-% plot(tvec, irD{1})
+tvec = (1:length(irD{1})) / fs;
+plot(tvec, irD{1})
 hold on
-% tvec = (1:length(irD{2})) / fs;
-% plot(tvec, irD{2})
+tvec = (1:length(irD{2})) / fs;
+plot(tvec, irD{2})
 for i = 1:length(irAll)
     tvec = (1:length(irAll{i})) / fs;
     plot(tvec, irAll{i})
@@ -374,7 +375,7 @@ for i = 1:length(irAll)
     %legend('ir')
     title('Laboratoy ISM (Not spatialised)')
     xlim([0 0.2])
-    ylim([-0.05 0.45])
+    ylim([0 0.05])
 end
 
 brirLRev = brirL;
