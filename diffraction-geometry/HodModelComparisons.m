@@ -1,5 +1,6 @@
 %close all
-%clear all
+clear all
+
 set(0, 'DefaultLineLineWidth', 1.5);
 colorStore = colororder;
 
@@ -33,8 +34,8 @@ numPaths = 500;
 index = DataHash({numPaths, fs, nfft, numEdges, 20});
 [loadPath, savePath] = deal(['geometry/NthOrderPaths_01mTo3m_', num2str(index), '.mat']);
 restart = true;
-generate = true;
-plotFigures = false;
+generate = false;
+plotFigures = true;
 createPlot = false;
 if restart
     i = 1;
@@ -219,6 +220,7 @@ for i = n:numPaths
     %% NN Ext 
 
     disp('NN Ext')
+    epsilon = 1;
     output = CreateNNOutput(net, wedgeIndex', wedgeLength', [wedgeIndex(1) - epsilon; thetaR], [thetaS; epsilon], [radiusS; radiusS + W], [W + radiusR; radiusR], [zS; zS], [zR; zR], false);
     pathLength = [data(i).L, data(i).L];
     validPath = true(1, numEdges);
@@ -391,6 +393,12 @@ for i = n:numPaths
 
     %% Figures
     if plotFigures
+
+        semilogx(fvecBTM, btmTfmagExt(:,1))
+        hold on
+        semilogx(fvec, tfmagNNExt(:,1))
+        grid on
+        xlim([20 20e3])
         %close all
 
         figure('Position',[50 100 900 800])
@@ -451,6 +459,8 @@ for i = n:numPaths
         ylim([-30 10])
     end
 end
+%%
+savePath = [savePath 'Test'];
 
 save(savePath, 'data')
 
@@ -519,7 +529,7 @@ saveDir = 'figures';
 saveas(gcf, [saveDir filesep 'HODComparison_TestNew_' num2str(k)], 'epsc')
 saveas(gcf, [saveDir filesep 'HODComparison_TestNew_' num2str(k)], 'svg')
 
-save(['hod workspace_Test_', num2str(k)])
+save(['hod workspace_Test1deg_', num2str(k)])
 end
 
 
@@ -549,6 +559,30 @@ saveas(gcf, [saveDir filesep 'HODComparison_Test'], 'epsc')
 saveas(gcf, [saveDir filesep 'HODComparison_Test'], 'svg')
 
 %% Result Plot
+
+close all
+
+load(['hod workspace_Test1deg_' num2str(k), '.mat'])
+color = colorStore([4,1,2,5,6,3],:);
+
+figure
+plot(x, meanBE)
+hold on
+grid on
+plot(x, meanNE)
+plot(x, meanUE)
+plot(x, meanBA, '--')
+plot(x, meanNA, '--')
+plot(x, meanUA, '--')
+%plot(x, meanUEI)
+colororder(color)
+xlim([0.1 3])
+ylim([0 5])
+title(num2str(store(k)))
+legend('BTM Extension', 'NN-IIR Extension', 'UTD-LR Extension', 'BTM Apex', 'NN-IIR Apex', 'UTD-LR Apex')
+xlabel('W_1 (m)')
+ylabel('Mean absolute error (dBA)')
+
 
 close all
 saveDir = 'figures';
