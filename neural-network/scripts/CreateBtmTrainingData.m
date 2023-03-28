@@ -1,6 +1,6 @@
 function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtmTrainingData(numInputs, controlparameters, index)
 
-    geometry = RandomGeometryWedge(numInputs);
+    geometry = RandomGeometryWedge_Run2(numInputs);
 
     % Create file info
     mFile = mfilename('fullpath');

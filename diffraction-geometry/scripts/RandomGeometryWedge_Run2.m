@@ -1,0 +1,99 @@
+function geometry = RandomGeometryWedge_Run2(numObservations)
+
+    % Geometry template
+    gtemplate.wedgeIndex = [];
+    gtemplate.source = [];
+    gtemplate.receiver = [];
+    gtemplate.bendingAngle = [];
+    gtemplate.minAngle = [];
+    
+    geometry = repmat(gtemplate, 1, 1);
+
+    %% Wedge index
+
+    epsilon = 1e-2;
+
+    const = ones(numObservations, 1);
+    wedgeIndex = [181, 360 - epsilon];
+
+    % pdf = (1 / 4) * (wI - wedgeIndex(1)) .^ 2;
+    % Calculate b to ensure the area under the curve equals 1
+    cdf = (1 / 12) * (wedgeIndex(2) - wedgeIndex(1)) .^ 3;  % Integral of the pdf
+    b = 1 / cdf;
+    % New cdf that can be rearranged to make wI the subject and cdf
+    % replaced by a uniform distribution.
+    %cdf = (b / 12) * (wI - wedgeIndex(1)) .^ 3;
+
+    wI = nthroot((12 / b) * RandomUniformDistribution([0 1], numObservations), 3) + wedgeIndex(1);
+    
+    %% Bending angle and minimum angle
+
+    minAngle = [epsilon * const, (wI - (180 + epsilon)) / 2];
+    mA = RandomTriangularDistribution(minAngle, false, numObservations);
+
+    bendingAngle = [(180 + epsilon) * const, wI - 2 * mA];
+    bA = RandomUniformDistribution(bendingAngle, numObservations);
+    
+    %% Wedge length
+    %wedgeLength = [0.1, 10]; % Chosen from sensitivity examples
+    wedgeLength = [0.1 50]; % To allow for larger variation in z values
+    wL = RandomLoguniformDistribution(wedgeLength, numObservations);
+
+    %% Radius
+    % Normalise anyway so the important question is at what point can we
+    % consider to be a plane wave? - 50m upper limit chosen from
+    % sensitivity examples. Schissler use d_s = 0.25m (~size of human head)
+    % to determine if edge can shadow. Therefore can probably assume radius
+    % of 0.1m an adequate lower limit
+
+    L = [0.1 100];
+    pathLength = RandomUniformDistribution(L, numObservations);
+
+    split = RandomUniformDistribution([0 0.5], numObservations);
+    l = pathLength .* split;
+    m = pathLength .* (1 - split);
+
+    apex = [epsilon * const wL - epsilon];
+    zA = RandomUniformDistribution(apex, numObservations);
+
+    angle = [epsilon 90];
+    phii = RandomUniformDistribution(angle, numObservations);
+
+    r1 = l .* sind(phii);
+    r2 = m .* sind(phii);
+
+    select = randi(2, numObservations, 1);
+    idx = select == 1;
+    z1(idx, 1) = zA(idx) - l(idx) .* cosd(phii(idx));
+    z2(idx, 1) = zA(idx) + m(idx) .* cosd(phii(idx));
+    idx = select == 2;
+    z1(idx, 1) = zA(idx) + l(idx) .* cosd(phii(idx));
+    z2(idx, 1) = zA(idx) - m(idx) .* cosd(phii(idx));
+
+    %% z values
+    % Ensure reciprocity as swapping S and R is the same, reflecting in the
+    % midpoint is the same and reflecting across the wedge is the same.
+    
+    for i = 1:numObservations
+        if z1(i) > wL(i) / 2
+            z1(i) = wL(i) - z1(i);
+            z2(i) = wL(i) - z2(i);
+            zA(i) = wL(i) - zA(i);
+        end
+    end
+    
+    geometry.wedgeIndex = wI;
+    geometry.bendingAngle = bA;
+    geometry.minAngle = mA;
+    geometry.wedgeLength = wL;
+    geometry.rS = r1;
+    geometry.rR = r2;
+    geometry.zS = z1;
+    geometry.zR = z2;
+    geometry.zA = zA;
+    geometry.thetaS = geometry.minAngle;
+    geometry.thetaR = geometry.minAngle + geometry.bendingAngle;
+end
+
+% r1 is the shortest radii.
+% z1 corresponds to r1. The z-axis zero lies on the corner nearest to z1 and extends into the positive along the edge.

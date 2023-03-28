@@ -1,37 +1,35 @@
 clear all
-%close all
+close all
 
-% epsilon = 1e-6;
-% wedgeIndex = [181, 360 - epsilon];
-% 
-% wI = linspace(wedgeIndex(1), wedgeIndex(2), 1e3);
-% pdf = (1 / 8) * (wI - wedgeIndex(1)) .^ 4;
-% cdf = (1 / 40) * (wI - wedgeIndex(1)) .^ 5;
-% 
-% b = 1 / cdf(end);
-% cdf = (b / 40) * (wI - wedgeIndex(1)) .^ 5;
-% 
-% wI = nthroot((40 / b) * cdf, 5) + wedgeIndex(1);
-% 
-% x = RandomUniformDistribution([0 1], 20e3);
-% test = nthroot(x, 5) * (wedgeIndex(2) - wedgeIndex(1)) + wedgeIndex(1);
-% test2 = nthroot((40 / b) * x, 5) + wedgeIndex(1);
-% 
-% figure
-% plot(wI, pdf)
-% hold on
-% plot(wI, cdf)
-% 
-% wI = RandomUniformDistribution([0 1], 20e3);
-% wI = wedgeIndex(1) + (wedgeIndex(2) - wedgeIndex(1)) * 0.125 * (1 - wI .^ 4);
-% 
-% figure
-% h = histogram(test);
-% title('wedgeIndex')
-% 
-% figure
-% h = histogram(test2);
-% title('wedgeIndex2')
+epsilon = 1e-6;
+wedgeIndex = [181, 360 - epsilon];
+
+wI = linspace(wedgeIndex(1), wedgeIndex(2), 1e3);
+pdf = 0.125 * (wI - wedgeIndex(1)) .^ 4;
+cdf = 0.125 * 0.2 * (wI - wedgeIndex(1)) .^ 5;
+
+b = 1 / (0.125 * 0.2 * (wI(end) - wedgeIndex(1)) .^ 5);
+
+wI = nthroot(cdf * 8 * 5, 4) + wedgeIndex(1);
+
+test = nthroot(RandomUniformDistribution([0 1], 20e3), 5) * (wedgeIndex(2) - wedgeIndex(1)) + wedgeIndex(1);
+test2 = nthroot(b * RandomUniformDistribution([0 1], 20e3) * 8 * 5, 4) + wedgeIndex(1);
+
+figure
+plot(wI, pdf)
+hold on
+plot(wI, cdf)
+
+wI = RandomUniformDistribution([0 1], 20e3);
+wI = wedgeIndex(1) + (wedgeIndex(2) - wedgeIndex(1)) * 0.125 * (1 - wI .^ 4);
+
+figure
+h = histogram(test);
+title('wedgeIndex')
+
+figure
+h = histogram(test2);
+title('wedgeIndex2')
 
 n = 1;
 wedgeIndex = 180:n:360;
