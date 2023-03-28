@@ -10,8 +10,6 @@ function GenerateNNDataSingle(size, fs)
     mkdir(['results', filesep, 'CreateBtmTrainingData'])
     mkdir(['results', filesep, 'SingleWedge'])
     mkdir(['results', filesep, 'DefaultBTM'])
-
-    parpool([1 48]);
     
     nfft = 16384;
     c = 344;
