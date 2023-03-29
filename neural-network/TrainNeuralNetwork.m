@@ -1,4 +1,8 @@
 function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
+
+    if learnRate > 1
+        learnRate = 1 / learnRate;
+    end
     
     % Control parameters
     fs = 48e3;
