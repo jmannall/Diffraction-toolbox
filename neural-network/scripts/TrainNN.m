@@ -76,7 +76,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
             % Clip gradients
             gradients = ClipGradients(gradients, tP.maxGrad);
             % Update the network parameters using the Adam optimizer.
-            [net,averageGrad,averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, learnRate, tP.gradDecay, tp.sqGradDecay);
+            [net,averageGrad,averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, learnRate, tP.gradDecay, tP.sqGradDecay);
             
             % Store losses
             idx = numIterationsPerEpoch * (epoch - 1) + i;
