@@ -51,7 +51,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     end
 
     tic
-    for epoch = i:numEpochs
+    for epoch = i:tP.numEpochs
         [trainingData, targetData] = tP.dataFunc(epoch);
         targetData = dlarray(targetData);
         % Shuffle data.
