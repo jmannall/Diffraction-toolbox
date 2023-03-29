@@ -3,7 +3,7 @@ function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
     if learnRate > 1
         learnRate = 1 / learnRate;
     end
-    
+
     % Control parameters
     fs = 48e3;
     nfft = 8192;
@@ -40,8 +40,7 @@ function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
     numOutputs = 2 * numFilters + 1;
     alpha = 0.2;
     
-    saveFile = [name, '-', num2str(networkSize), '_', idx];
-    savePath = [saveDir filesep saveFile];
+    
 
     % NN complexity
     gx = 5;
@@ -57,6 +56,12 @@ function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
     
     hiddenLayerSize = round((-b + sqrt(b .^ 2 - 4 .* c * a)) ./ (2 * a));
     
+    % Save paths
+    idx = [num2str(numLayers), '_', num2str(hiddenLayerSize), '_', num2str(learnRate)];
+    idx = erase(idx, '.');
+    saveFile = ['IIR-', idx];
+    savePath = [saveDir filesep saveFile];
+
     % Parameter structs
     hyperParameters = struct('learnRate', learnRate, 'numLayers', numLayers, 'hiddenLayerSize', hiddenLayerSize);
     trainingParameters = struct('lossFunc', lossFunc, 'dataFunc', dataFunc, 'testFunc', testFunc, 'numEpochs', numEpochs, 'epochSize', epochSize, ...
