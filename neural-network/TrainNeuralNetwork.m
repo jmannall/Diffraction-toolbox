@@ -1,5 +1,7 @@
 function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
 
+    learnRate = 1 / learnRate;
+    
     % Control parameters
     fs = 48e3;
     nfft = 8192;
