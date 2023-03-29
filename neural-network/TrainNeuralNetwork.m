@@ -55,6 +55,7 @@ function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
     hiddenLayerSize = round((-b + sqrt(b .^ 2 - 4 .* c * a)) ./ (2 * a));
     
     % Save paths
+    CheckFileDir(saveDir)
     idx = [num2str(numLayers), '_', num2str(hiddenLayerSize), '_', num2str(learnRate)];
     idx = erase(idx, '.');
     saveFile = ['IIR-', idx];
