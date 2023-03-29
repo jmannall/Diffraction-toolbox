@@ -8,7 +8,7 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
         index = DataHash({geometry, controlparameters});
     end
     [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, extra] = BTMArrayFileHandling(mFile, index, numInputs);
-    
+
     fs = controlparameters.fs / 2;
     nfft = controlparameters.nfft / 2;
     fvec = fs/nfft*[0:nfft/2-1];

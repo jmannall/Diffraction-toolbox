@@ -50,8 +50,6 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
         disp('Start training')
     end
 
-
-
     tic
     for epoch = i:numEpochs
         [trainingData, targetData] = dataFunc(epoch);
@@ -104,6 +102,10 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
                 disp('Save backup')
             end
             save(savePath, "net", "iterationLosses", "epochLosses", "iteration", "i", '-v7.3')
+        end
+        if isnan(loss)
+            nP.savePath = [nP.savePath '_INCOMPLETE'];
+            break
         end
     end
     toc
