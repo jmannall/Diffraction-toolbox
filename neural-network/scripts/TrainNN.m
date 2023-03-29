@@ -38,7 +38,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     backupRate = 10;
 
     % Load testing data
-    [testInputData, testTargetData] = dataFunc('TestData');
+    [testInputData, testTargetData] = tP.dataFunc('TestData');
     learnRate = hP.learnRate;
 
     % Check if restarting training
@@ -52,7 +52,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
 
     tic
     for epoch = i:numEpochs
-        [trainingData, targetData] = dataFunc(epoch);
+        [trainingData, targetData] = tP.dataFunc(epoch);
         targetData = dlarray(targetData);
         % Shuffle data.
         idx = randperm(size(trainingData, 2));
@@ -84,7 +84,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
             losses.iteration(idx) = loss;
             thisIterationLosses(i) = loss;
         end
-        losses.test(epoch) = testFunc(net, testInputData, testTargetData);
+        losses.test(epoch) = tP.testFunc(net, testInputData, testTargetData);
         losses.epoch(epoch) = mean(thisIterationLosses);
         if epoch == 200 || epoch == 400
             learnRate = learnRate / 10;

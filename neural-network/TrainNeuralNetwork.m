@@ -40,8 +40,6 @@ function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
     numOutputs = 2 * numFilters + 1;
     alpha = 0.2;
     
-    
-
     % NN complexity
     gx = 5;
     CcPZTransform = 6;
