@@ -1,20 +1,19 @@
 function UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numIterationsPerEpoch, epoch, start)
 
     idx = numIterationsPerEpoch * (epoch - 1) + 1:numIterationsPerEpoch * epoch;
-    losses = losses(idx);
-    D = duration(0,0,toc(start),'Format',"hh:mm:ss");
-    epochLoss = mean(losses);
-    addpoints(lineIterationLoss,idx,losses)
-    addpoints(lineEpochLoss,idx(end),epochLoss)
+    D = duration(0, 0, toc(start), 'Format', "hh:mm:ss");
+    addpoints(lineIterationLoss, idx, losses.iteration(idx))
+    addpoints(lineEpochLoss, idx(end), losses.epoch(epoch))
     title("Epoch: " + epoch + ", Elapsed: " + string(D))
     drawnow
 
+    text = ['Epoch ' num2str(epoch), ' loss: ', num2str(epochLoss)];
     if mod(epoch, 10) == 0
         worker = getCurrentWorker;
         if ~isempty(worker)
-            disp(['Worker: ', num2str(worker.ProcessId), ', Epoch ' num2str(epoch), ' loss: ', num2str(epochLoss)]);
+            disp(['Worker: ', num2str(worker.ProcessId), ', ', text]);
         else
-            disp(['Epoch ', num2str(epoch), ' loss: ', num2str(epochLoss)]);
+            disp(text);
         end
     end
 end
