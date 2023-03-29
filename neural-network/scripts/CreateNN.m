@@ -6,5 +6,5 @@ function [net, losses, loss] = CreateNN(hP, tP, nP)
     [net, losses] = TrainNN(net, hP, tP, nP);
 
     loss = losses.test(end);
-    disp(['Loss: ', loss])
+    disp(['Loss: ', num2str(loss)])
 end

@@ -30,10 +30,10 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     % File save data
     idx = DataHash({hP, tP, nP});
 
-    filePath = 'tempNN';
-    CheckFileDir(filePath);
+    tempDir = 'tempNN';
+    CheckFileDir(tempDir);
     fileName = num2str(idx);
-    savePath = [filePath filesep fileName];
+    savePath = [tempDir filesep fileName];
     loadPath = [savePath '.mat'];
     backupRate = 10;
 
