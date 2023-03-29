@@ -39,6 +39,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
 
     % Load testing data
     [testInputData, testTargetData] = tP.dataFunc('TestData');
+    testInputData = dlarray(single(testInputData), "CB");
     learnRate = hP.learnRate;
 
     % Check if restarting training
