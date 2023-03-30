@@ -1,5 +1,3 @@
-function HelloWorld(i, j)
+function HelloWorld()
     disp('Hello World')
-    disp(['i: ', num2str(i)])
-    disp(['j: ', num2str(j)])
 end

@@ -1,6 +1,13 @@
 %% Create 1 / n frequency bands from input frequencies 
 
-function [tfmagNBand, fc, fidx] = CreateFrequencyNBands(tfmag, fvec, n)
+function [tfmagNBand, fc, fidx, fLow, fHigh, BW] = CreateFrequencyNBands(tfmag, fvec, n)
+
+    idxLo = find(fvec > 20, 1);
+    idxHi = find(fvec < 20e3, 1, "last");
+
+    fvec = fvec(idxLo:idxHi);
+    tfmag = tfmag(idxLo:idxHi);
+
     df = fvec(2) - fvec(1);
     
     lowFc = 1000; % Start at 1000 Hz and find lowest Fc
@@ -11,17 +18,23 @@ function [tfmagNBand, fc, fidx] = CreateFrequencyNBands(tfmag, fvec, n)
     end
     
     fc = zeros(1, 1000);
-    fidx = ones(size(fvec));
     fc(1) = lowFc;
     i = 1;
     while fc(i) <= max(fvec)
-        idx = fvec > fc(i);
-        fidx(idx) = i;
         i = i + 1;
         fc(i) = 2^(1 / n) * fc(i - 1);
     end
-    i = i- 1;
-    fc = fc(1:i);
+    numFreq = i;
+    fc = fc(1:numFreq);
+    fLow = fc / sqrt(2 ^ (1 / n));
+    fHigh = fc * sqrt(2 ^ (1 / n));
+    BW = fHigh - fLow;
     
+    fidx = ones(size(fvec));
+    for i = 2:numFreq
+        idx = fvec > fLow(i);
+        fidx(idx) = i;
+    end
+
     tfmagNBand = CreateNBandMagnitude(tfmag, fidx);
 end
