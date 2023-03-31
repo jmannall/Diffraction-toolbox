@@ -105,6 +105,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
             save(savePath, "net", "iterationLosses", "epochLosses", "iteration", "i", '-v7.3')
         end
         if isnan(loss)
+            disp(['End training early. Epoch: ' num2str(epoch)])
             nP.savePath = [nP.savePath '_INCOMPLETE'];
             break
         end

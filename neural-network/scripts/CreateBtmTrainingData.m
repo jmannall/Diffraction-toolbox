@@ -6,6 +6,7 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
     mFile = mfilename('fullpath');
     if nargin < 3
         index = DataHash({geometry, controlparameters});
+        disp(['DataHash: ' num2str(index)])
     end
     [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, extra] = BTMArrayFileHandling(mFile, index, numInputs);
 
