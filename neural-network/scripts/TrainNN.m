@@ -35,7 +35,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     fileName = num2str(idx);
     savePath = [tempDir filesep fileName];
     loadPath = [savePath '.mat'];
-    backupRate = 10;
+    backupRate = 5;
 
     % Load testing data
     [testInputData, testTargetData] = tP.dataFunc('TestData');
@@ -45,7 +45,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     % Check if restarting training
     restart = exist([cd filesep loadPath], "file");
     if restart == 2
-        load(loadPath, "net", "iterationLosses", "epochLosses", "iteration", "i")
+        load(loadPath, "net", "losses", "hP", "tP", "nP", "iteration", "i")
         disp('Restart training')
     else
         disp('Start training')
@@ -93,16 +93,16 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
 
         UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numIterationsPerEpoch, epoch, start)
 
-        % Backup result every 10 epochs
+        % Backup result every 5 epochs
         if mod(epoch, backupRate) == 0
             i = epoch;
             worker = getCurrentWorker;
             if ~isempty(worker)
-                disp(['Save backup: ', num2str(worker.ProcessId)])
+                %disp(['Save backup: ', num2str(worker.ProcessId)])
             else
-                disp('Save backup')
+                %disp('Save backup')
             end
-            save(savePath, "net", "iterationLosses", "epochLosses", "iteration", "i", '-v7.3')
+            save(savePath, "net", "losses", "hP", "tP", "nP", "iteration", "i", '-v7.3')
         end
         if isnan(loss)
             disp(['End training early. Epoch: ' num2str(epoch)])
