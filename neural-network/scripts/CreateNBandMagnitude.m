@@ -8,7 +8,7 @@ function tfmagNBand = CreateNBandMagnitude(tfmag, fidx)
     end
     for i = 1:numBands
         num = sum(fidx == i);
-        tfmagNBand(i,:) = mag2db(abs(sum(db2mag(tfmag(fidx == i,:)), 1) / num));
+        tfmagNBand(i,:) = 20*log(abs(sum(10 .^ (tfmag(fidx == i,:) / 20), 1) / num)) / log(10);
         %tfmagNBand(i,:) = sum(tfmag(fidx == i,:), 1) / num;     %
         %incorrect need to average as magnitude not dB
     end
