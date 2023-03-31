@@ -62,7 +62,7 @@ function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
     savePath = [saveDir filesep saveFile];
 
     rng shuffle
-    seed = rng.Seed;
+    seed = rng().Seed;
 
     % Parameter structs
     hyperParameters = struct('learnRate', learnRate, 'numLayers', numLayers, 'hiddenLayerSize', hiddenLayerSize);
