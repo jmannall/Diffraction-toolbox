@@ -61,12 +61,15 @@ function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
     saveFile = ['IIR-', idx];
     savePath = [saveDir filesep saveFile];
 
+    rng shuffle
+    seed = rng.Seed;
+
     % Parameter structs
     hyperParameters = struct('learnRate', learnRate, 'numLayers', numLayers, 'hiddenLayerSize', hiddenLayerSize);
     trainingParameters = struct('lossFunc', lossFunc, 'dataFunc', dataFunc, 'testFunc', testFunc, 'numEpochs', numEpochs, 'epochSize', epochSize, ...
         'miniBatchSize', miniBatchSize, 'gradDecay', gradDecay, 'sqGradDecay', sqGradDecay, 'maxGrad', maxGrad);
-    networkParamters = struct('numInputs', numInputs, 'numOutputs', numOutputs, 'alpha', alpha, 'savePath', savePath);
-    
+    networkParamters = struct('numInputs', numInputs, 'numOutputs', numOutputs, 'alpha', alpha, 'savePath', savePath, 'seed', seed);
+
     % Train the network
     [loss, net] = CreateNN(hyperParameters, trainingParameters, networkParamters);
 end

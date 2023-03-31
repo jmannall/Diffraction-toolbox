@@ -15,7 +15,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     % Initialise losss variables
     numIterationsPerEpoch = floor(tP.epochSize./tP.miniBatchSize);
     losses.iteration = zeros(1, tP.numEpochs * numIterationsPerEpoch);
-    [losses.epoch, losses.test] = deal(zeros(1, tP.numEpochs));
+    [losses.epoch, losses.test] = deal(1e3 * ones(1, tP.numEpochs));
     thisIterationLosses = zeros(1, numIterationsPerEpoch);
 
     iteration = 0;
@@ -103,6 +103,11 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
                 %disp('Save backup')
             end
             save(savePath, "net", "losses", "hP", "tP", "nP", "iteration", "i", '-v7.3')
+        end
+        if epoch > 9 && losses.test(epoch) > 100
+            disp(['Early stop criteria reached. Epoch: ' num2str(epoch)])
+            nP.savePath = [nP.savePath '_INCOMPLETE'];
+            break
         end
         if isnan(loss)
             disp(['End training early. Epoch: ' num2str(epoch)])
