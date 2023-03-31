@@ -6,7 +6,7 @@ function [tfmagNBand, fc, fidx, fLow, fHigh, BW] = CreateFrequencyNBands(tfmag, 
     idxHi = find(fvec < 20e3, 1, "last");
 
     fvec = fvec(idxLo:idxHi);
-    tfmag = tfmag(idxLo:idxHi);
+    tfmag = tfmag(idxLo:idxHi,:);
 
     df = fvec(2) - fvec(1);
     
