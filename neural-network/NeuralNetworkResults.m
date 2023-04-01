@@ -33,7 +33,7 @@ numNets = length(nets);
 numRuns = numFolders;
 
 color = colorStore(1:2,:);
-for i = 1:numNets
+for i = 11:numNets
     numLayers = nets{i}(1).hP.numLayers;
     hiddenLayerSize = nets{i}(1).hP.hiddenLayerSize;
     learnRate = nets{i}(1).hP.learnRate;
@@ -61,6 +61,27 @@ for i = 1:numNets
 
     networkNames(i,1) = string(titleText);
 end
+%%
+nfft = 8192;
+fs = 48e3;
+c = 344;
+controlparameters = struct('fs', 2 * fs, 'nfft', 2 * nfft, 'difforder', 1, 'c', c, 'saveFiles', 2, 'noDirect', true);
+    
+[input, target] = CreateBtmTrainingData(20e3, controlparameters, 'TestData');
+input = dlarray(input, "CB");
+% Filter parameters
+numFilters = 2;
+nBands = 8;
+controlparameters.fs = fs;
+controlparameters.nfft = nfft;
+[~, tfmag, ~, fvec, ~] = DefaultBTM(controlparameters);
+[~, ~, fidx] = CreateFrequencyNBands(tfmag, fvec, nBands);
+
+
+filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
+test = nets{1}.net;
+[loss, state, gradients, predictionN, prediction] = NNFilterLoss(test, input, target, filterFunc, false);
+
 %%
 
 [lossA, idxA] = min(loss);

@@ -95,8 +95,8 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = DefaultBTM(controlparameters)
 
         % Process and save the results
         [ir, tfmag, tfcomplex, tvec, fvec] = ProcessBTMResults(inFilePath, filehandlingparameters, controlparameters, cadFilePath, savePath);
-        ir = [ir.diff1];
-        tfmag = [tfmag.diff1];
-        tfcomplex = [tfcomplex.diff1];
     end
+    ir = [ir.diff1];
+    tfmag = [tfmag.diff1];
+    tfcomplex = [tfcomplex.diff1];
 end

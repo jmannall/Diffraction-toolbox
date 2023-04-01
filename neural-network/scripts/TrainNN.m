@@ -84,6 +84,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
             loss = double(loss);
             losses.iteration(idx) = loss;
             thisIterationLosses(i) = loss;
+            disp([num2str(iteration), ', ', num2str(loss)])
         end
         losses.test(epoch) = tP.testFunc(net, testInputData, testTargetData);
         losses.epoch(epoch) = mean(thisIterationLosses);
