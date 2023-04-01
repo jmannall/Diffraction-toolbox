@@ -23,7 +23,7 @@ function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
     controlparameters.nfft = 2 * nfft;
     
     % Training parameters
-    numEpochs = 100;
+    numEpochs = 500;
     epochSize = 20e3;
     miniBatchSize = 128;
 
