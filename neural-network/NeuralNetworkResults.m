@@ -66,4 +66,4 @@ end
 [lossA, idxA] = min(loss);
 [bestLoss, idxB] = min(lossA);
 
-disp(['The best network is ', char(networkNames(idxA(idxB))), ', Run ', num2str(idxB)])
+disp(['The best network is ', char(networkNames(idxA(idxB))), ', Seed: ', num2str(nets{idxA(idxB)}(idxB).nP.seed), ', Run ', num2str(idxB)])
