@@ -105,7 +105,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
             end
             save(savePath, "net", "losses", "hP", "tP", "nP", "iteration", "i", '-v7.3')
         end
-        if epoch > 9 && losses.test(epoch) > 100
+        if epoch > 9 && losses.test(epoch) > 500
             disp(['Early stop criteria reached. Epoch: ' num2str(epoch)])
             nP.savePath = [nP.savePath '_INCOMPLETE'];
             break
