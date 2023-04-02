@@ -1,5 +1,9 @@
 function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
 
+    numLayers = 3;
+    size = 8000;
+    learnRate = 10000;
+    saveDir = 'Run2';
     if learnRate > 1
         learnRate = 1 / learnRate;
     end
@@ -70,7 +74,7 @@ function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
     hyperParameters = struct('learnRate', learnRate, 'numLayers', numLayers, 'hiddenLayerSize', hiddenLayerSize);
     trainingParameters = struct('lossFunc', lossFunc, 'dataFunc', dataFunc, 'testFunc', testFunc, 'numEpochs', numEpochs, 'epochSize', epochSize, ...
         'miniBatchSize', miniBatchSize, 'gradDecay', gradDecay, 'sqGradDecay', sqGradDecay, 'maxGrad', maxGrad);
-    networkParamters = struct('numInputs', numInputs, 'numOutputs', numOutputs, 'alpha', alpha, 'savePath', savePath, 'seed', seed);
+    networkParamters = struct('numInputs', numInputs, 'numOutputs', numOutputs, 'alpha', alpha, 'saveDir', saveDir, 'savePath', savePath, 'seed', seed);
 
     % Train the network
     [loss, net] = CreateNN(hyperParameters, trainingParameters, networkParamters);

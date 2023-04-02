@@ -10,14 +10,6 @@ numFiles = length(dirInfo);
 for j = 1:numFiles
     loadPath = [directory filesep dirInfo(j).name];
     load(loadPath)
-    numInputs = nP.numInputs;
-    numOutputs = nP.numOutputs;
-    alpha = nP.alpha;
-    savePath = nP.savePath;
-    saveDir = cell2mat(extractBetween(savePath,'/','/'));
-
-    seed = nP.seed;
-    nP = struct('numInputs', numInputs, 'numOutputs', numOutputs, 'alpha', alpha, 'saveDir', saveDir, 'savePath', savePath, 'seed', seed);
 
     idx = CreateNNIdx(hP, tP, nP);
     savePath = [directory filesep idx '.mat'];
