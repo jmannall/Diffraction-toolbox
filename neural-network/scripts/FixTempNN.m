@@ -5,11 +5,12 @@ directory = 'tempNN';
 dirInfo = dir(directory);
 dirInfo = dirInfo(3:end);
 disp('Start')
-
+disp(dirInfo.name)
 numFiles = length(dirInfo);
 for j = 1:numFiles
     loadPath = [directory filesep dirInfo(j).name];
     load(loadPath)
+    disp(['Load path: ' loadPath])
     numInputs = nP.numInputs;
     numOutputs = nP.numOutputs;
     alpha = nP.alpha;
@@ -21,6 +22,7 @@ for j = 1:numFiles
 
     idx = CreateNNIdx(hP, tP, nP);
     savePath = [directory filesep idx '.mat'];
+    disp(['Save path: ' savePath])
     save(savePath, "net", "losses", "hP", "tP", "nP", "iteration", "i", '-v7.3')
     delete(loadPath)
 end
