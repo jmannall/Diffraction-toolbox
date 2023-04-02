@@ -1,7 +1,7 @@
 close all
 clear all
 
-directory = 'tempNN';
+directory = 'tempNNStore';
 saveDirectory = 'tempNN';
 CheckFileDir(saveDirectory)
 dirInfo = dir(directory);
