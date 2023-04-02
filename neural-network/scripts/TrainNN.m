@@ -28,11 +28,10 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     %numNodes = numel(net.Learnables.Value{2});
 
     % File save data
-    idx = DataHash({hP, tP, nP});
-
+    fileName = CreateNNIdx(hP, tP, nP);
+    disp(['Idx: ' fileName])
     tempDir = 'tempNN';
     CheckFileDir(tempDir);
-    fileName = num2str(idx);
     savePath = [tempDir filesep fileName];
     loadPath = [savePath '.mat'];
     backupRate = 5;
@@ -47,8 +46,10 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     if restart == 2
         load(loadPath, "net", "losses", "hP", "tP", "nP", "iteration", "i")
         disp('Restart training')
+        return
     else
         disp('Start training')
+        return
     end
 
     tic
@@ -104,7 +105,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
             end
             save(savePath, "net", "losses", "hP", "tP", "nP", "iteration", "i", '-v7.3')
         end
-        if epoch > 9 && losses.test(epoch) > 500
+        if epoch > 9 && losses.test(epoch) > 1e3
             disp(['Early stop criteria reached. Epoch: ' num2str(epoch)])
             nP.savePath = [nP.savePath '_INCOMPLETE'];
             break
