@@ -29,11 +29,8 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
 
     % File save data
     fileName = CreateNNIdx(hP, tP, nP);
-    load(['tempNN' filesep, '2de65a2db020c3086f478d8b04deb886.mat'])
-    test = CreateNNIdx(hP, tP, nP);
     disp(['Idx: ' fileName])
-    disp(['Test: ' test])
-    tempDir = 'tempNNNew';
+    tempDir = 'tempNN';
     CheckFileDir(tempDir);
     savePath = [tempDir filesep fileName];
     loadPath = [savePath '.mat'];
