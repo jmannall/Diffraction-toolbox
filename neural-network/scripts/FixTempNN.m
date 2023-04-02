@@ -2,8 +2,8 @@ close all
 clear all
 
 directory = 'tempNN';
-saveDir = 'tempNNNew';
-CheckFileDir(saveDir)
+saveDirectory = 'tempNNNew';
+CheckFileDir(saveDirectory)
 dirInfo = dir(directory);
 dirInfo = dirInfo(3:end);
 disp('Start')
@@ -23,7 +23,7 @@ for j = 1:numFiles
     nP = struct('numInputs', numInputs, 'numOutputs', numOutputs, 'alpha', alpha, 'saveDir', saveDir, 'savePath', savePath, 'seed', seed);
 
     idx = CreateNNIdx(hP, tP, nP);
-    savePath = [saveDir filesep idx '.mat'];
+    savePath = [saveDirectory filesep idx '.mat'];
     disp(['Save path: ' savePath])
     save(savePath, "net", "losses", "hP", "tP", "nP", "iteration", "i", '-v7.3')
     delete(loadPath)
