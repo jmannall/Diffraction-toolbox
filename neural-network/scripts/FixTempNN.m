@@ -2,7 +2,7 @@ close all
 clear all
 
 directory = 'tempNN';
-saveDirectory = 'tempNNNew';
+saveDirectory = 'tempNN';
 CheckFileDir(saveDirectory)
 dirInfo = dir(directory);
 dirInfo = dirInfo(3:end);
