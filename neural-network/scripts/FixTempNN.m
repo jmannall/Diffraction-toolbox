@@ -1,7 +1,7 @@
 directory = 'tempNN';
-CheckFileDir(saveDirectory)
 dirInfo = dir(directory);
 dirInfo = dirInfo(3:end);
+disp('Start')
 
 numFiles = length(dirInfo);
 for j = 1:numFiles
@@ -13,3 +13,4 @@ for j = 1:numFiles
     save(savePath, "net", "losses", "hP", "tP", "nP", "iteration", "i", '-v7.3')
     delete(loadPath)
 end
+disp('Complete')
