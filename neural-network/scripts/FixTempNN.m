@@ -5,7 +5,7 @@ directory = 'tempNN';
 dirInfo = dir(directory);
 dirInfo = dirInfo(3:end);
 disp('Start')
-disp(dirInfo.name)
+
 numFiles = length(dirInfo);
 for j = 1:numFiles
     loadPath = [directory filesep dirInfo(j).name];
