@@ -29,7 +29,6 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
 
     % File save data
     fileName = CreateNNIdx(hP, tP, nP);
-    disp(['Idx: ' fileName])
     tempDir = 'tempNN';
     CheckFileDir(tempDir);
     savePath = [tempDir filesep fileName];
@@ -46,10 +45,8 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     if restart == 2
         load(loadPath, "net", "losses", "hP", "tP", "nP", "iteration", "i")
         disp('Restart training')
-        return
     else
         disp('Start training')
-        return
     end
 
     tic

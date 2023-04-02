@@ -1,9 +1,5 @@
 function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
 
-    numLayers = 3;
-    size = 8000;
-    learnRate = 10000;
-    saveDir = 'Run2';
     if learnRate > 1
         learnRate = 1 / learnRate;
     end
