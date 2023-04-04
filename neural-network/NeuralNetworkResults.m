@@ -1,6 +1,6 @@
 
-close all
-clear all
+%close all
+%clear all
 
 colorStore = colororder;
 
@@ -31,60 +31,51 @@ end
 
 numNets = length(nets);
 numRuns = numFolders;
+gx = 5;
 
 color = colorStore(1:2,:);
-for i = 11:numNets
+for i = 1:numNets
     numLayers = nets{i}(1).hP.numLayers;
     hiddenLayerSize = nets{i}(1).hP.hiddenLayerSize;
     learnRate = nets{i}(1).hP.learnRate;
-    titleText = ['Net: ', num2str(numLayers), '-', num2str(hiddenLayerSize), ', Learn rate: ', num2str(learnRate)];
+    size = CalculateNNIIRCost(numLayers, hiddenLayerSize, nets{i}(1).nP.numInputs, nets{i}(1).nP.numOutputs, gx);
+    titleText = ['Net: ', num2str(numLayers), '-', num2str(hiddenLayerSize), ', Learn rate: ', num2str(learnRate), ', Size: ', num2str(size)];
     
-    figure
-    hold on
-    colororder(color)
+%     figure
+%     hold on
+%     colororder(color)
     for j = 1:numRuns
         losses = nets{i}(j).losses;
-        numEpochs = nets{i}(j).tP.numEpochs;
-        lvec = 1:numEpochs;
-        plot(lvec, losses.test)
-        plot(lvec, losses.epoch, '--')
-        numIterations = length(losses.iteration);
-        %lvec = (1:numIterations) / numIterations * numEpochs;
-        %plot(lvec, losses.iteration)
+%         numEpochs = nets{i}(j).tP.numEpochs;
+%         lvec = 1:numEpochs;
+%         plot(lvec, losses.test)
+%         plot(lvec, losses.epoch, '--')
+%         numIterations = length(losses.iteration);
+%         %lvec = (1:numIterations) / numIterations * numEpochs;
+%         %plot(lvec, losses.iteration)
         loss(i,j) = losses.test(end);
     end
-    grid on
-    ylim([0 200])      
-    title(titleText)
-    ylabel('Epoch')
-    xlabel('Mean absolute error (dB)')
+%     grid on
+%     ylim([0 200])      
+%     title(titleText)
+%     ylabel('Epoch')
+%     xlabel('Mean absolute error (dB)')
 
     networkNames(i,1) = string(titleText);
+    % Add network file path
 end
-%%
-nfft = 8192;
-fs = 48e3;
-c = 344;
-controlparameters = struct('fs', 2 * fs, 'nfft', 2 * nfft, 'difforder', 1, 'c', c, 'saveFiles', 2, 'noDirect', true);
-    
-[input, target] = CreateBtmTrainingData(20e3, controlparameters, 'TestData');
-input = dlarray(input, "CB");
-% Filter parameters
-numFilters = 2;
-nBands = 8;
-controlparameters.fs = fs;
-controlparameters.nfft = nfft;
-[~, tfmag, ~, fvec, ~] = DefaultBTM(controlparameters);
-[~, ~, fidx] = CreateFrequencyNBands(tfmag, fvec, nBands);
 
+[lossSort, b] = sort(reshape(loss, [], 1));
 
-filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);
-test = nets{1}.net;
-[loss, state, gradients, predictionN, prediction] = NNFilterLoss(test, input, target, filterFunc, false);
+b = mod(b - 1, i) + 1;
+networkNamesSort = networkNames(b);
 
-%%
-
+loss(loss == 0) = 1000;
 [lossA, idxA] = min(loss);
 [bestLoss, idxB] = min(lossA);
 
-disp(['The best network is ', char(networkNames(idxA(idxB))), ', Seed: ', num2str(nets{idxA(idxB)}(idxB).nP.seed), ', Run ', num2str(idxB)])
+disp(['The best network is ', char(networkNames(idxA(idxB))), ', Seed: ', num2str(nets{idxA(idxB)}(idxB).nP.seed), ', Run ', num2str(idxB), ', Loss: ', num2str(bestLoss)])
+
+%%
+
+cost = CalculateNNIIRCost(6, 24, 8, 5, 5);

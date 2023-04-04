@@ -1,4 +1,4 @@
-%close all
+close all
 clear all
 
 set(0, 'DefaultLineLineWidth', 1.5);
@@ -35,7 +35,7 @@ index = DataHash({numPaths, fs, nfft, numEdges, 20});
 [loadPath, savePath] = deal(['geometry/NthOrderPaths_01mTo3m_', num2str(index), '.mat']);
 restart = true;
 generate = false;
-plotFigures = true;
+plotFigures = false;
 createPlot = false;
 if restart
     i = 1;
@@ -81,6 +81,7 @@ aWeight = abs(aWeight)';
 loadDir = 'NNSaves';
 
 netName = '5_iir-2057_0001-1-09-099-3-25.mat';
+netName = ['Run2', filesep, 'IIR-6_24_0001.mat'];
 
 numFilters = 2;
 filterFunc = @(output, target) IIRFilterLoss(output, target, numFilters, nfft, fs, fidx);

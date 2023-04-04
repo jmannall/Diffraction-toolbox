@@ -26,6 +26,6 @@ for j = 1:numFiles
     savePath = [saveDirectory filesep idx '.mat'];
     disp(['Save path: ' savePath])
     save(savePath, "net", "losses", "hP", "tP", "nP", "iteration", "i", '-v7.3')
-    delete(loadPath)
+    %delete(loadPath)
 end
 disp('Complete')

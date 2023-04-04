@@ -1,4 +1,49 @@
 clear all
+close all
+
+w = [180 360];
+mA = [0 (w(2) - 180) / 2];
+bA = [w(1) - 2 * mA(1) w(2) - 2 * mA(1)];
+
+corners = [bA(1) mA(1) w(1)
+    bA(1) mA(1) w(2)
+    bA(1) mA(2) w(2)
+    bA(2) mA(1) w(2)];
+
+planes = [1 4 2
+    1 2 3
+    2 4 3
+    1 3 4];
+
+figure
+patch('Faces', planes, 'Vertices', corners, 'facealpha', 0.1)
+view(3)
+
+mAMax = 90;
+bAMax = 360;
+bAMin = 180;
+
+wMax = 360;
+wMin = 180;
+
+base = mAMax * (bAMax - bAMin) / 2;
+height = wMax - wMin;
+
+volume = (1 / 3) * base * height;
+
+scale = 180^3 / 12;
+w = 180:1:360;
+pdf = (1 / (4 * volume) * (w - wMin) .^ 2);
+pdf2 = (1 / (60 * 180 ^ 2) * (w - 180) .^ 2);
+cdf = (1/ (12 * volume) * (w - wMin) .^ 3);
+cdf2 = (1/ (180 ^ 3) * (w - wMin) .^ 3);
+
+
+%volume = (1 / 3) * (90 * 180) / 2 * 180 = (90 * 180 ^ 2) / 6 = 15 * 180 ^ 2
+
+
+
+%%
 %close all
 
 % epsilon = 1e-6;
@@ -40,7 +85,7 @@ bendingAngle = n:n:360;
 
 numObs = 20000;
 
-geometry = RandomGeometryWedge_Run2(numObs);
+geometry = RandomGeometryWedge(numObs);
 
 w = geometry.wedgeIndex;
 bA = geometry.bendingAngle;

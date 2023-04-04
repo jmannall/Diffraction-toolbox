@@ -49,14 +49,14 @@ function geometry = RandomGeometryWedge_Run2(numObservations)
     L = [0.1 100];
     pathLength = RandomUniformDistribution(L, numObservations);
 
-    split = RandomUniformDistribution([0 0.5], numObservations);
+    split = RandomUniformDistribution([epsilon 1 - epsilon], numObservations);
     l = pathLength .* split;
     m = pathLength .* (1 - split);
 
     apex = [epsilon * const wL - epsilon];
     zA = RandomUniformDistribution(apex, numObservations);
 
-    angle = [epsilon 90];
+    angle = [1 90];
     phii = RandomUniformDistribution(angle, numObservations);
 
     r1 = l .* sind(phii);
