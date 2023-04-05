@@ -8,10 +8,10 @@ function GenerateNNData(idx, fs)
     disp(idx)
     disp('Hello World')
 
-    mkdir('results')
-    mkdir(['results', filesep, 'CreateBtmTrainingData'])
-    mkdir(['results', filesep, 'SingleWedge'])
-    mkdir(['results', filesep, 'DefaultBTM'])
+    CheckFileDir('results')
+    CheckFileDir(['results', filesep, 'CreateBtmTrainingData'])
+    CheckFileDir(['results', filesep, 'SingleWedge'])
+    CheckFileDir(['results', filesep, 'DefaultBTM'])
 
     nfft = 16384;
     c = 344;
