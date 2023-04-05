@@ -1,6 +1,14 @@
 clear all
 close all
 
+fs = 96e3;
+nfft = 16384;
+c = 344;
+controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'saveFiles', 2, 'noDirect', true);
+    
+out = SingleWedge(10, 359.99, 0.1, 180.5, 1, 1, 5, 5, controlparameters, true);
+
+
 w = [180 360];
 mA = [0 (w(2) - 180) / 2];
 bA = [w(1) - 2 * mA(1) w(2) - 2 * mA(1)];

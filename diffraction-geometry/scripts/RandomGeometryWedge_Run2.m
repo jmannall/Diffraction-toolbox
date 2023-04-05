@@ -27,6 +27,8 @@ function geometry = RandomGeometryWedge_Run2(numObservations)
     wI = nthroot((12 / b) * RandomUniformDistribution([0 1], numObservations), 3) + wedgeIndex(1);
 
     wI = 180 * (nthroot(RandomUniformDistribution([0 1], numObservations), 3) + 1);
+    wI = (wedgeIndex(2) - 180) * nthroot(RandomUniformDistribution([0 1], numObservations), 3) + 180;
+
     wI(wI < wedgeIndex(1)) = wI(wI < wedgeIndex(1)) + wedgeIndex(1) - 180;
     
 %     figure
