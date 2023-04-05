@@ -25,7 +25,41 @@ function geometry = RandomGeometryWedge_Run2(numObservations)
     %cdf = (b / 12) * (wI - wedgeIndex(1)) .^ 3;
 
     wI = nthroot((12 / b) * RandomUniformDistribution([0 1], numObservations), 3) + wedgeIndex(1);
+
+    wI = 180 * (nthroot(RandomUniformDistribution([0 1], numObservations), 3) + 1);
+    wI(wI < wedgeIndex(1)) = wI(wI < wedgeIndex(1)) + wedgeIndex(1) - 180;
     
+%     figure
+%     h = histogram(wI, wedgeIndex(1):5:round(wedgeIndex(2)));
+%     title('wedgeIndex')
+% 
+%     n = 2000;
+%     w = RandomUniformDistribution(wedgeIndex, n);
+%     mA = (w - (180 + epsilon)) / 2;
+%     bA = w;
+%     area = (1 / 2) * mA .* bA;
+% 
+%     num = cumsum(round(area * numObservations / sum(area)));
+% 
+%     num(num > numObservations) = numObservations;
+%     num(end) = numObservations;
+%     wI = zeros(numObservations, 1);
+%     idx = 1:num(1);
+%     wI(idx) = w(1);
+%     numI(1) = num(1);
+%     for i = 2:n
+%         idx = num(i - 1):num(i);
+%         wI(idx) = w(i);
+%         numI(i) = num(i) - num(i - 1);
+%     end
+% 
+%     figure
+%     h = histogram(wI, wedgeIndex(1):5:round(wedgeIndex(2)));
+%     title('wedgeIndex')
+% 
+%     figure
+%     stem(w, numI)
+
     %% Bending angle and minimum angle
 
     minAngle = [epsilon * const, (wI - (180 + epsilon)) / 2];
@@ -57,7 +91,9 @@ function geometry = RandomGeometryWedge_Run2(numObservations)
     zA = RandomUniformDistribution(apex, numObservations);
 
     angle = [1 90];
-    phii = RandomUniformDistribution(angle, numObservations);
+    phii1 = RandomUniformDistribution(angle, numObservations / 2);
+    phii2 = RandomTriangularDistribution(angle, true, numObservations / 2);
+    phii = [phii1; phii2];
 
     r1 = l .* sind(phii);
     r2 = m .* sind(phii);
