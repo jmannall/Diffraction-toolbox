@@ -4,9 +4,11 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
 
     % Create file info
     mFile = mfilename('fullpath');
+    saveAll = false;
     if nargin < 3
         index = DataHash({geometry, controlparameters});
         disp(['DataHash: ' num2str(index)])
+        saveAll = true;
     end
     [fileName, savePath, loadPath, resultExists, filesPerSave, numSaves, extra] = BTMArrayFileHandling(mFile, index, numInputs);
 
@@ -73,7 +75,11 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
         [targetData, fc, fidx] = CreateFrequencyNBands(tfmag, fvec, 8);
         trainingData = CreateNNinput(geometry);
     
-        save(NNSavePath, "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
+        if saveAll
+            save(NNSavePath, "trainingData", "targetData", "tfmag", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
+        else
+            save(NNSavePath, "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
+        end
         delete([savePath, '.mat'])
     end
 end

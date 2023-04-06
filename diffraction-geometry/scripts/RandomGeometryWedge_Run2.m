@@ -93,9 +93,10 @@ function geometry = RandomGeometryWedge_Run2(numObservations)
     zA = RandomUniformDistribution(apex, numObservations);
 
     angle = [1 90];
-    phii1 = RandomUniformDistribution(angle, numObservations / 2);
-    phii2 = RandomTriangularDistribution(angle, true, numObservations / 2);
-    phii = [phii1; phii2];
+    %phii1 = RandomUniformDistribution(angle, numObservations / 2);
+    %phii2 = RandomTriangularDistribution(angle, true, numObservations / 2);
+    %phii = [phii1; phii2];
+    phii = RandomUniformDistribution(angle, numObservations);
 
     r1 = l .* sind(phii);
     r2 = m .* sind(phii);
