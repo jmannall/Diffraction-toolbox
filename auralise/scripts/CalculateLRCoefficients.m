@@ -35,7 +35,8 @@ function [b, a] = CalculateLRCoefficients(fc, fs, freqResponse)
     a = cat(3, aLow, aLow, aHigh, aHigh);
 
     [tfmag, fvec, ~] = CalculateFilterResponse(b, a, nfft, fs);
-
+    tfmag = tfmag';
+    
     if nargin > 2
         tfmag = tfmag + freqResponse;
     end
