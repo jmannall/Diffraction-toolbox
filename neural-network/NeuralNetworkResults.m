@@ -1,7 +1,7 @@
 
 %close all
 %clear all
-
+      
 colorStore = colororder;
 
 %% Load networks
@@ -41,25 +41,25 @@ for i = 1:numNets
     size = CalculateNNIIRCost(numLayers, hiddenLayerSize, nets{i}(1).nP.numInputs, nets{i}(1).nP.numOutputs, gx);
     titleText = ['Net: ', num2str(numLayers), '-', num2str(hiddenLayerSize), ', Learn rate: ', num2str(learnRate), ', Size: ', num2str(size)];
     
-%     figure
-%     hold on
-%     colororder(color)
+    figure
+    hold on
+    colororder(color)
     for j = 1:numRuns
         losses = nets{i}(j).losses;
-%         numEpochs = nets{i}(j).tP.numEpochs;
-%         lvec = 1:numEpochs;
-%         plot(lvec, losses.test)
-%         plot(lvec, losses.epoch, '--')
-%         numIterations = length(losses.iteration);
-%         %lvec = (1:numIterations) / numIterations * numEpochs;
-%         %plot(lvec, losses.iteration)
+        numEpochs = nets{i}(j).tP.numEpochs;
+        lvec = 1:numEpochs;
+        plot(lvec, losses.test)
+        plot(lvec, losses.epoch, '--')
+        numIterations = length(losses.iteration);
+        %lvec = (1:numIterations) / numIterations * numEpochs;
+        %plot(lvec, losses.iteration)
         loss(i,j) = losses.test(end);
     end
-%     grid on
-%     ylim([0 200])      
-%     title(titleText)
-%     ylabel('Epoch')
-%     xlabel('Mean absolute error (dB)')
+    grid on
+    ylim([0 200])      
+    title(titleText)
+    ylabel('Epoch')
+    xlabel('Mean absolute error (dB)')
 
     networkNames(i,1) = string(titleText);
     % Add network file path

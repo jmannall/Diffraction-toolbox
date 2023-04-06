@@ -40,6 +40,17 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     testInputData = dlarray(single(testInputData), "CB");
     learnRate = hP.learnRate;
 
+    switch learnRate
+        case 1e-3
+            reductionPoints = [100 300 450];
+        case 1e-4
+            reductionPoints = [300 450];
+        case 1e-5
+            reductionPoints = [400 475];
+        otherwise
+            reductionPoints = [200 400];
+    end
+
     % Check if restarting training
     restart = exist([cd filesep loadPath], "file");
     if restart == 2
@@ -85,7 +96,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
         end
         losses.test(epoch) = tP.testFunc(net, testInputData, testTargetData);
         losses.epoch(epoch) = mean(thisIterationLosses);
-        if epoch == 200 || epoch == 400
+        if sum(ismember(epoch, reductionPoints)) > 0
             learnRate = learnRate / 10;
         end
 
