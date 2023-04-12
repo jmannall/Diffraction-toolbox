@@ -22,7 +22,7 @@ function [inputBuffer, outputBuffer, output] = ProcessLRFilterBank(input, b, a, 
 %     ahpf1 = a(:,3:4,2);
 %     bhpf1 = b(:,3:4,2);
 
-    [midOutput, bandOutputs] = deal(zeros(numBands, 1));
+    [midOutput, bandOutputs] = deal(zeros(1, numBands));
 
     for i = 1:2:3
         [inputBuffer(:,1:2,i), outputBuffer(:,1:2,i), filterOutput] = ProcessIIRFilter(input, b(:,1:2,i), a(:,1:2,i), inputBuffer(:,1:2,i), outputBuffer(:,1:2,i));

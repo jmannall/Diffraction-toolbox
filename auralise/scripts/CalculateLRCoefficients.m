@@ -1,4 +1,4 @@
-function [b, a] = CalculateLRCoefficients(fc, fs, freqResponse)
+function [b, a, totalTfmag] = CalculateLRCoefficients(fc, fs, freqResponse)
 
     T = 1 / fs;
     K = tan(2 * pi * fc * T / 2);
@@ -34,13 +34,17 @@ function [b, a] = CalculateLRCoefficients(fc, fs, freqResponse)
     b = cat(3, bLow, bMidLow, bMidHigh, bHigh);
     a = cat(3, aLow, aLow, aHigh, aHigh);
 
-    [tfmag, fvec, ~] = CalculateFilterResponse(b, a, nfft, fs);
-    tfmag = tfmag';
-    
+    [tfmagOut, fvec, ~] = CalculateFilterResponse(b(:,[1,2,7,8],:), a(:,[1,2,7,8],:), nfft, fs);
+
     if nargin > 2
-        tfmag = tfmag + freqResponse;
+        numResponses = size(freqResponse, 1);
+        totalTfmag = zeros(nfft / 2, numResponses);
+        for i = 1:numResponses
+            tfmag = tfmagOut + freqResponse(i,:);
+            totalTfmag(:,i) = mag2db(sum(10 .^ (tfmag / 20), 2));
+        end
     end
-    totalTfmag = mag2db(sum(10 .^ (tfmag / 20), 2));
+    %totalTfmag = mag2db(sum(10 .^ (tfmag / 20), 2));
 
     % Plot bands
 %     figure

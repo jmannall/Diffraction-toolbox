@@ -61,17 +61,6 @@ disp('BTM')
 
 tfmagN.BtmI = mag2db((1 ./ pathLength) .* db2mag(targetData));
 
-controlparameters.fs = 2 * fs;
-controlparameters.nfft = 2 * nfft;
-tfmag.Btm = deal(zeros(nfft / 2, testSize));
-for i = 1:testSize
-    [~, tfmagStore] = SingleWedge(wL(i), wI(i), thetaS(i), thetaR(i), rS(i), rR(i), zS(i), zR(i), controlparameters, false);
-    tfmag.Btm(:,i) = tfmagStore.diff1(1:end / 2, :);
-end
-[tfmagN.Btm, ~, ~] = CreateFrequencyNBands(tfmag.Btm, fvec, nBands);
-controlparameters.fs = fs;
-controlparameters.nfft = nfft;
-
 %% NN
 
 disp('NN')
@@ -301,16 +290,13 @@ end
 
 %% Percentiles
 
-close all
 
 percentiles = 0:0.1:100;
 
 percentile = CalculatePercentiles(lossN.i, percentiles);
 
-color = colorStore([1, 2, 3, 5], :);
-
+color = colorStore([1, 2, 4], :);
 figure
-colororder(color)
 % for i = 2:numFields
 %     idx = fields{i};
 %     plot(percentiles, percentile.(idx))
@@ -318,11 +304,11 @@ colororder(color)
 % end
 plot(percentiles, percentile.NN1)
 hold on
-plot(percentiles, percentile.UtdILR, '--')
-plot(percentiles, percentile.UtdI, '-.')
-plot(percentiles, percentile.IIRHi, ':')
+plot(percentiles, percentile.UtdILR)
+%plot(percentiles, percentile.UTDI)
+plot(percentiles, percentile.IIRHi)
 grid on
-l = legend('NN', 'UTD-LR', 'UTD', 'UDFA-IIR', 'Location','northwest');
+l = legend('NN', 'UTD-LR', 'UDFA-IIR', 'Location','northwest');
 title(l, 'Diffraction Model')
 xlabel('Percentile')
 ylabel('Mean absolute error (dBA)')
@@ -332,16 +318,11 @@ ylim([0 30])
 ax=axes;
 set(ax,'units','normalized','position',[0.2,0.2,0.35,0.4])
 box(ax,'on')
-% for i = 2:numFields
-%     idx = fields{i};
-%     plot(percentiles, percentile.(idx), 'parent',ax)
-%     hold on
-% end
-plot(percentiles, percentile.NN1)
-hold on
-plot(percentiles, percentile.UtdILR, '--')
-plot(percentiles, percentile.UtdI, '-.')
-plot(percentiles, percentile.IIRHi, ':')
+for i = 2:numFields
+    idx = fields{i};
+    plot(percentiles, percentile.(idx), 'parent',ax)
+    hold on
+end
 grid on
 set(ax,'xlim',[0,40],'ylim',[0,1])
 

@@ -2,7 +2,7 @@ function output = EquationQuarter(beta, n, k, L, plus, B) % 35
 
     cotArg = (pi + PlusMinus(beta, plus)) / (2 * n); % 4
     if (abs(cotArg) < 0.001 ) % Going to be singular
-        disp('Almost singular mode');
+        % disp('Almost singular mode');
         [~, betaarg] = Apm(n, beta, plus);
         eps = pi +  betaarg;
         if eps == 0

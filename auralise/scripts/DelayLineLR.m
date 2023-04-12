@@ -1,6 +1,6 @@
 %% Implement delay line with a Linkwitz-Riley filter structure
 
-function [output, ir] = DelayLineLR(audio, pathLength, windowLength, validPath, tfmag, c, fs, doFilter)
+function [output, ir, totalTfmag] = DelayLineLR(audio, pathLength, windowLength, validPath, tfmag, c, fs, doFilter)
 
     [delay, fracDelay, amplitude] = CalculateDelay(pathLength, c, fs, doFilter);
     amplitude(doFilter) = 1; % Path length 1 / r included in tfmag
@@ -15,13 +15,15 @@ function [output, ir] = DelayLineLR(audio, pathLength, windowLength, validPath, 
     
     fc = [250 1000 4000];
     
-    numFreqResponses = size(tfmag, 2);
+    [b, a, totalTfmag] = CalculateLRCoefficients(fc, fs, tfmag);
+
+    return
+
+    numFreqResponses = size(tfmag, 1);
     if numFreqResponses == 1
-        [b, a] = CalculateLRCoefficients(fc, fs, tfmag);
-        tfmag = tfmag .* ones(numBands, numBuffers);
-    else
-        [b, a] = CalculateLRCoefficients(fc, fs, tfmag(:,1));
+        tfmag = tfmag .* ones(numBuffers, numBands);
     end
+
 
     disp('Process L-R filterbank and delay line')
     for k = 1:numBuffers
@@ -29,7 +31,7 @@ function [output, ir] = DelayLineLR(audio, pathLength, windowLength, validPath, 
         for i = 1:windowLength
             [idx, read, write, inputBuffer, input] = ProcessSampleData(windowLength, overlap, read, write, inputBuffer, amplitude, validPath, buffer, k, i);
             if doFilter(k)
-                [inputBufferLR, outputBufferLR, input] = ProcessLRFilterBank(input, b, a, inputBufferLR, outputBufferLR, tfmag(:,k), numBands);
+                [inputBufferLR, outputBufferLR, input] = ProcessLRFilterBank(input, b, a, inputBufferLR, outputBufferLR, tfmag(k,:), numBands);
             end
             [inputBuffer, output, buffer] = ProcessSampleOutput(audio, buffer, input, inputBuffer, fracDelay, window, write, idx, k, i, output);
         end
@@ -39,7 +41,7 @@ function [output, ir] = DelayLineLR(audio, pathLength, windowLength, validPath, 
         if doFilter(k)
             [tempInputBufferLR, tempOutputBufferLR] = InitialiseLRBuffers();
             for i = delay(k):delay(k) + iirLength
-                [tempInputBufferLR, tempOutputBufferLR, ir(i, k)] = ProcessLRFilterBank(irIn(i), b, a, tempInputBufferLR, tempOutputBufferLR, tfmag(:,k), numBands);
+                [tempInputBufferLR, tempOutputBufferLR, ir(i, k)] = ProcessLRFilterBank(irIn(i), b, a, tempInputBufferLR, tempOutputBufferLR, tfmag(k,:), numBands);
             end
         else
             ir(:,k) = irIn;

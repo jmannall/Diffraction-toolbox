@@ -1,4 +1,4 @@
-function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtmTrainingData(numInputs, controlparameters, index)
+function [trainingData, targetData, fvec, fc, fidx, index, savePath, tfmag] = CreateBtmTrainingData(numInputs, controlparameters, index)
 
     geometry = RandomGeometryWedge_Run2(numInputs);
 
@@ -20,7 +20,9 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
     NNSaveExists = exist([cd, filesep, NNSavePath, '.mat'], "file");
 
     if NNSaveExists == 2
-        load([NNSavePath, '.mat'], "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath");
+        %load([NNSavePath, '.mat'], "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath");
+        load([NNSavePath, '.mat']);
+
         % disp('Load NN data')
     else
         rtemplate.tfmag = [];
@@ -60,7 +62,10 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
                     L = sqrt((rS + rR) ^ 2 + (zR - zS) ^ 2);
                     controlparametersi.Rstart = L;
 
-                    [result(i).tfmag, ~, ~] = SingleWedgeInterpolated(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
+                    [result(i).tfmagI, ~, ~] = SingleWedgeInterpolated(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
+                    if saveAll
+                        [result(i).tfmag, ~, ~] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
+                    end
                     result(i).i = i;
                 end
                 savepathI = [savePath, '_', num2str(j)];
@@ -69,14 +74,17 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath] = CreateBtm
             toc
             result = ProcessArrayResults(fileName, index, savePath, numSaves, controlparameters, geometry);
         end
-        tfmag = [result.tfmag];
-        tfmag = tfmag(1:end / 2,:);
-        tfmag = max(min(tfmag, 128), -128);
-        [targetData, fc, fidx] = CreateFrequencyNBands(tfmag, fvec, 8);
+        tfmagI = [result.tfmagI];
+        tfmagI = tfmagI(1:end / 2,:);
+        tfmagI = max(min(tfmagI, 128), -128);
+        [targetData, fc, fidx] = CreateFrequencyNBands(tfmagI, fvec, 8);
         trainingData = CreateNNinput(geometry);
-    
+
         if saveAll
-            save(NNSavePath, "trainingData", "targetData", "tfmag", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
+            tfmag = [result.tfmag];
+            tfmag = tfmag(1:end / 2,:);
+            tfmag = max(min(tfmag, 128), -128);
+            save(NNSavePath, "trainingData", "targetData", "tfmagI", "tfmag", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
         else
             save(NNSavePath, "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
         end

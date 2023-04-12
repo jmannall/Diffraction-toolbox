@@ -2,7 +2,7 @@
 
 function [buffer, read, write, window, overlap, numBuffers, inputBuffer, output, windowLength, audio] = InitialiseBuffers(delay, windowLength, audio, pathLength)
 
-    numBuffers = size(pathLength, 2);    % Is delay the same length
+    numBuffers = size(pathLength, 1);    % Is delay the same length
     overlap = floor(windowLength / 2);
     inputBuffer = zeros(2, 1);
     outputLength = (numBuffers + 1) * ceil(windowLength / 2) + 1;
