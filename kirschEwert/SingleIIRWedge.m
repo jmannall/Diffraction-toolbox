@@ -14,19 +14,19 @@ function [tfmag, fvec, tfmagRef, H] = SingleIIRWedge(wedgeLength, wedgeIndex, th
     end
     fMax = controlparameters.fs * min(n / 4, 1);
 
-    ft = logspace(log10(fMin), log10(fMax), n + 1);
-    gt = abs(CalculateUDFATarget(ft, gParameters, controlparameters));
+    ft = logspace(log10(fMin), log10(fMax), n + 1); % Precompute
+    gt = abs(CalculateUDFATarget(ft, gParameters, controlparameters)); % 1 + n -> 337
 
     fRef = controlparameters.fs/controlparameters.nfft*[0:controlparameters.nfft/2-1];
     HRef = CalculateUDFATarget(fRef, gParameters, controlparameters);
 
     [fsh, gsh, fi, gi] = deal(zeros(1, n));
     for i = 1:n
-        fi(i) = ft(i) * sqrt(ft(i + 1) / ft(i));
-        gsh(i) = gt(i + 1) / gt(i);
+        fi(i) = ft(i) * sqrt(ft(i + 1) / ft(i));    % Precompute
+        gsh(i) = gt(i + 1) / gt(i); % 1
         gi(i) = abs(CalculateUDFATarget(fi(i), gParameters, controlparameters));
-        gd = gi(i) / gt(i);
-        fsh(i) = fi(i) * sqrt((gd ^ 2 - gsh(i) ^ 2) / (gsh(i) * (1 - gd ^ 2))) * (1 + (gsh(i) ^ 2) / 12); % Think this fixes a typo in eq (20)?
+        gd = gi(i) / gt(i); % 1
+        fsh(i) = fi(i) * sqrt((gd ^ 2 - gsh(i) ^ 2) / (gsh(i) * (1 - gd ^ 2))) * (1 + (gsh(i) ^ 2) / 12); % 13 -> Think this fixes a typo in eq (20)?
     end
 
     fs = controlparameters.fs;

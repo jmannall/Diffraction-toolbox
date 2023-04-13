@@ -165,8 +165,8 @@ z2 = 2;
 t0 = (r1 + r2) / c;
 tMax = (sqrt(r1 ^ 2 + z1 ^ 2) + sqrt(r2 ^ 2 + z2 ^ 2)) / c;
 numEdgeDivisions = ceil((tMax - t0) * Fs);
-CcSimpInt = 6; % 3-point simpsons rule
-CcBtm = btmOnce + (CcBtmIntegral * (numIntCalcPerDivision - 1) + CcSimpInt) * numEdgeDivisions + CcBtmIntegral;
+CcTrapEstimation = 2;
+CcBtm = btmOnce + (CcBtmIntegral * (numIntCalcPerDivision - 1) + CcTrapEstimation) * numEdgeDivisions;
 
 % Calculating subdivisions
 % n = fs * (sqrt(r1 ^ 2 + z1 ^ 2) + sqrt(r2 ^ 2 + z2 ^ 2) - (r1 + r2)) / c;

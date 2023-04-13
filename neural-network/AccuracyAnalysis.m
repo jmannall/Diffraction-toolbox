@@ -16,14 +16,14 @@ nBands = 8;
 
 loadDir = 'NNSaves';
 netNames = {['Run6', filesep, 'IIR-7_32_0001.mat'], ['Run5', filesep, 'IIR-7_27_0001.mat'], ['Run6', filesep, 'IIR-5_45_0001.mat'], ['Run3', filesep, 'IIR-4_31_0001.mat'], ['Run6', filesep, 'IIR-4_20_0001.mat']};
-netNames = {['Run6', filesep, 'IIR-7_32_0001.mat']};
+netNames = {['Run6', filesep, 'IIR-7_32_0001.mat'], ['Run6', filesep, 'IIR-4_20_0001.mat']};
 
 %% Geometry input data
 
 disp('Load validation data')
 
 controlparameters = struct('fs', 2 * fs, 'nfft', 2 * nfft, 'difforder', 1, 'c', c, 'saveFiles', 3, 'noDirect', false);
-[inputData, targetData, fvec, ~, ~, ~, ~, tfmag.Btm, tfmag.BtmI] = CreateBtmTrainingData(testSize, controlparameters, 'ValidationData');
+[inputData, targetData, fvec, ~, ~, ~, ~, tfmag.BtmI] = CreateBtmTrainingData(testSize, controlparameters, 'ValidationData');
 
 numFreq = length(fvec);
 
@@ -60,7 +60,7 @@ tfmag.BtmI = mag2db((1 ./ pathLength) .* db2mag(tfmag.BtmI));
 disp('BTM')
 
 tfmagN.BtmI = mag2db((1 ./ pathLength) .* db2mag(targetData));
-tfmagN.Btm = CreateFrequencyNBands(tfmag.Btm, fvec, nBands);
+%tfmagN.Btm = CreateFrequencyNBands(tfmag.Btm, fvec, nBands);
 
 %% NN
 

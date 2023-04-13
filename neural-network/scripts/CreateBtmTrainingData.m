@@ -62,9 +62,9 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath, tfmag, tfma
                     L = sqrt((rS + rR) ^ 2 + (zR - zS) ^ 2);
                     controlparametersi.Rstart = L;
 
-                    [result(i).tfmagI, ~, ~] = SingleWedgeInterpolated(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
+                    result(i).tfmagI = SingleWedgeInterpolated(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
                     if saveAll
-                        [tempVar, ~, ~] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
+                        [~, tempVar] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
                         result(i).tfmag = tempVar.diff1;
                     end
                     result(i).i = i;
