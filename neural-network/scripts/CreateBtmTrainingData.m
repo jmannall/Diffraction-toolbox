@@ -1,4 +1,4 @@
-function [trainingData, targetData, fvec, fc, fidx, index, savePath, tfmag] = CreateBtmTrainingData(numInputs, controlparameters, index)
+function [trainingData, targetData, fvec, fc, fidx, index, savePath, tfmag, tfmagI] = CreateBtmTrainingData(numInputs, controlparameters, index)
 
     geometry = RandomGeometryWedge_Run2(numInputs);
 
@@ -64,7 +64,8 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath, tfmag] = Cr
 
                     [result(i).tfmagI, ~, ~] = SingleWedgeInterpolated(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
                     if saveAll
-                        [result(i).tfmag, ~, ~] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
+                        [tempVar, ~, ~] = SingleWedge(wedgeLength,wedgeIndex,thetaS,thetaR,rS,rR,zS,zR,controlparametersi,false);
+                        result(i).tfmag = tempVar.diff1;
                     end
                     result(i).i = i;
                 end

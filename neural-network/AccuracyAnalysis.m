@@ -23,7 +23,7 @@ netNames = {['Run6', filesep, 'IIR-7_32_0001.mat']};
 disp('Load validation data')
 
 controlparameters = struct('fs', 2 * fs, 'nfft', 2 * nfft, 'difforder', 1, 'c', c, 'saveFiles', 3, 'noDirect', false);
-[inputData, targetData, fvec, ~, ~, ~, ~, tfmag.BtmI] = CreateBtmTrainingData(testSize, controlparameters, 'ValidationData');
+[inputData, targetData, fvec, ~, ~, ~, ~, tfmag.Btm, tfmag.BtmI] = CreateBtmTrainingData(testSize, controlparameters, 'ValidationData');
 
 numFreq = length(fvec);
 
@@ -60,17 +60,7 @@ tfmag.BtmI = mag2db((1 ./ pathLength) .* db2mag(tfmag.BtmI));
 disp('BTM')
 
 tfmagN.BtmI = mag2db((1 ./ pathLength) .* db2mag(targetData));
-
-controlparameters.fs = 2 * fs;
-controlparameters.nfft = 2 * nfft;
-tfmag.Btm = deal(zeros(nfft / 2, testSize));
-for i = 1:testSize
-    [~, tfmagStore] = SingleWedge(wL(i), wI(i), thetaS(i), thetaR(i), rS(i), rR(i), zS(i), zR(i), controlparameters, false);
-    tfmag.Btm(:,i) = tfmagStore.diff1(1:end / 2, :);
-end
-[tfmagN.Btm, ~, ~] = CreateFrequencyNBands(tfmag.Btm, fvec, nBands);
-controlparameters.fs = fs;
-controlparameters.nfft = nfft;
+tfmagN.Btm = CreateFrequencyNBands(tfmag.Btm, fvec, nBands);
 
 %% NN
 
@@ -195,6 +185,12 @@ end
 
 lossInf = CalculateLoss(tfmagN, tfmagN.BtmI, wL > 5);
 lossN = CalculateLoss(tfmagN, tfmagN.BtmI);
+lossNTrue = CalculateLoss(tfmagN, tfmagN.Btm);
+
+lossN.i.IIRhi = min(lossN.i.IIRhi, lossNTrue.i.IIRhi);
+lossN.mean.IIRhi = mean(lossN.i.IIRhi, 'all');
+lossN.i.IIRlo = min(lossN.i.IIRhi, lossNTrue.i.IIRhi);
+lossN.mean.IIRlo = mean(lossN.i.IIRhi, 'all');
 
 %% Frequency dependent error
 
