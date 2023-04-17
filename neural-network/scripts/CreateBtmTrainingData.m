@@ -1,4 +1,4 @@
-function [trainingData, targetData, fvec, fc, fidx, index, savePath, tfmag, tfmagI] = CreateBtmTrainingData(numInputs, controlparameters, index)
+function [trainingData, targetData, DC, fvec, fc, fidx, index, savePath, tfmag, tfmagI] = CreateBtmTrainingData(numInputs, controlparameters, index)
 
     geometry = RandomGeometryWedge_Run2(numInputs);
 
@@ -22,7 +22,6 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath, tfmag, tfma
     if NNSaveExists == 2
         %load([NNSavePath, '.mat'], "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath");
         load([NNSavePath, '.mat']);
-
         % disp('Load NN data')
     else
         rtemplate.tfmag = [];
@@ -78,6 +77,7 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath, tfmag, tfma
         tfmagI = [result.tfmagI];
         tfmagI = tfmagI(1:end / 2,:);
         tfmagI = max(min(tfmagI, 128), -128);
+        DC = tfmagI(1,:);
         [targetData, fc, fidx] = CreateFrequencyNBands(tfmagI, fvec, 8);
         trainingData = CreateNNinput(geometry);
 
@@ -85,9 +85,9 @@ function [trainingData, targetData, fvec, fc, fidx, index, savePath, tfmag, tfma
             tfmag = [result.tfmag];
             tfmag = tfmag(1:end / 2,:);
             tfmag = max(min(tfmag, 128), -128);
-            save(NNSavePath, "trainingData", "targetData", "tfmagI", "tfmag", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
+            save(NNSavePath, "trainingData", "targetData", "DC", "tfmagI", "tfmag", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
         else
-            save(NNSavePath, "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
+            save(NNSavePath, "trainingData", "targetData", "DC", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
         end
         delete([savePath, '.mat'])
     end

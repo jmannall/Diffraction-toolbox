@@ -16,14 +16,14 @@ nBands = 8;
 
 loadDir = 'NNSaves';
 netNames = {['Run6', filesep, 'IIR-7_32_0001.mat'], ['Run5', filesep, 'IIR-7_27_0001.mat'], ['Run6', filesep, 'IIR-5_45_0001.mat'], ['Run3', filesep, 'IIR-4_31_0001.mat'], ['Run6', filesep, 'IIR-4_20_0001.mat']};
-netNames = {['Run6', filesep, 'IIR-7_32_0001.mat'], ['Run6', filesep, 'IIR-4_20_0001.mat']};
+netNames = {['Run6', filesep, 'IIR-7_32_0001.mat'], ['Run6', filesep, 'IIR-4_20_0001.mat'], 'iir-2057_0001-1-09-099-3-25.mat'};
 
 %% Geometry input data
 
 disp('Load validation data')
 
 controlparameters = struct('fs', 2 * fs, 'nfft', 2 * nfft, 'difforder', 1, 'c', c, 'saveFiles', 3, 'noDirect', false);
-[inputData, targetData, fvec, ~, ~, ~, ~, tfmag.BtmI] = CreateBtmTrainingData(testSize, controlparameters, 'ValidationData');
+[inputData, targetData, fvec, ~, ~, ~, ~, tfmag.Btm, tfmag.BtmI] = CreateBtmTrainingData(testSize, controlparameters, 'ValidationData');
 
 numFreq = length(fvec);
 
@@ -53,6 +53,7 @@ thetaR = mA + bA;
 [~, phii] = CalculateApex(rS, rR, zS, zR, wL, false);
 dZ = abs(zR - zS);
 pathLength = sqrt((rS + rR) .^ 2 + dZ .^ 2);
+tfmag.Btm = mag2db((1 ./ pathLength) .* db2mag(tfmag.Btm));
 tfmag.BtmI = mag2db((1 ./ pathLength) .* db2mag(tfmag.BtmI));
 
 %% BTM
@@ -60,7 +61,7 @@ tfmag.BtmI = mag2db((1 ./ pathLength) .* db2mag(tfmag.BtmI));
 disp('BTM')
 
 tfmagN.BtmI = mag2db((1 ./ pathLength) .* db2mag(targetData));
-%tfmagN.Btm = CreateFrequencyNBands(tfmag.Btm, fvec, nBands);
+tfmagN.Btm = CreateFrequencyNBands(tfmag.Btm, fvec, nBands);
 
 %% NN
 
@@ -187,17 +188,28 @@ lossInf = CalculateLoss(tfmagN, tfmagN.BtmI, wL > 5);
 lossN = CalculateLoss(tfmagN, tfmagN.BtmI);
 lossNTrue = CalculateLoss(tfmagN, tfmagN.Btm);
 
-lossN.i.IIRhi = min(lossN.i.IIRhi, lossNTrue.i.IIRhi);
-lossN.mean.IIRhi = mean(lossN.i.IIRhi, 'all');
-lossN.i.IIRlo = min(lossN.i.IIRhi, lossNTrue.i.IIRhi);
-lossN.mean.IIRlo = mean(lossN.i.IIRhi, 'all');
+lossN.i.IIRHi = min(lossN.i.IIRHi, lossNTrue.i.IIRHi);
+idx = lossN.i.IIRHi == lossNTrue.i.IIRHi;
+lossN.if.IIRHi(:,~idx) = lossN.if.IIRHi(:,~idx);
+lossN.if.IIRHi(:,idx) = lossNTrue.if.IIRHi(:,idx);
+lossN.i.IIRHi = mean(lossN.if.IIRHi, 1);
+lossN.f.IIRHi = mean(lossN.if.IIRHi, 2);
+lossN.mean.IIRHi = mean(lossN.if.IIRHi, 'all');
+
+lossN.i.IIRLo = min(lossN.i.IIRLo, lossNTrue.i.IIRLo);
+idx = lossN.i.IIRLo == lossNTrue.i.IIRLo;
+lossN.if.IIRLo(:,~idx) = lossN.if.IIRLo(:,~idx);
+lossN.if.IIRLo(:,idx) = lossNTrue.if.IIRLo(:,idx);
+lossN.i.IIRLo = mean(lossN.if.IIRLo, 1);
+lossN.f.IIRLo = mean(lossN.if.IIRLo, 2);
+lossN.mean.IIRLo = mean(lossN.if.IIRLo, 'all');
 
 %% Frequency dependent error
 
 close all
 
 figure
-for k = 2:numFields
+for k = 3:numFields
     field = fields{k};
     if matches(field, 'UtdI')
         f = fvecUtd;
@@ -208,13 +220,13 @@ for k = 2:numFields
     hold on
 end
 grid on
-l = legend(fields, 'Location','northwest');
+l = legend(fields{3:numFields}, 'Location','northwest');
 title(l, 'Diffraction Model')
 xlim([20 20e3])
 ylim([0 12])
 
 figure
-for k = 2:numFields
+for k = 3:numFields
     field = fields{k};
     if matches(field, 'UtdI')
         f = fvecUtd;
@@ -225,7 +237,7 @@ for k = 2:numFields
     hold on
 end
 grid on
-l = legend(fields, 'Location','northwest');
+l = legend(fields{3:numFields}, 'Location','northwest');
 title(l, 'Diffraction Model')
 xlim([20 20e3])
 ylim([0 12])
@@ -253,6 +265,21 @@ end
 percentiles = 10:10:50;
 wLMin = 5;
 
+idx = find(wL > 4.5 & wL < 5.5 & phii > 85 & rS < 3);
+num = length(idx);
+
+for i = 1:num
+
+    figure
+    semilogx(fvec, tfmag.BtmI(:,idx(i)))
+    hold on
+    semilogx(fvec, tfmag.NN1(:,idx(i)))
+    semilogx(fvec, tfmag.UtdILR(:,idx(i)))
+    ylim([-60 10])
+    xlim([20 20e3])
+    grid on
+    legend('BtmI', 'NN', 'UtdILR')
+end
 close all
 for i = 2:numFields
     field = fields{i};
@@ -261,7 +288,7 @@ for i = 2:numFields
 end
 
 close all
-for i = 21:numFields
+for i = 2:numFields
     field = fields{i};
     figure
     PlotVarDependentLoss(lossN.i.(field), phii(wL > wLMin), 1, percentiles, ['phii: ', field], i)
@@ -303,7 +330,7 @@ percentiles = 0:0.1:100;
 
 percentile = CalculatePercentiles(lossN.i, percentiles);
 
-color = colorStore([1, 2, 3, 5], :);
+color = colorStore([1, 1, 2, 3, 5], :);
 
 figure
 colororder(color)
@@ -314,14 +341,15 @@ colororder(color)
 % end
 plot(percentiles, percentile.NN1)
 hold on
+plot(percentiles, percentile.NN2, 'Color', [color(1,:), 0.6])
 plot(percentiles, percentile.UtdILR, '--')
 plot(percentiles, percentile.UtdI, '-.')
 plot(percentiles, percentile.IIRHi, ':')
 grid on
-l = legend('NN', 'UTD-LR', 'UTD', 'UDFA-IIR', 'Location','northwest');
+l = legend('NN (best)', 'NN (small)', 'UTD-LR', 'UTD', 'UDFA-IIR', 'Location','northwest');
 title(l, 'Diffraction Model')
 xlabel('Percentile')
-ylabel('Mean absolute error (dBA)')
+ylabel('Mean absolute error (dB)')
 ylim([0 30])
 
 % creating the zoom-in inset
@@ -335,26 +363,27 @@ box(ax,'on')
 % end
 plot(percentiles, percentile.NN1)
 hold on
+plot(percentiles, percentile.NN2, 'Color', [color(1,:), 0.6])
 plot(percentiles, percentile.UtdILR, '--')
 plot(percentiles, percentile.UtdI, '-.')
 plot(percentiles, percentile.IIRHi, ':')
 grid on
 set(ax,'xlim',[0,40],'ylim',[0,1])
 
-%saveas(gcf, [savePath, filesep, 'PercentileLoss'], 'epsc')
-%saveas(gcf, [savePath, filesep, 'PercentileLoss'], 'svg')
+saveas(gcf, [savePath, filesep, 'PercentileLoss'], 'epsc')
+saveas(gcf, [savePath, filesep, 'PercentileLoss'], 'svg')
 
 figure
-for i = 2:numFields
+for i = 3:numFields
     idx = fields{i};
     plot(percentiles, percentile.(idx))
     hold on
 end
 grid on
-l = legend(fields{2:end}, 'Location','northwest');
+l = legend(fields{3:end}, 'Location','northwest');
 title(l, 'Diffraction Model')
 xlabel('Percentile')
-ylabel('Mean absolute error (dBA)')
+ylabel('Mean absolute error (dB)')
 ylim([0 40])
 
 %saveas(gcf, [savePath, filesep, 'PercentileLoss_Cropped.svg'], 'svg')
@@ -401,51 +430,42 @@ xlim([-10 35])
 
 %close all
 
-[x, idx] = sort(inputData(4,:));
-UtdLR = iLossesUtdLR(idx);
-NN = iLossesNN2(idx);
-y = [NN; UtdLR];
-
-wL = inputData(4,:);
 width = 1;
 numBins = 50 / width;
-[meanUtdLR, meanNN, lpUtdLR, upUtdLR, lpNN, upNN] = deal(zeros(1, 2 * numBins));
+[meanUtdLR, meanNN1, meanNN2, meanUDFAIIR] = deal(zeros(1, 2 * numBins));
 x = zeros(1, 2 * numBins + 1);
 for i = 1:numBins
     idx = width * (i - 1) < wL & wL <= width * i;
-    meanUtdLR(2 * i - 1) = mean(iLossesUtdLR(idx));
-    meanNN(2 * i - 1) = mean(iLossesNN1(idx));
-    lpUtdLR(2 * i - 1) = prctile(iLossesUtdLR(idx), 25);
-    upUtdLR(2 * i - 1) = prctile(iLossesUtdLR(idx), 75);
-    lpNN(2 * i - 1) = prctile(iLossesNN1(idx), 25);
-    upNN(2 * i - 1) = prctile(iLossesNN1(idx), 75);
-    meanUtdLR(2 * i) = mean(iLossesUtdLR(idx));
-    meanNN(2 * i) = mean(iLossesNN1(idx));
-    lpUtdLR(2 * i) = prctile(iLossesUtdLR(idx), 25);
-    upUtdLR(2 * i) = prctile(iLossesUtdLR(idx), 75);
-    lpNN(2 * i) = prctile(iLossesNN1(idx), 25);
-    upNN(2 * i) = prctile(iLossesNN1(idx), 75);
+    meanUtdLR(2 * i - 1:2 * i) = mean(lossN.i.UtdILR(idx));
+    meanNN1(2 * i - 1:2 * i) = mean(lossN.i.NN1(idx));
+    meanNN2(2 * i - 1:2 * i) = mean(lossN.i.NN2(idx));
+    meanUDFAIIR(2 * i - 1:2 * i) = mean(lossN.i.IIRHi(idx));
     x(2 * i:2 * i + 1) = width * i;
 end
 x = x(1:end - 1);
 
+color = colorStore([1, 1, 2, 5], :);
+
 %x = width:width:50;
 figure
-plot(x, meanNN)
+colororder(color)
+plot(x, meanNN1)
 hold on
 grid on
-plot(x, meanUtdLR, ':')
-plot(x, lpNN)
-plot(x, lpUtdLR, ':')
-plot(x, upNN)
-plot(x, upUtdLR, ':')
-legend('NN-IIR (proposed)', 'UTD-LR', 'NN-IIR (proposed)', 'UTD-LR', 'NN-IIR (proposed)', 'UTD-LR')
+plot(x, meanNN2, 'Color', [color(1,:), 0.6])
+plot(x, meanUtdLR, '--')
+plot(x, meanUDFAIIR, ':')
+%plot(x, lpNN)
+%plot(x, lpUtdLR, ':')
+%plot(x, upNN)
+%plot(x, upUtdLR, ':')
+legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UDFA-IIR')
 xlabel('Wedge length (m)')
-ylabel('Mean absolute error (dBA)')
+ylabel('Mean absolute error (dB)')
 ylim([0 10])
 
-%saveas(gcf, [savePath, filesep, 'WedgeLengthError'], 'epsc')
-%saveas(gcf, [savePath, filesep, 'WedgeLengthError'], 'svg')
+saveas(gcf, [savePath, filesep, 'WedgeLengthError'], 'epsc')
+saveas(gcf, [savePath, filesep, 'WedgeLengthError'], 'svg')
 
 %% Function of minimum angle
 

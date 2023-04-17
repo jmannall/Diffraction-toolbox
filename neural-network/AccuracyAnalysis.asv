@@ -16,7 +16,7 @@ nBands = 8;
 
 loadDir = 'NNSaves';
 netNames = {['Run6', filesep, 'IIR-7_32_0001.mat'], ['Run5', filesep, 'IIR-7_27_0001.mat'], ['Run6', filesep, 'IIR-5_45_0001.mat'], ['Run3', filesep, 'IIR-4_31_0001.mat'], ['Run6', filesep, 'IIR-4_20_0001.mat']};
-netNames = {['Run6', filesep, 'IIR-7_32_0001.mat']};
+netNames = {['Run6', filesep, 'IIR-7_32_0001.mat'], ['Run6', filesep, 'IIR-4_20_0001.mat']};
 
 %% Geometry input data
 
@@ -53,6 +53,7 @@ thetaR = mA + bA;
 [~, phii] = CalculateApex(rS, rR, zS, zR, wL, false);
 dZ = abs(zR - zS);
 pathLength = sqrt((rS + rR) .^ 2 + dZ .^ 2);
+tfmag.Btm = mag2db((1 ./ pathLength) .* db2mag(tfmag.Btm));
 tfmag.BtmI = mag2db((1 ./ pathLength) .* db2mag(tfmag.BtmI));
 
 %% BTM
@@ -185,14 +186,30 @@ end
 
 lossInf = CalculateLoss(tfmagN, tfmagN.BtmI, wL > 5);
 lossN = CalculateLoss(tfmagN, tfmagN.BtmI);
-lossNT = CalculateLoss(tfmagN, tfmagN.Btm);
+lossNTrue = CalculateLoss(tfmagN, tfmagN.Btm);
+
+lossN.i.IIRHi = min(lossN.i.IIRHi, lossNTrue.i.IIRHi);
+idx = lossN.i.IIRHi == lossNTrue.i.IIRHi;
+lossN.if.IIRHi(:,~idx) = lossN.if.IIRHi(:,~idx);
+lossN.if.IIRHi(:,idx) = lossNTrue.if.IIRHi(:,idx);
+lossN.i.IIRHi = mean(lossN.if.IIRHi, 1);
+lossN.f.IIRHi = mean(lossN.if.IIRHi, 2);
+lossN.mean.IIRHi = mean(lossN.if.IIRHi, 'all');
+
+lossN.i.IIRLo = min(lossN.i.IIRLo, lossNTrue.i.IIRLo);
+idx = lossN.i.IIRLo == lossNTrue.i.IIRLo;
+lossN.if.IIRLo(:,~idx) = lossN.if.IIRLo(:,~idx);
+lossN.if.IIRLo(:,idx) = lossNTrue.if.IIRLo(:,idx);
+lossN.i.IIRLo = mean(lossN.if.IIRLo, 1);
+lossN.f.IIRLo = mean(lossN.if.IIRLo, 2);
+lossN.mean.IIRLo = mean(lossN.if.IIRLo, 'all');
 
 %% Frequency dependent error
 
 close all
 
 figure
-for k = 2:numFields
+for k = 3:numFields
     field = fields{k};
     if matches(field, 'UtdI')
         f = fvecUtd;
@@ -203,13 +220,13 @@ for k = 2:numFields
     hold on
 end
 grid on
-l = legend(fields, 'Location','northwest');
+l = legend(fields{3:numFields}, 'Location','northwest');
 title(l, 'Diffraction Model')
 xlim([20 20e3])
 ylim([0 12])
 
 figure
-for k = 2:numFields
+for k = 3:numFields
     field = fields{k};
     if matches(field, 'UtdI')
         f = fvecUtd;
@@ -220,7 +237,7 @@ for k = 2:numFields
     hold on
 end
 grid on
-l = legend(fields, 'Location','northwest');
+l = legend(fields{3:numFields}, 'Location','northwest');
 title(l, 'Diffraction Model')
 xlim([20 20e3])
 ylim([0 12])
@@ -309,11 +326,13 @@ colororder(color)
 % end
 plot(percentiles, percentile.NN1)
 hold on
+plot(percentiles, percentile.NN2)
 plot(percentiles, percentile.UtdILR, '--')
 plot(percentiles, percentile.UtdI, '-.')
 plot(percentiles, percentile.IIRHi, ':')
+plot(percentiles, percentile.IIRLo, ':')
 grid on
-l = legend('NN', 'UTD-LR', 'UTD', 'UDFA-IIR', 'Location','northwest');
+l = legend('NN (best)', 'NN (small)', 'UTD-LR', 'UTD', 'UDFA-IIRHi', 'UDFA-IIRHi', 'Location','northwest');
 title(l, 'Diffraction Model')
 xlabel('Percentile')
 ylabel('Mean absolute error (dBA)')

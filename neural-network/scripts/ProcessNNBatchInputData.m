@@ -1,10 +1,10 @@
-function [X, T] = ProcessNNBatchInputData(trainingData, targetData, miniBatchSize, i) 
+function [X, T] = ProcessNNBatchInputData(trainingData, targetData, DC, miniBatchSize, i) 
 
     % Read mini-batch of data and convert the labels to dummy
     % variables.
     idx = (i-1)*miniBatchSize+1:i*miniBatchSize;
     X = trainingData(:,idx);
-    T = targetData(:,idx);
+    T = [DC(idx); targetData(:,idx)];
 
     % Convert mini-batch of data to a dlarray.
     X = dlarray(single(X), "CB");

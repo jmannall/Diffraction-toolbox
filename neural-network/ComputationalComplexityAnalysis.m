@@ -110,12 +110,6 @@ nL = 7; % Number of layers
 nO = 5; % Number of outputs
 nI = 8; % Number of inputs
 
-% gx = 5; % Activation layer and normalisation cost per node
-% nN = 20; % Number of nodes per layer
-% nL = 4; % Number of layers
-% nO = 5; % Number of outputs
-% nI = 8; % Number of inputs
-
 CcPZTransform = 6;
 numPZ = 4;
 CcKTransform = 1;
@@ -130,17 +124,37 @@ CcIIR = 6;
 
 CcNNIIR = CcNN + CcIIR;
 
+gx = 5; % Activation layer and normalisation cost per node
+nN = 20; % Number of nodes per layer
+nL = 4; % Number of layers
+nO = 5; % Number of outputs
+nI = 8; % Number of inputs
+
+CcOutputTransform = numPZ * CcPZTransform + CcKTransform;
+
+nNTotal = nN * nL + nO; % Total number of nodes in DNN (i.e the number of bias additions)
+nNActivations = nN * nL; % Total number of nodes in DNN that require activation/normalisation
+nCTotal = nI * nN + nN ^ 2 * (nL - 1) + nN * nO; % Total number of connections in DNN (i.e the number of weights)
+
+CcNN2 = nNTotal + nNActivations * gx + nCTotal + CcOutputTransform;
+
+CcNNIIR2 = CcNN2 + CcIIR;
+
 %% UDFA calculation costs
 
 n = 4;
 numUDFAt = n + 1;
 numUDFAi = n;
-CcUDFA = 337;
-CcFsh = 15; % Fsh adjustment
+UDFAOnce = 88;
+UDFAPerFreq = 10;
 
-CcFshGsh = (numUDFAt + numUDFAi) * CcUDFA + CcFsh * numUDFAi;
-CcIIR = 19; % Filter a b parameters (plus gt(1) / L) to first gain parameter
-CcUDFAIIR = CcFshGsh + CcIIR;
+CcUDFA = UDFAOnce + UDFAPerFreq * (numUDFAt + numUDFAi);
+
+CcFsh = 15; % Fsh adjustment
+CcFc = CcFsh * numUDFAi;
+CcIIR = 12; % Calculate 1 filters a b parameters
+CcIIRs = (CcIIR + 1) * n + 1; % prod(b1_n) + (mult gt(1) / L) to first gain parameter
+CcUDFAIIR = CcUDFA + CcFc + CcIIRs;
 
 %% BTM calculation costs
 
@@ -154,14 +168,15 @@ CcBtmOld = tb * single_thread_flops / numPaths;
 btmOnce = 13;
 numTheta = 4;
 btmPerTheta = 7;
-CcIntegralLimits = 7; % Unknown
-CcBtmIntegral = 8 + numTheta * btmPerTheta + (numTheta - 1); % (numTheta - 1) sumations
+CcIntegralLimits = 7; % Unknown - involoves solving a quadratic equation
+% Therefore at least 9
+CcBtmIntegral = 8 + numTheta * btmPerTheta + (numTheta - 1) + CcIntegralLimits; % (numTheta - 1) sumations
 numIntCalcPerDivision = 3;
-wedgeLength = 4;
+wedgeLength = 10;
 r1 = 1;
 r2 = 1;
-z1 = 2;
-z2 = 2;
+z1 = 5;
+z2 = 5;
 t0 = (r1 + r2) / c;
 tMax = (sqrt(r1 ^ 2 + z1 ^ 2) + sqrt(r2 ^ 2 + z2 ^ 2)) / c;
 numEdgeDivisions = ceil((tMax - t0) * Fs);
@@ -178,6 +193,7 @@ CcBtm = btmOnce + (CcBtmIntegral * (numIntCalcPerDivision - 1) + CcSimpInt) * nu
 
 CdUtdLR = Fr' * diffOrders .* CcUtdLR + CrLR;
 CdNNIIR = Fr' * diffOrders .* CcNNIIR + CrIIR2;
+CdNNIIR2 = Fr' * diffOrders .* CcNNIIR2 + CrIIR2;
 CdUDFAIIR = Fr' * diffOrders .* CcUDFAIIR + CrIIR4;
 
 color = colorStore(1:5,:);
@@ -375,8 +391,8 @@ l = legend('Apartment', 'Sibenik', 'Sun temple', 'Bistro', 'Sponza', 'Warehouse'
 title(l, 'Scene')
 fontsize(gcf,20,"pixels")
 
-%saveas(gcf, [savePath, filesep, 'PathFindingCostsSmall'], 'epsc')
-%saveas(gcf, [savePath, filesep, 'PathFindingCostsSmall'], 'svg')
+saveas(gcf, [savePath, filesep, 'PathFindingCostsSmall'], 'epsc')
+saveas(gcf, [savePath, filesep, 'PathFindingCostsSmall'], 'svg')
 
 idx = [1 4];
 color = colorStore(1:length(idx),:);
@@ -405,10 +421,12 @@ l = legend('Apartment', 'Bistro', 'Location', 'southeast');
 title(l, 'Scene')
 fontsize(gcf,20,"pixels")
 
-%saveas(gcf, [savePath, filesep, 'GAModelCostsSmall'], 'epsc')
-%saveas(gcf, [savePath, filesep, 'GAModelCostsSmall'], 'svg')
+saveas(gcf, [savePath, filesep, 'GAModelCostsSmall'], 'epsc')
+saveas(gcf, [savePath, filesep, 'GAModelCostsSmall'], 'svg')
 
-color = colorStore(1:4,:);
+%%
+
+color = colorStore([1, 1, 2, 5, 3, 4],:);
 figure('Position', [gap gap 6 * x 1.5 * x])
 t = tiledlayout(1, 3, 'TileSpacing', 'compact');
 for i = 1:2:numDiff
@@ -417,9 +435,10 @@ for i = 1:2:numDiff
     semilogy(Fr, CdNNIIR(:,i))
     hold on
     grid on
-    semilogy(Fr, CdUtdLR(:,i), '--')
-    semilogy(Fr, CdUDFAIIR(:,i), '-.')
-    semilogy(Fr, CdUtdOverlapAdd(:,i), '-.')
+    semilogy(Fr, CdNNIIR2(:,i), 'Color', [color(1,:), 0.6])
+    semilogy(Fr, CdUtdLR(:,i), '-.')
+    semilogy(Fr, CdUDFAIIR(:,i), ':')
+    semilogy(Fr, CdUtdOverlapAdd(:,i), '--')
     if i == 1
         semilogy(Fr, CdBtmOverlapAdd, ':')
     else
@@ -433,12 +452,12 @@ for i = 1:2:numDiff
     title(['Diffraction order: ', num2str(diffOrders(i))])
 end
 fontsize(gcf,scale=textScale)
-l = legend('NN-IIR (proposed)', 'UTD-LR', 'UDFA-IIR', 'UTD-overlap add', 'BTM-overlap add', 'Location', 'southeast');
+l = legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UDFA-IIR', 'UTD-overlap add', 'BTM-overlap add', 'Location', 'bestoutside');
 title(l, 'Diffraction Model')
 fontsize(gcf,20,"pixels")
 
-%saveas(gcf, [savePath, filesep, 'DiffractionModelCostsSmall'], 'epsc')
-%saveas(gcf, [savePath, filesep, 'DiffractionModelCostsSmall'], 'svg')
+saveas(gcf, [savePath, filesep, 'DiffractionModelCostsSmall'], 'epsc')
+saveas(gcf, [savePath, filesep, 'DiffractionModelCostsSmall'], 'svg')
 
 %%
 

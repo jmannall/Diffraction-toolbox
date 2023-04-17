@@ -1,11 +1,14 @@
 close all
 clear all
 
+TrainNeuralNetwork(4, 4e3, 1000, 'TestRun')
+
 set(0, 'DefaultLineLineWidth', 1.5);
 colorStore = colororder;
 
 store = [20, 10, 5, 2.5, 1];
-for k = 1:length(store)
+%for k = 1:length(store)
+k = 3;
     %% Data
     fs = 48e3;
     nfft = 8192;
@@ -21,7 +24,7 @@ for k = 1:length(store)
     
     numPaths = 500;
     
-    index = DataHash({numPaths, fs, nfft, numEdges, 20});
+    index = DataHash({numPaths, fs, nfft, numEdges, height});
     index = '2180cfff4ddad1de505214480a4535ce';
     [loadPath, savePath] = deal(['geometry/NthOrderPaths_01mTo3m_', num2str(index), '.mat']);
     restart = true;
@@ -71,13 +74,15 @@ for k = 1:length(store)
         if generate
             [source, receiver, Q, apex, corners, planeCorners, planeRigid, data(i)] = GenerateNthOrderPath(numEdges, height);
     
-            wedgeIndex = data(i).wedgeIndex;
+            wI = data(i).wedgeIndex;
             thetaS = data(i).thetaS;
             thetaR = data(i).thetaR;
-            radiusS = data(i).rS;
-            radiusR = data(i).rR;
+            rS = data(i).rS;
+            rR = data(i).rR; 
             W = data(i).W;
-            data(i).L = radiusS + sum(W) + radiusR;
+            data(i).L = rS + sum(W) + rR;
+            mA = deg2rad(epsilon) * ones(1, numEdges);
+            bA = deg2rad([wI(1) - thetaS, wI(2:numEdges - 1), thetaR]);
         else
             wI = data(i).wedgeIndex;
             thetaS = data(i).thetaS;
@@ -86,7 +91,6 @@ for k = 1:length(store)
             rR = data(i).rR;
             W = data(i).W;
             data(i).L = rS + sum(W) + rR;
-            %bA = deg2rad(thetaR - thetaS);
             mA = deg2rad(epsilon) * ones(1, numEdges);
             bA = deg2rad([wI(1) - thetaS, wI(2:numEdges - 1), thetaR]);
     
@@ -207,6 +211,7 @@ for k = 1:length(store)
         
         %% Figures
         if plotFigures
+            close all
     
             figure('Position',[50 100 900 800])
             plot3(source(:,1), source(:,2), source(:,3), 'o')
@@ -221,28 +226,30 @@ for k = 1:length(store)
             ylim([-4 2])
     
             color = colorStore(1:4,:);
+            color = colorStore([4, 1, 7, 2],:);
             figure('Position',[50 100 1820 800])
             %tiledlayout(1,2);
     
             %nexttile
             semilogx(fvecBtm, tfmag.Btm, 'LineWidth', 2)
             hold on
-            semilogx(fvecBtm, tfmag.BtmE(:,end))
-            semilogx(fvec, tfmag.UtdLRE(:,end))
+            %semilogx(fvecBtm, tfmag.BtmE(:,end))
+            %semilogx(fvec, tfmag.UtdLRE(:,end))
             semilogx(fvec, tfmag.NNE(:,end), '--')
             semilogx(fvecBtm, tfmag.BtmIE(:,end), '--')
             semilogx(fvec, tfmag.UtdILRE(:,end), '--')
-            semilogx(fvecBtm, tfmag.BtmIA(:,end), '-.')
-            semilogx(fvec, tfmag.UtdLRA(:,end), '-.')
-            semilogx(fvec, tfmag.NNA(:,end), ':')
-            semilogx(fvecBtm, tfmag.BtmIA(:,end), ':')
-            semilogx(fvec, tfmag.UtdILRA(:,end), ':')
+            %semilogx(fvecBtm, tfmag.BtmIA(:,end), '-.')
+            %semilogx(fvec, tfmag.UtdLRA(:,end), '-.')
+            %semilogx(fvec, tfmag.NNA(:,end), ':')
+            %semilogx(fvecBtm, tfmag.BtmIA(:,end), ':')
+            %semilogx(fvec, tfmag.UtdILRA(:,end), ':')
             grid on
             colororder(gca, color)
             title('Frequency responses')
             xlabel('Frequency')
             ylabel('Magnitude')
-            legend('True BTM', 'BTM Ext', 'UTD Ext', 'NN Ext', 'BTMI Ext', 'UTDI Ext', 'BTM Apex', 'UTD Apex', 'NN Apex', 'BTM ApexI', 'UTD ApexI')
+            %legend('True BTM', 'BTM Ext', 'UTD Ext', 'NN Ext', 'BTMI Ext', 'UTDI Ext', 'BTM Apex', 'UTD Apex', 'NN Apex', 'BTM ApexI', 'UTD ApexI')
+            legend('True BTM', 'NN Ext', 'BTMI Ext', 'UTDI Ext')
             xlim([20 20000])
             ylim([-70 0])
     
@@ -264,16 +271,53 @@ for k = 1:length(store)
 %             legend('NN', 'BTM Ext', 'BTM ExtI', 'UTD Ext', 'UTD ExtI')
 %             xlim([20 20000])
 %             ylim([-30 10])
+
+            color = colorStore([4, 4, 1, 1, 2, 2],:);
+            figure
+            %semilogx(fvecBtm, tfmag.BtmE(:,end))
+            %semilogx(fvec, tfmag.UtdLRE(:,end))
+            semilogx(fvecBtm, tfmag.BtmIE(:,1:2), 'LineWidth', 2)
+            hold on
+            semilogx(fvec, tfmag.NNE(:,1:2), '--')
+            semilogx(fvec, tfmag.UtdILRE(:,1:2), '--')
+            %semilogx(fvecBtm, tfmag.BtmIA(:,end), '-.')
+            %semilogx(fvec, tfmag.UtdLRA(:,end), '-.')
+            %semilogx(fvec, tfmag.NNA(:,end), ':')
+            %semilogx(fvecBtm, tfmag.BtmIA(:,end), ':')
+            %semilogx(fvec, tfmag.UtdILRA(:,end), ':')
+            grid on
+            colororder(color)
+            title('Frequency responses')
+            xlabel('Frequency')
+            ylabel('Magnitude')
+            %legend('True BTM', 'BTM Ext', 'UTD Ext', 'NN Ext', 'BTMI Ext', 'UTDI Ext', 'BTM Apex', 'UTD Apex', 'NN Apex', 'BTM ApexI', 'UTD ApexI')
+            legend('BTMI Ext', '', 'NN Ext', '', 'UTDI Ext', '')
+            xlim([20 20000])
+            ylim([-60 10])
         end
+        tfmagN1.BtmIE = CreateNBandMagnitude(tfmag.BtmIE(:,1), fidx);
+        tfmagN1.UtdILRE = CreateFrequencyNBands(tfmag.UtdILRE(:,1), fvec, nBand);
+        tfmagN1.NNE = CreateNBandMagnitude(tfmag.NNE(:,1), fidx);
+        lossN1 = CalculateLoss(tfmagN1, tfmagN1.BtmIE);
+
+        tfmagN2.BtmIE = CreateNBandMagnitude(tfmag.BtmIE(:,2), fidx);
+        tfmagN2.UtdILRE = CreateFrequencyNBands(tfmag.UtdILRE(:,2), fvec, nBand);
+        tfmagN2.NNE = CreateNBandMagnitude(tfmag.NNE(:,2), fidx);
+        lossN2 = CalculateLoss(tfmagN2, tfmagN2.BtmIE);
+
+        loss = CalculateLoss(tfmagN, tfmagN.Btm);
+        disp(['NN Loss: ', num2str(lossN1.mean.NNE), ' + ', num2str(lossN2.mean.NNE), ' = ', num2str(loss.i.NNE(i))])
+        disp(['UTD Loss: ', num2str(lossN1.mean.UtdILRE), ' + ', num2str(lossN2.mean.UtdILRE), ' = ', num2str(loss.i.UtdILRE(i))])
+
     end
 
 %%
     loss = CalculateLoss(tfmagN, tfmagN.Btm);
 
     %%
-    savePath = [savePath 'Test'];
+    %savePath = [savePath 'Test'];
     
-    save(savePath, 'data')
+    %save(savePath, 'data')
     
     disp('Complete')
     
@@ -304,82 +348,86 @@ for k = 1:length(store)
         loss.w.(field)(idx) = 0;
         loss.w.(field)(end + 1) = 0;
     end
-    
-    figure
-    plot(x, meanNN1)
-    hold on
-    grid on
-    plot(x, meanUTD1, '--')
-    plot(x, meanNN2)
-    plot(x, meanUTD2, '--')
-    plot(x, meanNE)
-    plot(x, meanUEI, '--')
-    plot(x, meanBEI, '-.')
-    xlim([0.1 3])
-    legend('meanNNExt1', 'meanUtdExtI1', 'meanNNExt2', 'meanUtdExtI2', 'meanNNExt', 'meanUtdExtI', 'meanBtmExtI')
-    title(num2str(height))
-    xlabel('W_1 (m)')
-    ylabel('Mean absolute error (dBA)')
-    
-    saveDir = 'figures';
-    saveas(gcf, [saveDir filesep 'HODComparison_TestNew_' num2str(k)], 'epsc')
-    saveas(gcf, [saveDir filesep 'HODComparison_TestNew_' num2str(k)], 'svg')
-    
-    save(['hod workspace_Test1deg_', num2str(k)])
-end
-%%
-
-
-color = colorStore(1:3,:);
-figure
-plot(x, loss.w.BtmE)
-hold on
-grid on
-plot(x, loss.w.UtdLRE)
-plot(x, loss.w.NNE)
-plot(x, loss.w.BtmA, '--')
-plot(x, loss.w.UtdLRA, '--')
-plot(x, loss.w.NNA, '--')
-plot(x, loss.w.BtmIE, '-.')
-plot(x, loss.w.UtdILRE, '-.')
-plot(x, loss.w.NNE)
-plot(x, loss.w.BtmIA, ':')
-plot(x, loss.w.UtdILRA, ':')
-colororder(color)
-xlim([0.1 3])
-legend('BTM Extension', 'UTD-LR Extension', 'NN-IIR Extension', 'BTM Apex', 'UTD-LR Apex', 'NN-IIR Apex', 'BTMI Extension', 'UTDI-LR Extension', '-', 'BTMI Apex', 'UTDI-LR Apex')
-xlabel('W_1 (m)')
-ylabel('Mean absolute error (dBA)')
-
-saveDir = 'figures';
-saveas(gcf, [saveDir filesep 'HODComparison_Test'], 'epsc')
-saveas(gcf, [saveDir filesep 'HODComparison_Test'], 'svg')
+%     
+%     figure
+%     plot(x, meanNN1)
+%     hold on
+%     grid on
+%     plot(x, meanUTD1, '--')
+%     plot(x, meanNN2)
+%     plot(x, meanUTD2, '--')
+%     plot(x, meanNE)
+%     plot(x, meanUEI, '--')
+%     plot(x, meanBEI, '-.')
+%     xlim([0.1 3])
+%     legend('meanNNExt1', 'meanUtdExtI1', 'meanNNExt2', 'meanUtdExtI2', 'meanNNExt', 'meanUtdExtI', 'meanBtmExtI')
+%     title(num2str(height))
+%     xlabel('W_1 (m)')
+%     ylabel('Mean absolute error (dBA)')
+%     
+%     saveDir = 'figures';
+%     saveas(gcf, [saveDir filesep 'HODComparison_TestNew_' num2str(k)], 'epsc')
+%     saveas(gcf, [saveDir filesep 'HODComparison_TestNew_' num2str(k)], 'svg')
+%     
+%     save(['hod workspace_Test1deg_', num2str(k)])
+% end
+% %%
+% 
+% 
+% color = colorStore(1:3,:);
+% figure
+% plot(x, loss.w.BtmE)
+% hold on
+% grid on
+% plot(x, loss.w.UtdLRE)
+% plot(x, loss.w.NNE)
+% plot(x, loss.w.BtmA, '--')
+% plot(x, loss.w.UtdLRA, '--')
+% plot(x, loss.w.NNA, '--')
+% plot(x, loss.w.BtmIE, '-.')
+% plot(x, loss.w.UtdILRE, '-.')
+% plot(x, loss.w.NNE)
+% plot(x, loss.w.BtmIA, ':')
+% plot(x, loss.w.UtdILRA, ':')
+% colororder(color)
+% xlim([0.1 3])
+% legend('BTM Extension', 'UTD-LR Extension', 'NN-IIR Extension', 'BTM Apex', 'UTD-LR Apex', 'NN-IIR Apex', 'BTMI Extension', 'UTDI-LR Extension', '-', 'BTMI Apex', 'UTDI-LR Apex')
+% xlabel('W_1 (m)')
+% ylabel('Mean absolute error (dBA)')
+% 
+% saveDir = 'figures';
+% saveas(gcf, [saveDir filesep 'HODComparison_Test'], 'epsc')
+% saveas(gcf, [saveDir filesep 'HODComparison_Test'], 'svg')
 
 %% Result Plot
 
 %close all
-
+saveDir = 'figures';
 %load(['hod workspace_Test1deg_' num2str(k), '.mat'])
-color = colorStore([4,1,2,5,6,3],:);
+color = colorStore([4,4,1,2,5,5,6,3],:);
 
 figure
-plot(x, loss.w.BtmIE)
+plot(x, loss.w.BtmE)
 hold on
 grid on
+plot(x, loss.w.BtmIE, 'Color', [color(1,:), 0.6])
 plot(x, loss.w.NNE)
 plot(x, loss.w.UtdILRE)
-plot(x, loss.w.BtmIA, '--')
+plot(x, loss.w.BtmA, '--')
+plot(x, loss.w.BtmIA, '--', 'Color', [color(5,:), 0.6])
 plot(x, loss.w.NNA, '--')
 plot(x, loss.w.UtdILRA, '--')
 %plot(x, meanUEI)
 colororder(color)
 xlim([0.1 3])
 ylim([0 6])
-title(num2str(store(k)))
-legend('BTM Extension', 'NN-IIR Extension', 'UTD-LR Extension', 'BTM Apex', 'NN-IIR Apex', 'UTD-LR Apex')
+%title(num2str(store(k)))
+legend('BTM Extension', 'BTM-I Extension', 'NN-IIR Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR Apex', 'UTD-LR Apex')
 xlabel('W_1 (m)')
-ylabel('Mean absolute error (dBA)')
+ylabel('Mean absolute error (dB)')
 
+saveas(gcf, [saveDir filesep 'HODComparison'], 'epsc')
+saveas(gcf, [saveDir filesep 'HODComparison'], 'svg')
 
 close all
 saveDir = 'figures';

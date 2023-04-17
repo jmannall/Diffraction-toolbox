@@ -11,5 +11,7 @@ function [loss, tfmagNBand, tfmag] = IIRFilterLoss(output, target, numIIRFilters
 
     tfmagNBand = max(-128, min(128, tfmagNBand));
     
-    loss = mean((tfmagNBand - target).^2, 'all');
+    DC = target(1,:);
+    target = target(2:end,:);
+    loss = 0.5 * mean((tfmagNBand - target).^2, 'all') + 0.5 * mean((tfmag(1,:) - DC).^2, 'all');
 end

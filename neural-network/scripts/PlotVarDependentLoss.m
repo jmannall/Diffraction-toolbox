@@ -40,5 +40,6 @@ function PlotVarDependentLoss(data, variable, width, percentiles, titleText, cId
     plot(x, medianAv, 'Color',colorValue)
     plot(x, meanAv, '--', 'Color',colorValue)
     grid on
+    ylim([0 6])
     title(titleText)
 end
