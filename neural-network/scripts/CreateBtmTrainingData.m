@@ -22,6 +22,7 @@ function [trainingData, targetData, DC, fvec, fc, fidx, index, savePath, tfmag, 
     if NNSaveExists == 2
         %load([NNSavePath, '.mat'], "trainingData", "targetData", "fvec", "fc", "fidx", "index", "savePath");
         load([NNSavePath, '.mat']);
+        % DC = 1;
         % disp('Load NN data')
     else
         rtemplate.tfmag = [];

@@ -23,7 +23,7 @@ netNames = {['Run6', filesep, 'IIR-7_32_0001.mat'], ['Run6', filesep, 'IIR-4_20_
 disp('Load validation data')
 
 controlparameters = struct('fs', 2 * fs, 'nfft', 2 * nfft, 'difforder', 1, 'c', c, 'saveFiles', 3, 'noDirect', false);
-[inputData, targetData, fvec, ~, ~, ~, ~, tfmag.Btm, tfmag.BtmI] = CreateBtmTrainingData(testSize, controlparameters, 'ValidationData');
+[inputData, targetData, ~, fvec, ~, ~, ~, ~, tfmag.Btm, tfmag.BtmI] = CreateBtmTrainingData(testSize, controlparameters, 'ValidationData');
 
 numFreq = length(fvec);
 
@@ -188,18 +188,25 @@ lossInf = CalculateLoss(tfmagN, tfmagN.BtmI, wL > 5);
 lossN = CalculateLoss(tfmagN, tfmagN.BtmI);
 lossNTrue = CalculateLoss(tfmagN, tfmagN.Btm);
 
-lossN.i.IIRHi = min(lossN.i.IIRHi, lossNTrue.i.IIRHi);
-idx = lossN.i.IIRHi == lossNTrue.i.IIRHi;
-lossN.if.IIRHi(:,~idx) = lossN.if.IIRHi(:,~idx);
-lossN.if.IIRHi(:,idx) = lossNTrue.if.IIRHi(:,idx);
+%lossN.i.IIRHi = min(lossN.i.IIRHi, lossNTrue.i.IIRHi);
+% idx = bA > 181;
+% 
+% lossN.if.IIRHi(:,idx) = lossNTrue.if.IIRHi(:,idx);
+% lossN.i.IIRHi = mean(lossN.if.IIRHi, 1);
+% lossN.f.IIRHi = mean(lossN.if.IIRHi, 2);
+% lossN.mean.IIRHi = mean(lossN.if.IIRHi, 'all');
+% 
+% lossN.if.IIRLo(:,idx) = lossNTrue.if.IIRLo(:,idx);
+% lossN.i.IIRLo = mean(lossN.if.IIRLo, 1);
+% lossN.f.IIRLo = mean(lossN.if.IIRLo, 2);
+% lossN.mean.IIRLo = mean(lossN.if.IIRLo, 'all');
+
+lossN.if.IIRHi = lossNTrue.if.IIRHi;
 lossN.i.IIRHi = mean(lossN.if.IIRHi, 1);
 lossN.f.IIRHi = mean(lossN.if.IIRHi, 2);
 lossN.mean.IIRHi = mean(lossN.if.IIRHi, 'all');
 
-lossN.i.IIRLo = min(lossN.i.IIRLo, lossNTrue.i.IIRLo);
-idx = lossN.i.IIRLo == lossNTrue.i.IIRLo;
-lossN.if.IIRLo(:,~idx) = lossN.if.IIRLo(:,~idx);
-lossN.if.IIRLo(:,idx) = lossNTrue.if.IIRLo(:,idx);
+lossN.if.IIRLo = lossNTrue.if.IIRLo;
 lossN.i.IIRLo = mean(lossN.if.IIRLo, 1);
 lossN.f.IIRLo = mean(lossN.if.IIRLo, 2);
 lossN.mean.IIRLo = mean(lossN.if.IIRLo, 'all');

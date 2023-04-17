@@ -1,6 +1,16 @@
 close all
 clear all
 
+thetaS = deg2rad(30);
+thetaR = deg2rad(220);
+wedgeIndex = deg2rad(350);
+v = pi / wedgeIndex;
+theta = [thetaS + thetaR, thetaR - thetaS];
+
+scale = sum((sign(theta - pi) ./ abs(cos(v * pi) - cos(v * theta)))) ^ 2; % 10 * 2 + 1
+
+
+
 set(0, 'DefaultLineLineWidth', 1.5);
 colorStore = colororder;
 

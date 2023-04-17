@@ -1,7 +1,7 @@
 function H = SingleH(z, theta, f, gParameters, controlparameters) % 79
 
-    %const = (2 * controlparameters.c) / (pi ^ 2 * gParameters.d * sin(gParameters.phii) ^ 2);
-    %fc = const * CalculateNv(gParameters.v, theta) ^ 2;
+    const = (2 * controlparameters.c) / (pi ^ 2 * gParameters.d * sin(gParameters.phii) ^ 2);
+    fcOld = const * CalculateNv(gParameters.v, theta) ^ 2;
     scale = CalculateInterpolationFactor(gParameters); % 21
     fc = (controlparameters.c * (gParameters.v * sin(gParameters.v * pi)) ^ 2) / (2 * pi ^ 2 * gParameters.d * sin(gParameters.phii) ^ 2) * scale; % 11
     dCorner = sqrt(gParameters.rS ^ 2 + (z - gParameters.zS) ^ 2) + sqrt(gParameters.rR ^ 2 + (z - gParameters.zR) ^ 2); % 9 everytime + 2 once
