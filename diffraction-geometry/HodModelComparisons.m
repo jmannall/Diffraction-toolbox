@@ -7,254 +7,250 @@ colorStore = colororder;
 store = [20, 10, 5, 2.5, 1];
 %for k = 1:length(store)
 k = 3;
-    %% Data
-    fs = 48e3;
-    nfft = 8192;
-    c = 344;
-    numEdges = 2;
-    
-    height = store(k);
-    [zS, zR] = deal(height / 2);
-    
-    controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c, 'saveFiles', 3, 'noDirect', true, 'interpolated', false);
-    controlparameters = struct('fs', 2 * fs, 'nfft', 2 * nfft, 'difforder', numEdges, 'c', c, 'saveFiles', 3, 'noDirect', true, 'interpolated', false);
+%% Data
+fs = 48e3;
+nfft = 8192;
+c = 344;
+numEdges = 2;
 
-    out = CreateBtmTrainingData(100, controlparameters, 'Test');
-    TrainNeuralNetwork(4, 4e3, 1000, 'TestRun')
+height = store(k);
+[zS, zR] = deal(height / 2);
 
-    %% Generate geometry and controls
+controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c, 'saveFiles', 3, 'noDirect', true, 'interpolated', false);
+
+%% Generate geometry and controls
+
+numPaths = 500;
+
+index = DataHash({numPaths, fs, nfft, numEdges, height});
+index = '2180cfff4ddad1de505214480a4535ce';
+[loadPath, savePath] = deal(['geometry/NthOrderPaths_01mTo3m_', num2str(index), '.mat']);
+restart = true;
+generate = false;
+plotFigures = false;
+createPlot = false;
+if restart
+    i = 1;
+end
+n = i;
+
+dtemplate = struct('rS', [], 'rR', [], 'W', [], 'L', [], 'thetaS', [], 'thetaR', [], 'wedgeIndex', []);
+if generate && n == 1
+    data = repmat(dtemplate, numPaths, 1);
+elseif ~generate
+    load(loadPath, 'data')
+end
+
+[~, tfmagDefault, ~, fvec] = DefaultBTM(controlparameters);
+nBand = 8;
+
+[~, fc, fidx] = CreateFrequencyNBands(tfmagDefault, fvec, nBand); 
+
+%% NN parameters
     
-    numPaths = 500;
-    
-    index = DataHash({numPaths, fs, nfft, numEdges, height});
-    index = '2180cfff4ddad1de505214480a4535ce';
-    [loadPath, savePath] = deal(['geometry/NthOrderPaths_01mTo3m_', num2str(index), '.mat']);
-    restart = true;
-    generate = false;
-    plotFigures = true;
-    createPlot = false;
-    if restart
-        i = 1;
+loadDir = 'NNSaves';
+netName = ['Run6', filesep, 'IIR-7_32_0001.mat'];
+
+numFilters = 2;
+pathLength = ones(1, numEdges);
+load([loadDir, filesep, netName], 'net');
+
+%% Geometry parameters
+
+wL = [height, height];
+epsilon = 1e-2;
+
+%% UTD-LR parameters
+
+input = [1; zeros(5, 1)];
+windowLength = length(input);
+validPath = true(1, numEdges);
+phii = 90;
+
+disp('Start')
+for i = n:numPaths
+    if generate
+        [source, receiver, Q, apex, corners, planeCorners, planeRigid, data(i)] = GenerateNthOrderPath(numEdges, height);
+
+        wI = data(i).wedgeIndex;
+        thetaS = data(i).thetaS;
+        thetaR = data(i).thetaR;
+        rS = data(i).rS;
+        rR = data(i).rR; 
+        W = data(i).W;
+        data(i).L = rS + sum(W) + rR;
+        mA = deg2rad(epsilon) * ones(1, numEdges);
+        bA = deg2rad([wI(1) - thetaS, wI(2:numEdges - 1), thetaR]);
+    else
+        wI = data(i).wedgeIndex;
+        thetaS = data(i).thetaS;
+        thetaR = data(i).thetaR;
+        rS = data(i).rS;
+        rR = data(i).rR;
+        W = data(i).W;
+        data(i).L = rS + sum(W) + rR;
+        mA = deg2rad(epsilon) * ones(1, numEdges);
+        bA = deg2rad([wI(1) - thetaS, wI(2:numEdges - 1), thetaR]);
+
+        [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid, vReceiver] = CreateNthOrderPathData(wI, thetaS, thetaR, rS, rR, W, height);
     end
-    n = i;
+
+    % Expand to include z variation. Requires calculating all the apex points.
     
-    dtemplate = struct('rS', [], 'rR', [], 'W', [], 'L', [], 'thetaS', [], 'thetaR', [], 'wedgeIndex', []);
-    if generate && n == 1
-        data = repmat(dtemplate, numPaths, 1);
-    elseif ~generate
-        load(loadPath, 'data')
-    end
+    %% 2nd order BTM
+
+    controlparameters.fs = 2 * fs;
+    controlparameters.nfft = 2 * nfft;
+    [~, tfmagStore, ~, fvecBtm, ~] = SingleBTM(source, receiver, corners, planeCorners, planeRigid, controlparameters, createPlot);
+    tfmag.Btm = tfmagStore.diff2;
+    tfmagN.Btm(:,i) = CreateNBandMagnitude(tfmag.Btm, fidx);
+
+    %% BTM Daisy Chains
     
-    [~, tfmagDefault, ~, fvec] = DefaultBTM(controlparameters);
-    nBand = 8;
+    % BTM with virtual sources and receivers set at apex points and normalised
+    % 1 / r
+    [tfmag.BtmA, ~, tf.BtmA] = SingleBTMApexDaisyChain(source, receiver, apex, corners, planeCorners, controlparameters, data(i));
+    tfmagN.BtmA(:,i) = CreateNBandMagnitude(tfmag.BtmA(:,end), fidx);
+
+    % BTM with virtual sources and receivers set at rS + W and W + rR from the
+    % edge and normalised
+    [tfmag.BtmE, ~, tf.BtmE] = SingleBTMExtDaisyChain(source, receiver, apex, corners, planeCorners, controlparameters, data(i));
+    tfmagN.BtmE(:,i) = CreateNBandMagnitude(tfmag.BtmE(:,end), fidx);
+
+    %% BTM Daisy Chains interpolated
+
+    [tfmag.BtmIE, tfmag.BtmIA, tf.BtmIE, tf.BtmIA] = deal(zeros(nfft, numEdges + 1));
+
+    disp('BTM Ext')
+
+    [tfmag.BtmIE(:,1), ~, tf.BtmIE(:,1)] = SingleWedgeInterpolated(wL(1), wI(1), epsilon, wI(1) - thetaS, rS, W + rR, zS, zR, controlparameters, false);
+    [tfmag.BtmIE(:,2), ~, tf.BtmIE(:,2)] = SingleWedgeInterpolated(wL(2), wI(2), epsilon, thetaR, rS + W, rR, zS, zR, controlparameters, false);
     
-    [~, fc, fidx] = CreateFrequencyNBands(tfmagDefault, fvec, nBand); 
+    tf.BtmIE(:,end) = 0.5^(numEdges - 1) * (1 / data(i).L) * prod(tf.BtmIE(:,1:numEdges), 2);
+    tfmag.BtmIE(:,end) = mag2db(abs(tf.BtmIE(:,end)));
+
+    tfmagN.BtmIE(:,i) = CreateNBandMagnitude(tfmag.BtmIE(:,end), fidx);
+
+    disp('BTM Apex')
+
+    [tfmag.BtmIA(:,1), ~, tf.BtmIA(:,1)] = SingleWedgeInterpolated(wL(1), wI(1), epsilon, wI(1) - thetaS, rS, W, zS, zR, controlparameters, false);
+    [tfmag.BtmIA(:,2), ~, tf.BtmIA(:,2)] = SingleWedgeInterpolated(wL(2), wI(2), epsilon, thetaR, W, rR, zS, zR, controlparameters, false);
+
+    tf.BtmIA(:,end) = 0.5^(numEdges - 1) * (1 / data(i).L) * prod(tf.BtmIA(:,1:numEdges), 2);
+    tfmag.BtmIA(:,end) = mag2db(abs(tf.BtmIA(:,end)));
+
+    tfmagN.BtmIA(:,i) = CreateNBandMagnitude(tfmag.BtmIA(:,end), fidx);
+
+    %% Neural networks
+
+    controlparameters.fs = fs;
+    controlparameters.nfft = nfft;
+    [tfmag.NNE, tfmag.NNA, tf.NNE, tf.NNA] = deal(zeros(nfft / 2, numEdges + 1));
+
+    disp('NN Ext')
+
+    X = [deg2rad(wI); bA; mA; wL; [rS, rS + W]; [W + rR, rR]; [zS, zS]; [zR, zR]];
+    X = dlarray(single(X), "CB");
+
+    [tfmag.NNE(:,1:numEdges), ~, tf.NNE(:,1:numEdges)] = MakeNNPrediction(net, X, pathLength, numFilters, fidx, controlparameters);
+
+    tf.NNE(:,end) = 0.5^(numEdges - 1) * (1 / data(i).L) * prod(tf.NNE(:,1:numEdges), 2);
+    tfmag.NNE(:,end) = mag2db(abs(tf.NNE(:,end)));
+
+    tfmagN.NNE(:,i) = CreateNBandMagnitude(tfmag.NNE(:,end), fidx);
+
+    disp('NN Apex')
+
+    X = [deg2rad(wI); bA; mA; wL; [rS, W]; [W, rR]; [zS, zS]; [zR, zR]];
+    X = dlarray(single(X), "CB");
+
+    [tfmag.NNA(:,1:numEdges), ~, tf.NNA(:,1:numEdges)] = MakeNNPrediction(net, X, pathLength, numFilters, fidx, controlparameters);
+
+    tf.NNA(:,end) = 0.5^(numEdges - 1) * (1 / data(i).L) * prod(tf.NNA(:,1:numEdges), 2);
+    tfmag.NNA(:,end) = mag2db(abs(tf.NNA(:,end)));
+
+    tfmagN.NNA(:,i) = CreateNBandMagnitude(tfmag.NNA(:,end), fidx);
+
+    %% UTD
     
-    %% NN parameters
+    controlparameters.interpolated = false;
+    
+    % UTD with virtual sources and receivers set at apex points and normalised
+    % 1 / r
+    tfmagStore = SingleUTDApexDaisyChain(data(i), phii, controlparameters, false);
+    % UTD with virtual sources and receivers set at apex points and normalised
+    % 1 / r
+
+    [~, ~, tfmag.UtdLRA] = DelayLineLR(input, zeros(size(pathLength)), windowLength, validPath, tfmagStore', c, fs, validPath);
+    [tfmagN.UtdLRA(:,i), ~, ~] = CreateFrequencyNBands(tfmag.UtdLRA(:,end), fvec, nBand);
+
+    tfmagStore = SingleUTDExtDaisyChain(data(i), phii, controlparameters);
+
+    [~, ~, tfmag.UtdLRE] = DelayLineLR(input, zeros(size(pathLength)), windowLength, validPath, tfmagStore', c, fs, validPath);
+    [tfmagN.UtdLRE(:,i), ~, ~] = CreateFrequencyNBands(tfmag.UtdLRE(:,end), fvec, nBand);
+    
+    %% UTD Interpolated
+
+    controlparameters.interpolated = true;
         
-    loadDir = 'NNSaves';
-    netName = ['Run6', filesep, 'IIR-7_32_0001.mat'];
-    
-    numFilters = 2;
-    pathLength = ones(1, numEdges);
-    load([loadDir, filesep, netName], 'net');
-    
-    %% Geometry parameters
+    % UTD with virtual sources and receivers set at apex points and normalised
+    % 1 / r
+    tfmagStore = SingleUTDApexDaisyChain(data(i), phii, controlparameters, false);
+    % UTD with virtual sources and receivers set at apex points and normalised
+    % 1 / r
 
-    wL = [height, height];
-    epsilon = 1e-2;
+    [~, ~, tfmag.UtdILRA] = DelayLineLR(input, zeros(size(pathLength)), windowLength, validPath, tfmagStore', c, fs, validPath);
+    [tfmagN.UtdILRA(:,i), ~, ~] = CreateFrequencyNBands(tfmag.UtdILRA(:,end), fvec, nBand);
+    
+    tfmagStore = SingleUTDExtDaisyChain(data(i), phii, controlparameters);
 
-    %% UTD-LR parameters
+    [~, ~, tfmag.UtdILRE] = DelayLineLR(input, zeros(size(pathLength)), windowLength, validPath, tfmagStore', c, fs, validPath);
+    [tfmagN.UtdILRE(:,i), ~, ~] = CreateFrequencyNBands(tfmag.UtdILRE(:,end), fvec, nBand);
+    
+    %% Figures
+    if plotFigures
+        close all
 
-    input = [1; zeros(5, 1)];
-    windowLength = length(input);
-    validPath = true(1, numEdges);
-    phii = 90;
+        figure('Position',[50 100 900 800])
+        plot3(source(:,1), source(:,2), source(:,3), 'o')
+        hold on
+        plot3(receiver(:,1), receiver(:,2), receiver(:,3), 'o')
+        plot3(Q(:,1), Q(:,2), Q(:,3))
+        plot3(apex(:,1), apex(:,2), apex(:,3), 'o')
+        title('Scene')
+        legend('Source', 'Receiver', 'Planes', 'Apex')
+        view([0 90])
+        xlim([-4 2])
+        ylim([-4 2])
 
-    disp('Start')
-    for i = n:numPaths
-        if generate
-            [source, receiver, Q, apex, corners, planeCorners, planeRigid, data(i)] = GenerateNthOrderPath(numEdges, height);
-    
-            wI = data(i).wedgeIndex;
-            thetaS = data(i).thetaS;
-            thetaR = data(i).thetaR;
-            rS = data(i).rS;
-            rR = data(i).rR; 
-            W = data(i).W;
-            data(i).L = rS + sum(W) + rR;
-            mA = deg2rad(epsilon) * ones(1, numEdges);
-            bA = deg2rad([wI(1) - thetaS, wI(2:numEdges - 1), thetaR]);
-        else
-            wI = data(i).wedgeIndex;
-            thetaS = data(i).thetaS;
-            thetaR = data(i).thetaR;
-            rS = data(i).rS;
-            rR = data(i).rR;
-            W = data(i).W;
-            data(i).L = rS + sum(W) + rR;
-            mA = deg2rad(epsilon) * ones(1, numEdges);
-            bA = deg2rad([wI(1) - thetaS, wI(2:numEdges - 1), thetaR]);
-    
-            [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid, vReceiver] = CreateNthOrderPathData(wI, thetaS, thetaR, rS, rR, W, height);
-        end
-    
-        % Expand to include z variation. Requires calculating all the apex points.
-        
-        %% 2nd order BTM
-    
-        controlparameters.fs = 2 * fs;
-        controlparameters.nfft = 2 * nfft;
-        [~, tfmagStore, ~, fvecBtm, ~] = SingleBTM(source, receiver, corners, planeCorners, planeRigid, controlparameters, createPlot);
-        tfmag.Btm = tfmagStore.diff2;
-        tfmagN.Btm(:,i) = CreateNBandMagnitude(tfmag.Btm, fidx);
-    
-        %% BTM Daisy Chains
-        
-        % BTM with virtual sources and receivers set at apex points and normalised
-        % 1 / r
-        [tfmag.BtmA, ~, tf.BtmA] = SingleBTMApexDaisyChain(source, receiver, apex, corners, planeCorners, controlparameters, data(i));
-        tfmagN.BtmA(:,i) = CreateNBandMagnitude(tfmag.BtmA(:,end), fidx);
+        color = colorStore(1:4,:);
+        color = colorStore([4, 1, 7, 2],:);
+        figure('Position',[50 100 1820 800])
+        %tiledlayout(1,2);
 
-        % BTM with virtual sources and receivers set at rS + W and W + rR from the
-        % edge and normalised
-        [tfmag.BtmE, ~, tf.BtmE] = SingleBTMExtDaisyChain(source, receiver, apex, corners, planeCorners, controlparameters, data(i));
-        tfmagN.BtmE(:,i) = CreateNBandMagnitude(tfmag.BtmE(:,end), fidx);
-    
-        %% BTM Daisy Chains interpolated
+        %nexttile
+        semilogx(fvecBtm, tfmag.Btm, 'LineWidth', 2)
+        hold on
+        %semilogx(fvecBtm, tfmag.BtmE(:,end))
+        %semilogx(fvec, tfmag.UtdLRE(:,end))
+        semilogx(fvec, tfmag.NNE(:,end), '--')
+        semilogx(fvecBtm, tfmag.BtmIE(:,end), '--')
+        semilogx(fvec, tfmag.UtdILRE(:,end), '--')
+        %semilogx(fvecBtm, tfmag.BtmIA(:,end), '-.')
+        %semilogx(fvec, tfmag.UtdLRA(:,end), '-.')
+        %semilogx(fvec, tfmag.NNA(:,end), ':')
+        %semilogx(fvecBtm, tfmag.BtmIA(:,end), ':')
+        %semilogx(fvec, tfmag.UtdILRA(:,end), ':')
+        grid on
+        colororder(gca, color)
+        title('Frequency responses')
+        xlabel('Frequency')
+        ylabel('Magnitude')
+        %legend('True BTM', 'BTM Ext', 'UTD Ext', 'NN Ext', 'BTMI Ext', 'UTDI Ext', 'BTM Apex', 'UTD Apex', 'NN Apex', 'BTM ApexI', 'UTD ApexI')
+        legend('True BTM', 'NN Ext', 'BTMI Ext', 'UTDI Ext')
+        xlim([20 20000])
+        ylim([-70 0])
 
-        [tfmag.BtmIE, tfmag.BtmIA, tf.BtmIE, tf.BtmIA] = deal(zeros(nfft, numEdges + 1));
-
-        disp('BTM Ext')
-
-        [tfmag.BtmIE(:,1), ~, tf.BtmIE(:,1)] = SingleWedgeInterpolated(wL(1), wI(1), epsilon, wI(1) - thetaS, rS, W + rR, zS, zR, controlparameters, false);
-        [tfmag.BtmIE(:,2), ~, tf.BtmIE(:,2)] = SingleWedgeInterpolated(wL(2), wI(2), epsilon, thetaR, rS + W, rR, zS, zR, controlparameters, false);
-        
-        tf.BtmIE(:,end) = 0.5^(numEdges - 1) * (1 / data(i).L) * prod(tf.BtmIE(:,1:numEdges), 2);
-        tfmag.BtmIE(:,end) = mag2db(abs(tf.BtmIE(:,end)));
-
-        tfmagN.BtmIE(:,i) = CreateNBandMagnitude(tfmag.BtmIE(:,end), fidx);
-
-        disp('BTM Apex')
-
-        [tfmag.BtmIA(:,1), ~, tf.BtmIA(:,1)] = SingleWedgeInterpolated(wL(1), wI(1), epsilon, wI(1) - thetaS, rS, W, zS, zR, controlparameters, false);
-        [tfmag.BtmIA(:,2), ~, tf.BtmIA(:,2)] = SingleWedgeInterpolated(wL(2), wI(2), epsilon, thetaR, W, rR, zS, zR, controlparameters, false);
-    
-        tf.BtmIA(:,end) = 0.5^(numEdges - 1) * (1 / data(i).L) * prod(tf.BtmIA(:,1:numEdges), 2);
-        tfmag.BtmIA(:,end) = mag2db(abs(tf.BtmIA(:,end)));
-    
-        tfmagN.BtmIA(:,i) = CreateNBandMagnitude(tfmag.BtmIA(:,end), fidx);
-    
-        %% Neural networks
-
-        controlparameters.fs = fs;
-        controlparameters.nfft = nfft;
-        [tfmag.NNE, tfmag.NNA, tf.NNE, tf.NNA] = deal(zeros(nfft / 2, numEdges + 1));
-
-        disp('NN Ext')
-
-        X = [deg2rad(wI); bA; mA; wL; [rS, rS + W]; [W + rR, rR]; [zS, zS]; [zR, zR]];
-        X = dlarray(single(X), "CB");
-    
-        [tfmag.NNE(:,1:numEdges), ~, tf.NNE(:,1:numEdges)] = MakeNNPrediction(net, X, pathLength, numFilters, fidx, controlparameters);
-    
-        tf.NNE(:,end) = 0.5^(numEdges - 1) * (1 / data(i).L) * prod(tf.NNE(:,1:numEdges), 2);
-        tfmag.NNE(:,end) = mag2db(abs(tf.NNE(:,end)));
-    
-        tfmagN.NNE(:,i) = CreateNBandMagnitude(tfmag.NNE(:,end), fidx);
-
-        disp('NN Apex')
-
-        X = [deg2rad(wI); bA; mA; wL; [rS, W]; [W, rR]; [zS, zS]; [zR, zR]];
-        X = dlarray(single(X), "CB");
-    
-        [tfmag.NNA(:,1:numEdges), ~, tf.NNA(:,1:numEdges)] = MakeNNPrediction(net, X, pathLength, numFilters, fidx, controlparameters);
-    
-        tf.NNA(:,end) = 0.5^(numEdges - 1) * (1 / data(i).L) * prod(tf.NNA(:,1:numEdges), 2);
-        tfmag.NNA(:,end) = mag2db(abs(tf.NNA(:,end)));
-    
-        tfmagN.NNA(:,i) = CreateNBandMagnitude(tfmag.NNA(:,end), fidx);
-
-        %% UTD
-        
-        controlparameters.interpolated = false;
-        
-        % UTD with virtual sources and receivers set at apex points and normalised
-        % 1 / r
-        tfmagStore = SingleUTDApexDaisyChain(data(i), phii, controlparameters, false);
-        % UTD with virtual sources and receivers set at apex points and normalised
-        % 1 / r
- 
-        [~, ~, tfmag.UtdLRA] = DelayLineLR(input, zeros(size(pathLength)), windowLength, validPath, tfmagStore', c, fs, validPath);
-        [tfmagN.UtdLRA(:,i), ~, ~] = CreateFrequencyNBands(tfmag.UtdLRA(:,end), fvec, nBand);
-
-        tfmagStore = SingleUTDExtDaisyChain(data(i), phii, controlparameters);
-
-        [~, ~, tfmag.UtdLRE] = DelayLineLR(input, zeros(size(pathLength)), windowLength, validPath, tfmagStore', c, fs, validPath);
-        [tfmagN.UtdLRE(:,i), ~, ~] = CreateFrequencyNBands(tfmag.UtdLRE(:,end), fvec, nBand);
-        
-        %% UTD Interpolated
-    
-        controlparameters.interpolated = true;
-            
-        % UTD with virtual sources and receivers set at apex points and normalised
-        % 1 / r
-        tfmagStore = SingleUTDApexDaisyChain(data(i), phii, controlparameters, false);
-        % UTD with virtual sources and receivers set at apex points and normalised
-        % 1 / r
- 
-        [~, ~, tfmag.UtdILRA] = DelayLineLR(input, zeros(size(pathLength)), windowLength, validPath, tfmagStore', c, fs, validPath);
-        [tfmagN.UtdILRA(:,i), ~, ~] = CreateFrequencyNBands(tfmag.UtdILRA(:,end), fvec, nBand);
-        
-        tfmagStore = SingleUTDExtDaisyChain(data(i), phii, controlparameters);
-
-        [~, ~, tfmag.UtdILRE] = DelayLineLR(input, zeros(size(pathLength)), windowLength, validPath, tfmagStore', c, fs, validPath);
-        [tfmagN.UtdILRE(:,i), ~, ~] = CreateFrequencyNBands(tfmag.UtdILRE(:,end), fvec, nBand);
-        
-        %% Figures
-        if plotFigures
-            close all
-    
-            figure('Position',[50 100 900 800])
-            plot3(source(:,1), source(:,2), source(:,3), 'o')
-            hold on
-            plot3(receiver(:,1), receiver(:,2), receiver(:,3), 'o')
-            plot3(Q(:,1), Q(:,2), Q(:,3))
-            plot3(apex(:,1), apex(:,2), apex(:,3), 'o')
-            title('Scene')
-            legend('Source', 'Receiver', 'Planes', 'Apex')
-            view([0 90])
-            xlim([-4 2])
-            ylim([-4 2])
-    
-            color = colorStore(1:4,:);
-            color = colorStore([4, 1, 7, 2],:);
-            figure('Position',[50 100 1820 800])
-            %tiledlayout(1,2);
-    
-            %nexttile
-            semilogx(fvecBtm, tfmag.Btm, 'LineWidth', 2)
-            hold on
-            %semilogx(fvecBtm, tfmag.BtmE(:,end))
-            %semilogx(fvec, tfmag.UtdLRE(:,end))
-            semilogx(fvec, tfmag.NNE(:,end), '--')
-            semilogx(fvecBtm, tfmag.BtmIE(:,end), '--')
-            semilogx(fvec, tfmag.UtdILRE(:,end), '--')
-            %semilogx(fvecBtm, tfmag.BtmIA(:,end), '-.')
-            %semilogx(fvec, tfmag.UtdLRA(:,end), '-.')
-            %semilogx(fvec, tfmag.NNA(:,end), ':')
-            %semilogx(fvecBtm, tfmag.BtmIA(:,end), ':')
-            %semilogx(fvec, tfmag.UtdILRA(:,end), ':')
-            grid on
-            colororder(gca, color)
-            title('Frequency responses')
-            xlabel('Frequency')
-            ylabel('Magnitude')
-            %legend('True BTM', 'BTM Ext', 'UTD Ext', 'NN Ext', 'BTMI Ext', 'UTDI Ext', 'BTM Apex', 'UTD Apex', 'NN Apex', 'BTM ApexI', 'UTD ApexI')
-            legend('True BTM', 'NN Ext', 'BTMI Ext', 'UTDI Ext')
-            xlim([20 20000])
-            ylim([-70 0])
-    
 %             color = colorStore(1:5,:);
 %             nexttile
 %             for j = 1:2
@@ -274,138 +270,77 @@ k = 3;
 %             xlim([20 20000])
 %             ylim([-30 10])
 
-            color = colorStore([4, 4, 1, 1, 2, 2],:);
-            figure
-            %semilogx(fvecBtm, tfmag.BtmE(:,end))
-            %semilogx(fvec, tfmag.UtdLRE(:,end))
-            semilogx(fvecBtm, tfmag.BtmIE(:,1:2), 'LineWidth', 2)
-            hold on
-            semilogx(fvec, tfmag.NNE(:,1:2), '--')
-            semilogx(fvec, tfmag.UtdILRE(:,1:2), '--')
-            %semilogx(fvecBtm, tfmag.BtmIA(:,end), '-.')
-            %semilogx(fvec, tfmag.UtdLRA(:,end), '-.')
-            %semilogx(fvec, tfmag.NNA(:,end), ':')
-            %semilogx(fvecBtm, tfmag.BtmIA(:,end), ':')
-            %semilogx(fvec, tfmag.UtdILRA(:,end), ':')
-            grid on
-            colororder(color)
-            title('Frequency responses')
-            xlabel('Frequency')
-            ylabel('Magnitude')
-            %legend('True BTM', 'BTM Ext', 'UTD Ext', 'NN Ext', 'BTMI Ext', 'UTDI Ext', 'BTM Apex', 'UTD Apex', 'NN Apex', 'BTM ApexI', 'UTD ApexI')
-            legend('BTMI Ext', '', 'NN Ext', '', 'UTDI Ext', '')
-            xlim([20 20000])
-            ylim([-60 10])
-        end
-        tfmagN1.BtmIE = CreateNBandMagnitude(tfmag.BtmIE(:,1), fidx);
-        tfmagN1.UtdILRE = CreateFrequencyNBands(tfmag.UtdILRE(:,1), fvec, nBand);
-        tfmagN1.NNE = CreateNBandMagnitude(tfmag.NNE(:,1), fidx);
-        lossN1 = CalculateLoss(tfmagN1, tfmagN1.BtmIE);
-
-        tfmagN2.BtmIE = CreateNBandMagnitude(tfmag.BtmIE(:,2), fidx);
-        tfmagN2.UtdILRE = CreateFrequencyNBands(tfmag.UtdILRE(:,2), fvec, nBand);
-        tfmagN2.NNE = CreateNBandMagnitude(tfmag.NNE(:,2), fidx);
-        lossN2 = CalculateLoss(tfmagN2, tfmagN2.BtmIE);
-
-        loss = CalculateLoss(tfmagN, tfmagN.Btm);
-        disp(['NN Loss: ', num2str(lossN1.mean.NNE), ' + ', num2str(lossN2.mean.NNE), ' = ', num2str(loss.i.NNE(i))])
-        disp(['UTD Loss: ', num2str(lossN1.mean.UtdILRE), ' + ', num2str(lossN2.mean.UtdILRE), ' = ', num2str(loss.i.UtdILRE(i))])
-
+        color = colorStore([4, 4, 1, 1, 2, 2],:);
+        figure
+        %semilogx(fvecBtm, tfmag.BtmE(:,end))
+        %semilogx(fvec, tfmag.UtdLRE(:,end))
+        semilogx(fvecBtm, tfmag.BtmIE(:,1:2), 'LineWidth', 2)
+        hold on
+        semilogx(fvec, tfmag.NNE(:,1:2), '--')
+        semilogx(fvec, tfmag.UtdILRE(:,1:2), '--')
+        %semilogx(fvecBtm, tfmag.BtmIA(:,end), '-.')
+        %semilogx(fvec, tfmag.UtdLRA(:,end), '-.')
+        %semilogx(fvec, tfmag.NNA(:,end), ':')
+        %semilogx(fvecBtm, tfmag.BtmIA(:,end), ':')
+        %semilogx(fvec, tfmag.UtdILRA(:,end), ':')
+        grid on
+        colororder(color)
+        title('Frequency responses')
+        xlabel('Frequency')
+        ylabel('Magnitude')
+        %legend('True BTM', 'BTM Ext', 'UTD Ext', 'NN Ext', 'BTMI Ext', 'UTDI Ext', 'BTM Apex', 'UTD Apex', 'NN Apex', 'BTM ApexI', 'UTD ApexI')
+        legend('BTMI Ext', '', 'NN Ext', '', 'UTDI Ext', '')
+        xlim([20 20000])
+        ylim([-60 10])
     end
+    tfmagN1.BtmIE = CreateNBandMagnitude(tfmag.BtmIE(:,1), fidx);
+    tfmagN1.UtdILRE = CreateFrequencyNBands(tfmag.UtdILRE(:,1), fvec, nBand);
+    tfmagN1.NNE = CreateNBandMagnitude(tfmag.NNE(:,1), fidx);
+    lossN1 = CalculateLoss(tfmagN1, tfmagN1.BtmIE);
+
+    tfmagN2.BtmIE = CreateNBandMagnitude(tfmag.BtmIE(:,2), fidx);
+    tfmagN2.UtdILRE = CreateFrequencyNBands(tfmag.UtdILRE(:,2), fvec, nBand);
+    tfmagN2.NNE = CreateNBandMagnitude(tfmag.NNE(:,2), fidx);
+    lossN2 = CalculateLoss(tfmagN2, tfmagN2.BtmIE);
+
+    loss = CalculateLoss(tfmagN, tfmagN.Btm);
+    disp(['NN Loss: ', num2str(lossN1.mean.NNE), ' + ', num2str(lossN2.mean.NNE), ' = ', num2str(loss.i.NNE(i))])
+    disp(['UTD Loss: ', num2str(lossN1.mean.UtdILRE), ' + ', num2str(lossN2.mean.UtdILRE), ' = ', num2str(loss.i.UtdILRE(i))])
+
+end
 
 %%
-    loss = CalculateLoss(tfmagN, tfmagN.Btm);
+loss = CalculateLoss(tfmagN, tfmagN.Btm);
 
-    %%
-    %savePath = [savePath 'Test'];
+disp('Complete')
     
-    %save(savePath, 'data')
-    
-    disp('Complete')
-    
-    %% Data
-    
-    %close all
-    
-    L = [data.L];
-    W = [data.W];
-    fields = fieldnames(loss.i);
-    numFields = length(fields);
+%% Data
 
-    width = 0.1;
-    numBins = 3 / width;
-    x = (0:width:3 + width) - width / 2;
-    % x = zeros(1, 2 * numBins + 1);
-    for i = 2:numBins+1
-        idx = width * (i - 2) < W & W <= width * (i - 1);
-        for j = 1:numFields
-            field = fields{j};
-            loss.w.(field)(i) = mean(loss.i.(field)(idx));
-        end
-    end
-    % x = x(1:end - 1);
+close all
+
+L = [data.L];
+W = [data.W];
+fields = fieldnames(loss.i);
+numFields = length(fields);
+
+width = 0.1;
+numBins = 3 / width;
+x = (0:width:3 + width) - width / 2;
+for i = 2:numBins+1
+    idx = width * (i - 2) < W & W <= width * (i - 1);
     for j = 1:numFields
         field = fields{j};
-        idx = isnan(loss.w.(field));
-        loss.w.(field)(idx) = 0;
-        loss.w.(field)(end + 1) = 0;
+        loss.w.(field)(i) = mean(loss.i.(field)(idx));
     end
-%     
-%     figure
-%     plot(x, meanNN1)
-%     hold on
-%     grid on
-%     plot(x, meanUTD1, '--')
-%     plot(x, meanNN2)
-%     plot(x, meanUTD2, '--')
-%     plot(x, meanNE)
-%     plot(x, meanUEI, '--')
-%     plot(x, meanBEI, '-.')
-%     xlim([0.1 3])
-%     legend('meanNNExt1', 'meanUtdExtI1', 'meanNNExt2', 'meanUtdExtI2', 'meanNNExt', 'meanUtdExtI', 'meanBtmExtI')
-%     title(num2str(height))
-%     xlabel('W_1 (m)')
-%     ylabel('Mean absolute error (dBA)')
-%     
-%     saveDir = 'figures';
-%     saveas(gcf, [saveDir filesep 'HODComparison_TestNew_' num2str(k)], 'epsc')
-%     saveas(gcf, [saveDir filesep 'HODComparison_TestNew_' num2str(k)], 'svg')
-%     
-%     save(['hod workspace_Test1deg_', num2str(k)])
-% end
-% %%
-% 
-% 
-% color = colorStore(1:3,:);
-% figure
-% plot(x, loss.w.BtmE)
-% hold on
-% grid on
-% plot(x, loss.w.UtdLRE)
-% plot(x, loss.w.NNE)
-% plot(x, loss.w.BtmA, '--')
-% plot(x, loss.w.UtdLRA, '--')
-% plot(x, loss.w.NNA, '--')
-% plot(x, loss.w.BtmIE, '-.')
-% plot(x, loss.w.UtdILRE, '-.')
-% plot(x, loss.w.NNE)
-% plot(x, loss.w.BtmIA, ':')
-% plot(x, loss.w.UtdILRA, ':')
-% colororder(color)
-% xlim([0.1 3])
-% legend('BTM Extension', 'UTD-LR Extension', 'NN-IIR Extension', 'BTM Apex', 'UTD-LR Apex', 'NN-IIR Apex', 'BTMI Extension', 'UTDI-LR Extension', '-', 'BTMI Apex', 'UTDI-LR Apex')
-% xlabel('W_1 (m)')
-% ylabel('Mean absolute error (dBA)')
-% 
-% saveDir = 'figures';
-% saveas(gcf, [saveDir filesep 'HODComparison_Test'], 'epsc')
-% saveas(gcf, [saveDir filesep 'HODComparison_Test'], 'svg')
+end
+for j = 1:numFields
+    field = fields{j};
+    idx = isnan(loss.w.(field));
+    loss.w.(field)(idx) = 0;
+    loss.w.(field)(numBins + 2) = 0;
+end
 
-%% Result Plot
-
-%close all
 saveDir = 'figures';
-%load(['hod workspace_Test1deg_' num2str(k), '.mat'])
 color = colorStore([4,4,1,2,5,5,6,3],:);
 
 figure
@@ -419,17 +354,58 @@ plot(x, loss.w.BtmA, '--')
 plot(x, loss.w.BtmIA, '--', 'Color', [color(5,:), 0.6])
 plot(x, loss.w.NNA, '--')
 plot(x, loss.w.UtdILRA, '--')
-%plot(x, meanUEI)
 colororder(color)
 xlim([0.1 3])
 ylim([0 6])
-%title(num2str(store(k)))
 legend('BTM Extension', 'BTM-I Extension', 'NN-IIR Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR Apex', 'UTD-LR Apex')
 xlabel('W_1 (m)')
 ylabel('Mean absolute error (dB)')
 
 saveas(gcf, [saveDir filesep 'HODComparison'], 'epsc')
 saveas(gcf, [saveDir filesep 'HODComparison'], 'svg')
+
+%%
+thetaR = [data.thetaS];
+
+width = 180 / 20;
+numBins = 180 / width;
+x = (180:width:360 + width) - width / 2;
+for i = 2:numBins+1
+    idx = x(i - 1) < thetaR & thetaR <= x(i);
+    for j = 1:numFields
+        field = fields{j};
+        loss.tR.(field)(i) = mean(loss.i.(field)(idx));
+    end
+end
+for j = 1:numFields
+    field = fields{j};
+    idx = isnan(loss.w.(field));
+    loss.tR.(field)(idx) = 0;
+    loss.tR.(field)(numBins + 2) = 0;
+end
+
+saveDir = 'figures';
+color = colorStore([4,4,1,2,5,5,6,3],:);
+
+figure
+plot(x, loss.tR.BtmE)
+hold on
+grid on
+plot(x, loss.tR.BtmIE, 'Color', [color(1,:), 0.6])
+plot(x, loss.tR.NNE)
+plot(x, loss.tR.UtdILRE)
+plot(x, loss.tR.BtmA, '--')
+plot(x, loss.tR.BtmIA, '--', 'Color', [color(5,:), 0.6])
+plot(x, loss.tR.NNA, '--')
+plot(x, loss.tR.UtdILRA, '--')
+colororder(color)
+xlim([180 360])
+%ylim([0 6])
+legend('BTM Extension', 'BTM-I Extension', 'NN-IIR Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR Apex', 'UTD-LR Apex')
+xlabel('W_1 (m)')
+ylabel('Mean absolute error (dB)')
+
+return
 
 close all
 saveDir = 'figures';
