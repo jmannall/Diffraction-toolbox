@@ -85,8 +85,8 @@ CrIIR4 = Fs * (IIR4 + (IIR4 - 1) * diffOrders);
 %% UTD calculation costs
 
 numUtdFreq = 4;
-utdPerFreq = 58;
-utdOnce = 66;
+utdPerFreq = 84;
+utdOnce = 67;
 tfmagCalc = 8;
 dirRef = 4 + tfmagCalc;
 interpolate = 6 + numUtdFreq * 5;
@@ -216,6 +216,8 @@ title('Diffraction model cost')
 
 %saveas(gcf, [savePath, filesep, 'ModelCosts.svg'], 'svg')
 
+SingleUTDWedge
+
 %% Overlap add methods
 
 T60 = 0.03;
@@ -229,7 +231,6 @@ dirRef = 4 + tfmagCalc;
 interpolate = 6 + numUtdFreq * 5;
 
 CcUtd = 2 * (utdOnce + numUtdFreq * utdPerFreq) + dirRef + interpolate;
-CcUtd = utdOnce + numUtdFreq * utdPerFreq;
 
 CrOverlapAddUtd = Fr'.*(12*N.*log2(N)+6*N+T60*Fs-1);
 CrOverlapAddBtm = Fr'.*(18*N.*log2(N)+6*N+T60*Fs-1);

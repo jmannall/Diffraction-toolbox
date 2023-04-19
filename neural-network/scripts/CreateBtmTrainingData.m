@@ -87,6 +87,7 @@ function [trainingData, targetData, DC, fvec, fc, fidx, index, savePath, tfmag, 
             tfmag = tfmag(1:end / 2,:);
             tfmag = max(min(tfmag, 128), -128);
             save(NNSavePath, "trainingData", "targetData", "DC", "tfmagI", "tfmag", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
+            save([NNSavePath, '_small'], "trainingData", "targetData", "DC", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
         else
             save(NNSavePath, "trainingData", "targetData", "DC", "fvec", "fc", "fidx", "index", "savePath", '-v7.3')
         end
