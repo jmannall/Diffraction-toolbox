@@ -426,7 +426,7 @@ saveas(gcf, [savePath, filesep, 'GAModelCostsSmall'], 'svg')
 
 %%
 
-color = colorStore([1, 1, 2, 5, 3, 4],:);
+color = colorStore([1, 1, 2, 3, 4],:);
 figure('Position', [gap gap 6 * x 1.5 * x])
 t = tiledlayout(1, 3, 'TileSpacing', 'compact');
 for i = 1:2:numDiff
@@ -437,7 +437,7 @@ for i = 1:2:numDiff
     grid on
     semilogy(Fr, CdNNIIR2(:,i), 'Color', [color(1,:), 0.6])
     semilogy(Fr, CdUtdLR(:,i), '-.')
-    semilogy(Fr, CdUDFAIIR(:,i), ':')
+    %semilogy(Fr, CdUDFAIIR(:,i), ':')
     semilogy(Fr, CdUtdOverlapAdd(:,i), '--')
     if i == 1
         semilogy(Fr, CdBtmOverlapAdd, ':')
@@ -452,7 +452,7 @@ for i = 1:2:numDiff
     title(['Diffraction order: ', num2str(diffOrders(i))])
 end
 fontsize(gcf,scale=textScale)
-l = legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UDFA-IIR', 'UTD-overlap add', 'BTM-overlap add', 'Location', 'bestoutside');
+l = legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UTD-overlap add', 'BTM-overlap add', 'Location', 'bestoutside');
 title(l, 'Diffraction Model')
 fontsize(gcf,20,"pixels")
 

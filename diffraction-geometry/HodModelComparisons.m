@@ -27,7 +27,7 @@ index = '2180cfff4ddad1de505214480a4535ce';
 [loadPath, savePath] = deal(['geometry/NthOrderPaths_01mTo3m_', num2str(index), '.mat']);
 restart = true;
 generate = false;
-plotFigures = false;
+plotFigures = true;
 createPlot = false;
 if restart
     i = 1;
@@ -50,6 +50,9 @@ nBand = 8;
     
 loadDir = 'NNSaves';
 netName = ['Run6', filesep, 'IIR-7_32_0001.mat'];
+
+loadDir = 'NNSaves_DC';
+netName = ['Run2', filesep, 'IIR-6_40_0001.mat'];
 
 numFilters = 2;
 pathLength = ones(1, numEdges);
@@ -365,7 +368,10 @@ saveas(gcf, [saveDir filesep 'HODComparison'], 'epsc')
 saveas(gcf, [saveDir filesep 'HODComparison'], 'svg')
 
 %%
-thetaR = [data.thetaS];
+for i = 1:numPaths
+thetaR(i) = data(i).wedgeIndex(1);
+end
+%thetaR = thetaR(:,2);
 
 width = 180 / 20;
 numBins = 180 / width;
@@ -404,6 +410,24 @@ xlim([180 360])
 legend('BTM Extension', 'BTM-I Extension', 'NN-IIR Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR Apex', 'UTD-LR Apex')
 xlabel('W_1 (m)')
 ylabel('Mean absolute error (dB)')
+
+%%
+
+figure
+semilogx(fc, loss.f.BtmE)
+hold on
+grid on
+semilogx(fc, loss.f.BtmIE, 'Color', [color(1,:), 0.6])
+semilogx(fc, loss.f.NNE)
+semilogx(fc, loss.f.UtdILRE)
+semilogx(fc, loss.f.BtmA, '--')
+semilogx(fc, loss.f.BtmIA, '--', 'Color', [color(5,:), 0.6])
+semilogx(fc, loss.f.NNA, '--')
+semilogx(fc, loss.f.UtdILRA, '--')
+colororder(color)
+legend('BTM Extension', 'BTM-I Extension', 'NN-IIR Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR Apex', 'UTD-LR Apex')
+xlim([20 20e3])
+grid on
 
 return
 

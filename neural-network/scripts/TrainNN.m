@@ -36,8 +36,9 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     backupRate = 5;
  
     % Load testing data
-    [testInputData, testTargetData, DC] = tP.dataFunc('TestData');
-    testTargetData = [DC; testTargetData];
+    [testInputData, testTargetData] = tP.dataFunc('TestData');
+    %[testInputData, testTargetData, DC] = tP.dataFunc('TestData');
+    %testTargetData = [DC; testTargetData];
     testInputData = dlarray(single(testInputData), "CB");
     learnRate = hP.learnRate;
 
@@ -63,18 +64,20 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
 
     tic
     for epoch = i:tP.numEpochs
-        [trainingData, targetData, DCTargetData] = tP.dataFunc(epoch);
+        [trainingData, targetData] = tP.dataFunc(epoch);
+        %[trainingData, targetData, DCTargetData] = tP.dataFunc(epoch);
         targetData = dlarray(targetData);
         % Shuffle data.
         idx = randperm(size(trainingData, 2));
         targetData = targetData(:,idx);
         trainingData = trainingData(:,idx);
-        DCTargetData = DCTargetData(idx);
+        %DCTargetData = DCTargetData(idx);
+        %targetData = [DCTargetData; targetData];
         for i = 1:numIterationsPerEpoch
             iteration = iteration + 1;
     
             % Create input and target variables
-            [X, T] = ProcessNNBatchInputData(trainingData, targetData, DCTargetData, tP.miniBatchSize, i);
+            [X, T] = ProcessNNBatchInputData(trainingData, targetData, tP.miniBatchSize, i);
     
             % Evaluate the model loss and gradients using dlfeval and the
             % modelLoss function.input
