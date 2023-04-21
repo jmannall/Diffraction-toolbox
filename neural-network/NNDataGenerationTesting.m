@@ -1,15 +1,14 @@
 %close all
 %clear all
 
-z = [-0.9, -0.1];
-p = [0.9, -0.3];
-k = [0.1, 1];
+z = [-0.9, -0.8];
+p = [0.9, -0.9];
+k = [0.1, 5];
 
 fs = 48e3;
 nfft = 8192;
 [tfmag, fvec] = CreateIIRFilter(z, p, k, nfft, fs);
 
-IIRFilterLoss
 figure
 semilogx(fvec, tfmag)
 grid on
@@ -31,13 +30,24 @@ zS = geometry.zS;
 zR = geometry.zR;
 zA = geometry.zA;
 
-[~, phii] = CalculateApex(radiusS', radiusR', zS', zR', wedgeLength', true);
+wedgeIndex = rad2deg(trainingData(1,:));
+bendingAngle = rad2deg(trainingData(2,:));
+minAngle = rad2deg(trainingData(3,:));
+wedgeLength = trainingData(4,:);
+radiusS = trainingData(5,:);
+radiusR = trainingData(6,:);
+zS = trainingData(7,:);
+zR = trainingData(8,:);
+%zA = geometry.zA;
+
+[zA, phii] = CalculateApex(radiusS, radiusR, zS, zR, wedgeLength, true);
+zA = zA(:,3);
 
 %% Plots
 
 %close all
 
-zAProp = zA ./ wedgeLength;
+zAProp = zA ./ wedgeLength';
 figure
 histogram(zAProp)
 title('zA')
