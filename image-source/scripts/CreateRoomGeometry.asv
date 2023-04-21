@@ -1,0 +1,58 @@
+function [room, plot] = CreateRoomGeometry(roomFunc)
+    room = roomFunc();
+
+    plot = struct('source', room.source, 'receiver', room.receiver, 'corners', room.corners, 'planeCorners', room.planeCorners);
+
+    room.numPlanes = size(room.planeCorners, 1);
+    room.numEdges = size(room.edgeCorners, 1);
+    room.planeNormals = zeros(room.numPlanes, 3);
+    [room.d, room.numCorners] = deal(zeros(room.numPlanes, 1));
+    room.receiverCanSeePlane = true(room.numPlanes, 1);
+
+    for i = 1:room.numPlanes
+        validCorners = room.planeCorners(i,:) > 0; % Find non zero plane corners
+        room.planeCornersCoords{i} = [room.corners(room.planeCorners(i,validCorners),:); room.corners(room.planeCorners(i,1),:)];
+        room.numCorners(i) = sum(validCorners);     % num corners in the plane
+        edge1 = room.corners(room.planeCorners(i,1),:) - room.corners(room.planeCorners(i,2),:);
+        edge2 = room.corners(room.planeCorners(i,1),:) - room.corners(room.planeCorners(i,3),:);
+        room.planeNormals(i,:) = normr(cross(edge1, edge2));    % Plane normals
+        room.d(i) = dot(room.planeNormals(i,:), room.corners(room.planeCorners(i,1),:));     % Equation of a plane: ax + by + cz = d. where (a, b, z) are plane normal
+        % Check if receiver lies behind the plane
+        [~, room.receiverCanSeePlane(i)] = PointPlanePosition(room.receiver, room.planeNormals(i,:), room.d(i));
+    end
+
+    % Source and receiver to edge visibility (assuming no partially obstructed
+    % edges)
+    [room.sourceCanSeeEdge, room.receiverCanSeeEdge] = deal(false(room.numEdges, 1));
+    for i = 1:room.numEdges
+        room.edgeMidPoints(i,:) = (room.corners(room.edgeCorners(i,1),:) + room.corners(room.edgeCorners(i,2),:)) / 2;
+        room.receiverCanSeeEdge(i) = ~CheckForObstruction(room.edgeMidPoints(i,:), room.receiver, room, 0);
+        room.sourceCanSeeEdge(i) = ~CheckForObstruction(room.source, room.edgeMidPoints(i,:), room, 0);
+
+        idx = sum((room.planeCorners == room.edgeCorners(i,1)) | (room.planeCorners == room.edgeCorners(i,2)), 2);
+        room.edgePlanes(i,:) = find(idx == 2);
+        room.edgeNormals(i,:) = NormaliseVector(sum(room.planeNormals(room.edgePlanes(i,:),:), 1)
+    end
+    
+    room.planeCanSeeplane = true(room.numPlanes);
+    room.edgeCanSeePlane = false(room.numEdges, room.numPlanes);
+    for i = 1:room.numPlanes
+        for j = 1:room.numPlanes
+            dotProduct = dot(room.planeNormals(i,:), room.planeNormals(j,:));
+            if dotProduct == 1  % Normals are parallel and in the same direction
+                [room.planeCanSeeplane(i,j), room.planeCanSeeplane(j,i)] = deal(false);
+            else
+                validCorners = false(1, room.numCorners(j));
+                for n = 1:room.numCorners(j)
+                    [~, validCorners(n)] = PointPlanePosition(room.corners(room.planeCorners(j,n),:), room.planeNormals(i,:), room.d(i));  % Check if each plane corner is behind other the plane
+                end
+                if sum(validCorners) == 0
+                    [room.planeCanSeeplane(i,j), room.planeCanSeeplane(j,i)] = deal(false);   % If all corners are behind the other plane. No reflection is every possible between them
+                end
+            end
+        end
+        for j = 1:room.numEdges
+            [~, room.edgeCanSeePlane(j,i)] = PointPlanePosition(room.edgeMidPoints(j,:), room.planeNormals(i,:), room.d(i));  % Check if each plane corner is behind other the plane
+        end
+    end
+end

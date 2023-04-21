@@ -1,8 +1,8 @@
-%close all
+close all
 clear all
 
 set(0, 'DefaultLineLineWidth', 1.5);
-colorStore = colororder('default');
+colorStore = colororder;
 
 store = [20, 10, 5, 2.5, 1];
 %for k = 1:length(store)
@@ -15,7 +15,7 @@ numEdges = 2;
 
 height = store(k);
 [zS, zR] = deal(height / 2);
-[zS, zR] = deal(0.5);
+%[zS, zR] = deal(0.5);
 
 controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c, 'saveFiles', 3, 'noDirect', true, 'interpolated', false);
 

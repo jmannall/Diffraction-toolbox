@@ -72,6 +72,13 @@ function TrainNeuralNetwork(numLayers, size, learnRate, saveDir)
         'miniBatchSize', miniBatchSize, 'gradDecay', gradDecay, 'sqGradDecay', sqGradDecay, 'maxGrad', maxGrad);
     networkParamters = struct('numInputs', numInputs, 'numOutputs', numOutputs, 'alpha', alpha, 'saveDir', saveDir, 'savePath', savePath, 'seed', seed);
 
-    % Train the network
-    [loss, net] = CreateNN(hyperParameters, trainingParameters, networkParamters);
+    complete1 = exist([cd filesep savePath '.mat'], "file");
+    complete2 = exist([cd filesep savePath '_INCOMPLETE.mat'], "file");
+
+    if complete1 == 2 || complete2 == 2
+        disp('Already Trained')
+    else
+        % Train the network
+        [loss, net] = CreateNN(hyperParameters, trainingParameters, networkParamters);
+    end
 end

@@ -6,7 +6,7 @@ colorStore = colororder;
 
 %% Load networks
 
-loadDir = 'NNSaves_DC';
+loadDir = 'NNSaves_Run2';
 dirInfo = dir(loadDir);
 dirInfo = dirInfo(3:end);
 idx = [dirInfo.isdir];

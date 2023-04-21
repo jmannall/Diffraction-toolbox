@@ -12,7 +12,7 @@ pattern = ' ';
 missing = pattern;
 invalid = pattern;
 numSets = 500;
-fileStem = ['results' filesep 'CreateBtmTrainingData_PhiiFlat' filesep 'CreateBtmTrainingData_'];
+fileStem = ['results' filesep 'CreateBtmTrainingData' filesep 'CreateBtmTrainingData_'];
 for i = 1:numSets
     fileExist = exist([fileStem, num2str(i), '-48_NN.mat'], 'file');
     if fileExist == 2

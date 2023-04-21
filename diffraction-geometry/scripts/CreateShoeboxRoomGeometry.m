@@ -1,7 +1,7 @@
-function [room, source, receiver] = CreateShoeboxRoomGeometry(x, y, z)
+function room = CreateShoeboxRoomGeometry(x, y, z)
 
-    receiver = [x / 2, y / 4, min(1.6, z - 0.1)];
-    source = [x / 2, 3 * y / 4, min(1.6, z - 0.1)];
+    room.receiver = [x / 2, y / 4, min(1.6, z - 0.1)];
+    room.source = [x / 2, 3 * y / 4, min(1.6, z - 0.1)];
 
     room.corners = [0 0 0
         x(1) 0 0

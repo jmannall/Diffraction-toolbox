@@ -73,8 +73,10 @@ function geometry = RandomGeometryWedge_Run2(numObservations)
     %% Wedge length
     %wedgeLength = [0.1, 10]; % Chosen from sensitivity examples
     wedgeLength = [0.1 50]; % To allow for larger variation in z values
-    %wL = RandomLoguniformDistribution(wedgeLength, numObservations);
-    wL = RandomUniformDistribution(wedgeLength, numObservations);
+    %wL1 = RandomLoguniformDistribution(wedgeLength, numObservations / 2);
+    %wL2 = RandomUniformDistribution(wedgeLength, numObservations / 2);
+    %wL = [wL1; wL2];
+    wL = RandomLoguniformDistribution(wedgeLength, numObservations);
     
     %% Radius
     % Normalise anyway so the important question is at what point can we
@@ -92,6 +94,9 @@ function geometry = RandomGeometryWedge_Run2(numObservations)
 
     apex = [epsilon * const wL - epsilon];
     zA = RandomUniformDistribution(apex, numObservations);
+
+    %apex = [epsilon * const wL / 2];
+    %zA = RandomTriangularDistribution(apex, true, numObservations);
 
     angle = [1 90];
     %phii1 = RandomUniformDistribution(angle, numObservations / 2);

@@ -1,37 +1,25 @@
-close all
+%close all
 %clear all
 
-% dz = abs(trainingData(7,:) - trainingData(8,:));
-% 
-% figure
-% histogram(dz)
-% title('true dz')
-% 
-mA = trainingData(3,:);
-% 
-% figure
-% histogram(mA)
-% title('true mA')
-% 
-bA = trainingData(2,:);
-% 
-% figure
-% histogram(bA)
-% title('true bA')
+z = [-0.9, -0.1];
+p = [0.9, -0.3];
+k = [0.1, 1];
 
-s = [sin(mA); cos(mA)];
-r = [sin(mA + bA); cos(mA + bA)];
+fs = 48e3;
+nfft = 8192;
+[tfmag, fvec] = CreateIIRFilter(z, p, k, nfft, fs);
 
+IIRFilterLoss
 figure
-plot(s(1,:), s(2,:), 'o')
-hold on
-plot(r(1,:), r(2,:), 'x')
+semilogx(fvec, tfmag)
+grid on
+xlim([20 20e3])
 
 %% Distributions
 numObservations = 20e3;
 
 weight = 25;
-geometry = RandomGeometryWedge(numObservations);
+geometry = RandomGeometryWedge_Run2(numObservations);
 
 wedgeIndex = geometry.wedgeIndex;
 bendingAngle = geometry.bendingAngle;
@@ -43,9 +31,20 @@ zS = geometry.zS;
 zR = geometry.zR;
 zA = geometry.zA;
 
+[~, phii] = CalculateApex(radiusS', radiusR', zS', zR', wedgeLength', true);
+
 %% Plots
 
-close all
+%close all
+
+zAProp = zA ./ wedgeLength;
+figure
+histogram(zAProp)
+title('zA')
+
+figure
+histogram(phii, 'BinWidth', 1)
+title('phii')
 
 figure
 histogram(wedgeIndex)
@@ -64,6 +63,10 @@ figure
 histogram(wedgeLength,10.^edges)
 set(gca, 'xscale','log')
 title('wedgeLength')
+
+figure
+histogram(wedgeLength)
+title('Wedge Length')
 
 [~,edges] = histcounts(log10(radiusS));
 figure
@@ -87,16 +90,18 @@ figure
 histogram(radiusR,edges)
 title('radiusR')
 
+%%
 figure
 histogram(zS)
 title('zS')
 
 figure
-histogram(zS)
+histogram(zR)
 title('zR')
 
+test = [zS; zS];
 figure
-histogram([zS; zS])
+histogram([zS; zR])
 title('zS and zR')
 
 dZ = abs(zS - zR);
@@ -104,10 +109,9 @@ figure
 histogram(dZ)
 title('dZ')
 
-zAProp = zA ./ wedgeLength;
+%%
 figure
-histogram(zAProp)
-title('zA')
+histogram(zAProp(dZ < 0.5 & wedgeLength > 3))
 
 controlparameters = struct('fs', 96e3, 'nfft', 16384, 'difforder', 1, 'c', 344);
 

@@ -1,7 +1,7 @@
-function [room, source, receiver] = CreateRingShapedRoomGeometry(x, y, z)
+function room = CreateRingShapedRoomGeometry(x, y, z)
 
-    source = [(x(3) + x(1)) / 2, (y(3) + y(2)) / 2, min(1.6, z - 0.1)];
-    receiver = [x(2) / 2, (y(3) + y(2)) / 2, min(1.6, z - 0.1)];
+    room.source = [(x(3) + x(1)) / 2, (y(3) + y(2)) / 2, min(1.6, z - 0.1)];
+    room.receiver = [x(2) / 2, (y(3) + y(2)) / 2, min(1.6, z - 0.1)];
 
     room.corners = [0 0 0
         x(1) 0 0

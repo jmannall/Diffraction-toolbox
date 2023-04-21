@@ -1,7 +1,7 @@
-function [room, source, receiver] = CreateLShapedRoomGeometry(x, y, z)
+function room = CreateLShapedRoomGeometry(x, y, z)
 
-    source = [(x(2) + x(1)) / 2, (y(2) + y(1)) / 2, min(1.6, z - 0.1)];
-    receiver = [x(1) / 2, y(1) / 2, min(1.6, z - 0.1)];
+    room.source = [(x(2) + x(1)) / 2, (y(2) + y(1)) / 2, min(1.6, z - 0.1)];
+    room.receiver = [x(1) / 2, y(1) / 2, min(1.6, z - 0.1)];
 
     room.corners = [0 0 0
         x(1) 0 0
@@ -26,6 +26,7 @@ function [room, source, receiver] = CreateLShapedRoomGeometry(x, y, z)
         6 12 7 1 0 0];
 
     room.edgeCorners = [3 9];
+    room.edgeCanSeeEdge = false;
 
     room.thetaW = 270;
 end

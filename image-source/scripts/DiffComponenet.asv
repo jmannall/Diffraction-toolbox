@@ -1,0 +1,68 @@
+function [diff, plot] = DiffComponenet(room, plot)
+
+    disp('Diffraction order: 1')
+    idx = 0;
+    diff.valid = false(room.numEdges, 1);
+
+    tic
+    diff.thetaW = room.thetaW;
+    for i = 1:room.numEdges
+        baseCorner = room.corners(room.edgeCorners(1),:);
+        topCorner = room.corners(room.edgeCorners(2),:);
+        diff.zW(i) = PathLength(baseCorner, topCorner);
+        d = NormaliseVector(topCorner - baseCorner);
+
+        AP = room.source - baseCorner;
+        diff.rS(i) = norm(cross(AP, d));
+        diff.zS(i) = norm(AP) * dot(NormaliseVector(AP), d);
+
+        AP = room.receiver - baseCorner;
+        diff.rR(i) = norm(cross(AP, d));
+        diff.zR(i,:) = norm(AP) * dot(NormaliseVector(AP), d);
+
+        diff.zA(i,:) = baseCorner + CalculateApex(diff.rS(i), diff.rR(i), diff.zS(i), diff.zR(i), diff.zW(i), true);
+
+        kS = NormaliseVector(room.source - diff.zA(i,:));
+        diff.dS(i) = PathLength(diff.zA(i,:), room.source);
+
+        kR = NormaliseVector(room.receiver - diff.zA(i,:));
+        diff.dR(i) = PathLength(diff.zA(i,:), room.receiver);
+
+        bA = acosd(dot(kS, kR));
+        rotation = dot(cross(kS, kR), d);
+%         if rotation < 0
+%             bA = 360 - bA;
+%         end
+
+        kN = room.edgeNormals(i,:);
+
+        thetaS = acosd(dot(kS, room.edgeNormals(i,:)));
+        rotationS = dot(cross(kS, room.edgeNormals(i,:)), d);
+
+        thetaR = acosd(dot(kR, room.edgeNormals(i,:)));
+        rotationR = dot(cross(kR, room.edgeNormals(i,:)), d);
+
+        if sign(rotationS) == sign(rotationR)
+
+            bA = abs(thetaR - thetaS);
+            if thetaS > thetaR
+                thetaS = thetaS + diff.thetaW(i) / 2;
+                thetaR = thetaR + diff.thetaW(i) / 2;
+            if rotationS < 0
+                
+            else
+                
+            end
+        else
+
+        end
+
+        if room.receiverCanSeeEdge(i) && room.sourceCanSeeEdge(i)
+            idx = idx + 1;
+            diff.valid(i) = true;
+            diff.edges(idx) = i;
+            plot.diff{idx} = [room.source; diff.zA(i,:); room.receiver];
+        end
+    end
+    toc
+end

@@ -28,8 +28,8 @@ y = 4.12;
 z = 3;
 source = [1.40, 3.02, 1.36];
 receiver = [2.77, 1.30, 1.51];
-[corners, planes, source, receiver] = CreateShoeboxRoomGeometry(x, y, z, source, receiver);
-PlotGeometry(corners, planes, source, receiver)
+room = CreateShoeboxRoomGeometry(x, y, z);
+PlotGeometry(room.corners, room.planeCorners, source, receiver)
 
 alphaFreq = [250 500 1e3 2e3 4e3];
 
