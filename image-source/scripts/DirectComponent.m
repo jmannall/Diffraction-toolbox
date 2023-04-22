@@ -1,5 +1,6 @@
 function [direct, plot] = DirectComponent(room, plot)
 
+    disp('Direct')
     i = 0;
     direct.valid = ~CheckForObstruction(room.source, room.receiver, room, i);
     plot.lineOfSight = direct.valid;

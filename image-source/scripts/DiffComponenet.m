@@ -2,7 +2,6 @@ function [diff, plot] = DiffComponenet(room, plot)
 
     disp('Diffraction order: 1')
     idx = 0;
-    %diff.valid = false(room.numEdges, 1);
     diff.valid = false;
 
     tic

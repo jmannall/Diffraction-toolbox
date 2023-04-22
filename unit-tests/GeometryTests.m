@@ -1,6 +1,7 @@
 
 close all
 clear all
+set(0, 'DefaultLineLineWidth', 1.0);
 
 %% Shoebox room
 
@@ -28,12 +29,12 @@ roomFunc = @()CreateLShapedRoomGeometry(x, y, z);
 
 %% Modelling
 
-refOrder = 5;
+refOrder = 6;
 diffOrder = 3;
 combinedOrder = 5;
 maxPathLength = 100;
 
-op = struct('geometry', true, 'sr', true, 'direct', false, 'reflect', false, 'diff', false, 'hodDiff', false);
+op = struct('geometry', true, 'sr', true, 'direct', false, 'specular', false, 'hodSpecular', false, 'diff', false, 'hodDiff', false);
 
 room.receiver = [5.7 0.8 1.6];
 [room, plot] = CreateRoomGeometry(roomFunc, room);
@@ -63,6 +64,18 @@ op.hodDiff = true;
 PlotIS(plot, op)
 
 %% First order reflections
+
+[specular, plot, sData] = SpecularComponent(room, plot);
+op.specular = true;
+
+PlotIS(plot, op)
+
+%% Higher order reflections
+
+[hodSpecular, plot, sData] = HodSpecularComponent(room, plot, sData, refOrder);
+op.hodSpecular = true;
+
+PlotIS(plot, op)
 
 vSources = zeros(inf, 3);
 validPath = false(inf, 1);

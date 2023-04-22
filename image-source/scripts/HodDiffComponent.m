@@ -11,8 +11,9 @@ function [hodDiff, plot] = HodDiffComponent(room, plot, diffOrder)
         diff.valid = false;
         idx = 0;
 
-        tic
         disp(['Diffraction order: ', num2str(j)])
+
+        tic
         paths = unique(nchoosek(edges,j), "rows");
         numPaths = size(paths, 1);
         for i = 1:numPaths

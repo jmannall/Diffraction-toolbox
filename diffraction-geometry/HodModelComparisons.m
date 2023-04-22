@@ -15,7 +15,7 @@ numEdges = 2;
 
 height = store(k);
 [zS, zR] = deal(height / 2);
-[zS, zR] = deal(0.5);
+%[zS, zR] = deal(0.5);
 
 controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c, 'saveFiles', 3, 'noDirect', true, 'interpolated', false);
 
@@ -162,6 +162,7 @@ for i = n:numPaths
     r1 = min([rS, rS + W], [W + rR, rR]);
     r2 = max([rS, rS + W], [W + rR, rR]);
     X = [deg2rad(wI); bA; mA; wL; r1; r2; [zS, zS]; [zR, zR]];
+    %X = [deg2rad(wI); bA; mA; wL / 2; r1; r2; [0.01, 0.01]; [0.01, 0.01]];
     X = dlarray(single(X), "CB");
 
     [tfmag.NNE(:,1:numEdges), ~, tf.NNE(:,1:numEdges)] = MakeNNPrediction(net, X, pathLength, numFilters, fidx, controlparameters);
@@ -223,7 +224,7 @@ for i = n:numPaths
     
     %% Figures
     if plotFigures
-        %close all
+        close all
 
         figure('Position',[50 100 900 800])
         plot3(source(:,1), source(:,2), source(:,3), 'o')

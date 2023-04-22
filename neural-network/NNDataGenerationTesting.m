@@ -30,26 +30,24 @@ zS = geometry.zS;
 zR = geometry.zR;
 zA = geometry.zA;
 
-wedgeIndex = rad2deg(trainingData(1,:));
-bendingAngle = rad2deg(trainingData(2,:));
-minAngle = rad2deg(trainingData(3,:));
-wedgeLength = trainingData(4,:);
-radiusS = trainingData(5,:);
-radiusR = trainingData(6,:);
-zS = trainingData(7,:);
-zR = trainingData(8,:);
-%zA = geometry.zA;
-
-[zA, phii] = CalculateApex(radiusS, radiusR, zS, zR, wedgeLength, true);
-zA = zA(:,3);
+[~, phii] = CalculateApex(radiusS', radiusR', zS', zR', wedgeLength', true);
+% zA = zA(:,3);
 
 %% Plots
 
-%close all
+close all
 
-zAProp = zA ./ wedgeLength';
+zAProp = zA ./ wedgeLength;
 figure
 histogram(zAProp)
+title('zA')
+
+figure
+histogram(zA(wedgeLength > 10), 'BinWidth', 1)
+title('zA')
+
+figure
+histogram(zA, 'BinWidth', 1)
 title('zA')
 
 figure
@@ -75,7 +73,7 @@ set(gca, 'xscale','log')
 title('wedgeLength')
 
 figure
-histogram(wedgeLength)
+histogram(wedgeLength, 'BinWidth', 1)
 title('Wedge Length')
 
 [~,edges] = histcounts(log10(radiusS));

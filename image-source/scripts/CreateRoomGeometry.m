@@ -67,4 +67,5 @@ function [room, plot] = CreateRoomGeometry(roomFunc, input)
             [~, room.edgeCanSeePlane(j,i)] = PointPlanePosition(room.edgeMidPoints(j,:), room.planeNormals(i,:), room.d(i));  % Check if each plane corner is behind other the plane
         end
     end
+    room.maxPathLength = 100;
 end
