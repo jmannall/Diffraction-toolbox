@@ -18,7 +18,7 @@ function GenerateNNData(idx, fs)
     controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', 1, 'c', c, 'saveFiles', 2, 'noDirect', true);
     
     epochSize = 20e3;
-    numDataSets = 5;
+    numDataSets = 10;
     for i = 1:numDataSets
         saveIdx = idx * numDataSets + i;
         [~, ~] = CreateBtmTrainingData(epochSize, controlparameters, saveIdx);
