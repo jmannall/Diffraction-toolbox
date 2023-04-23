@@ -1,5 +1,7 @@
 function GenerateNNData(idx, fs)
 
+    idxList = [1, 3, 35, 37, 39];
+    idx = idxList(idx + 1);
     seed = idx;
     rng(seed)
     seed = round(2 ^ 32 * rand(1)) - 1
