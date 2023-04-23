@@ -9,5 +9,5 @@ function [z, p, k] = CreateIIRFromNNOutput(output, numIIRFilters)
     magP = abs(p);
     z = (1 - epsilon) .* z .* tanh(magZ) ./ (magZ + epsilon);
     p = (1 - epsilon) .* p .* tanh(magP) ./ (magP + epsilon);
-    k = 2 * Sigmoid(output(end,:));
+    k = Sigmoid(output(end,:));
 end
