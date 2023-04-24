@@ -6,9 +6,9 @@ function [tfmag, fvec, tfcomplex] = CalculateFilterResponse(b, a, nfft, fs)
     x = squeeze(prod(x,2));
     y = squeeze(prod(y,2));
     
-    F = x ./ y;
-    tfcomplex = F(1:(end / 2),:);
     epsilon = 1e-8;
+    F = x ./ (y + epsilon);
+    tfcomplex = F(1:(end / 2),:);
     tfmag = (20*log(abs(tfcomplex)+epsilon) / log(10));
 
     %% Create fvec 

@@ -4,24 +4,22 @@ clear all
 set(0, 'DefaultLineLineWidth', 1.5);
 colorStore = colororder('default');
 
-store = [20, 10, 5, 2.5, 1];
-%for k = 1:length(store)
-k = 3;
 %% Data
 fs = 48e3;
 nfft = 8192;
 c = 344;
 numEdges = 2;
 
-height = store(k);
+height = 5;
+%height = 2.4;
 [zS, zR] = deal(height / 2);
-%[zS, zR] = deal(0.5);
+[zS, zR] = deal(0.5);
 
 controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c, 'saveFiles', 3, 'noDirect', true, 'interpolated', false);
 
 %% Generate geometry and controls
 
-numPaths = 500;
+numPaths = 50;
 
 index = DataHash({numPaths, fs, nfft, numEdges, height});
 index = '2180cfff4ddad1de505214480a4535ce';
@@ -48,15 +46,18 @@ nBand = 8;
 [~, fc, fidx] = CreateFrequencyNBands(tfmagDefault, fvec, nBand); 
 
 %% NN parameters
-    
+
 loadDir = 'NNSaves';
 netName = ['Run6', filesep, 'IIR-7_32_0001.mat'];
 
-loadDir = 'NNSaves_DC';
-netName = ['Run2', filesep, 'IIR-6_40_0001.mat'];
-
-loadDir = 'NNSaves_UniformZw';
-netName = ['Run2', filesep, 'IIR-7_27_0001.mat'];
+% loadDir = 'NNSaves_DC';
+% netName = ['Run2', filesep, 'IIR-6_40_0001.mat'];
+% 
+% loadDir = 'NNSaves_UniformZw';
+% netName = ['Run2', filesep, 'IIR-7_27_0001.mat'];
+% 
+% loadDir = 'NNSaves_75Uniform_Zw';
+% netName = ['Run5', filesep, 'IIR-7_27_0001.mat'];
 
 % loadDir = 'NNSaves_Run2';
 % netName = ['Run4', filesep, 'IIR-6_30_0001.mat'];
@@ -174,8 +175,8 @@ for i = n:numPaths
 
     disp('NN Apex')
 
-    r1 = min([rS, rS], [W, rR]);
-    r2 = max([rS, W], [rR, rR]);
+    r1 = min([rS, W], [W, rR]);
+    r2 = max([rS, W], [W, rR]);
     X = [deg2rad(wI); bA; mA; wL; r1; r2; [zS, zS]; [zR, zR]];
     X = dlarray(single(X), "CB");
 
@@ -308,37 +309,45 @@ for i = n:numPaths
         xlim([20 20000])
         ylim([-60 10])
     end
-    tfmagN1.BtmIE = CreateNBandMagnitude(tfmag.BtmIE(:,1), fidx);
-    tfmagN1.UtdILRE = CreateFrequencyNBands(tfmag.UtdILRE(:,1), fvec, nBand);
-    tfmagN1.NNE = CreateNBandMagnitude(tfmag.NNE(:,1), fidx);
-    lossN1 = CalculateLoss(tfmagN1, tfmagN1.BtmIE);
+    tfmagN1.BtmIE(:,i) = CreateNBandMagnitude(tfmag.BtmIE(:,1), fidx);
+    tfmagN1.UtdILRE(:,i) = CreateFrequencyNBands(tfmag.UtdILRE(:,1), fvec, nBand);
+    tfmagN1.NNE(:,i) = CreateNBandMagnitude(tfmag.NNE(:,1), fidx);
 
-    tfmagN2.BtmIE = CreateNBandMagnitude(tfmag.BtmIE(:,2), fidx);
-    tfmagN2.UtdILRE = CreateFrequencyNBands(tfmag.UtdILRE(:,2), fvec, nBand);
-    tfmagN2.NNE = CreateNBandMagnitude(tfmag.NNE(:,2), fidx);
-    lossN2 = CalculateLoss(tfmagN2, tfmagN2.BtmIE);
-
-    loss = CalculateLoss(tfmagN, tfmagN.Btm);
-    disp(['NN Loss: ', num2str(lossN1.mean.NNE), ' + ', num2str(lossN2.mean.NNE), ' = ', num2str(loss.i.NNE(i))])
-    disp(['UTD Loss: ', num2str(lossN1.mean.UtdILRE), ' + ', num2str(lossN2.mean.UtdILRE), ' = ', num2str(loss.i.UtdILRE(i))])
-
+    tfmagN2.BtmIE(:,i) = CreateNBandMagnitude(tfmag.BtmIE(:,2), fidx);
+    tfmagN2.UtdILRE(:,i) = CreateFrequencyNBands(tfmag.UtdILRE(:,2), fvec, nBand);
+    tfmagN2.NNE(:,i) = CreateNBandMagnitude(tfmag.NNE(:,2), fidx);
 end
 
 %%
+lossN1 = CalculateLoss(tfmagN1, tfmagN1.BtmIE);
+lossN2 = CalculateLoss(tfmagN2, tfmagN2.BtmIE);
+
+loss1.NNE = (lossN1.mean.NNE + lossN2.mean.NNE) / 2;
+loss1.UtdILRE = (lossN1.mean.UtdILRE + lossN2.mean.UtdILRE) / 2;
+
 loss = CalculateLoss(tfmagN, tfmagN.Btm);
 
+for i = 1:numPaths
+    disp(['NN Loss: ', num2str(lossN1.i.NNE), ' + ', num2str(lossN2.i.NNE), ' = ', num2str(loss.i.NNE(i))])
+    disp(['UTD Loss: ', num2str(lossN1.i.UtdILRE), ' + ', num2str(lossN2.i.UtdILRE), ' = ', num2str(loss.i.UtdILRE(i))])
+end
 disp('Complete')
     
 %% Data
 
-close all
+%close all
+
+if isfield(loss, 'w')
+    loss = rmfield(loss, 'w');
+end
 
 L = [data.L];
 W = [data.W];
+W = W(1:numPaths);
 fields = fieldnames(loss.i);
 numFields = length(fields);
 
-width = 0.1;
+width = 0.2;
 numBins = 3 / width;
 x = (0:width:3 + width) - width / 2;
 for i = 2:numBins+1
@@ -372,7 +381,7 @@ plot(x, loss.w.UtdILRA, '--')
 colororder(color)
 xlim([0.1 3])
 ylim([0 6])
-legend('BTM Extension', 'BTM-I Extension', 'NN-IIR Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR Apex', 'UTD-LR Apex')
+legend('BTM Extension', 'BTM-I Extension', 'NN-IIR (best) Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR (best) Apex', 'UTD-LR Apex')
 xlabel('W_1 (m)')
 ylabel('Mean absolute error (dB)')
 
@@ -380,14 +389,23 @@ saveas(gcf, [saveDir filesep 'HODComparison'], 'epsc')
 saveas(gcf, [saveDir filesep 'HODComparison'], 'svg')
 
 %%
+
+if isfield(loss, 'tR')
+    loss = rmfield(loss, 'tR');
+end
+
 for i = 1:numPaths
 thetaR(i) = data(i).wedgeIndex(1);
 end
-%thetaR = thetaR(:,2);
+thetaR = [data.L];
 
 width = 180 / 20;
 numBins = 180 / width;
 x = (180:width:360 + width) - width / 2;
+width = 0.2;
+numBins = 5 / width;
+x = (0:width:5 + width) - width / 2;
+
 for i = 2:numBins+1
     idx = x(i - 1) < thetaR & thetaR <= x(i);
     for j = 1:numFields
@@ -417,13 +435,15 @@ plot(x, loss.tR.BtmIA, '--', 'Color', [color(5,:), 0.6])
 plot(x, loss.tR.NNA, '--')
 plot(x, loss.tR.UtdILRA, '--')
 colororder(color)
-xlim([180 360])
+%xlim([180 360])
 %ylim([0 6])
 legend('BTM Extension', 'BTM-I Extension', 'NN-IIR Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR Apex', 'UTD-LR Apex')
 xlabel('W_1 (m)')
 ylabel('Mean absolute error (dB)')
 
 %%
+
+color = colorStore([4,4,1,2,5,5,6,3],:);
 
 figure
 semilogx(fc, loss.f.BtmE)
@@ -438,7 +458,29 @@ semilogx(fc, loss.f.NNA, '--')
 semilogx(fc, loss.f.UtdILRA, '--')
 colororder(color)
 legend('BTM Extension', 'BTM-I Extension', 'NN-IIR Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR Apex', 'UTD-LR Apex')
-xlim([20 20e3])
+xlim([62.5 20e3])
+grid on
+
+color = colorStore([1,2],:);
+
+figure
+semilogx(fc, lossN1.f.NNE)
+hold on
+grid on
+semilogx(fc, lossN1.f.UtdILRE)
+colororder(color)
+legend('NN-IIR Extension', 'UTD-LR Extension')
+xlim([62.5 20e3])
+grid on
+
+figure
+semilogx(fc, lossN2.f.NNE)
+hold on
+grid on
+semilogx(fc, lossN2.f.UtdILRE)
+colororder(color)
+legend('NN-IIR Extension', 'UTD-LR Extension')
+xlim([62.5 20e3])
 grid on
 
 return

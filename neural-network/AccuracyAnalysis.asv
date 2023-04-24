@@ -494,7 +494,7 @@ numBins = 90 / width;
 [meanUtdLR, meanNN1, meanNN2, meanUTDIIR] = deal(zeros(1, 2 * numBins));
 x = zeros(1, 2 * numBins + 1);
 for i = 1:numBins
-    idx = width * (i - 1) < phii & phii <= width * i & wL > 4;
+    idx = width * (i - 1) < phii & phii <= width * i & wL > 4 & wL < 6;
     meanUtdLR(2 * i - 1:2 * i) = mean(lossN.i.UtdILR(idx));
     meanNN1(2 * i - 1:2 * i) = mean(lossN.i.NN1(idx));
     meanNN2(2 * i - 1:2 * i) = mean(lossN.i.NN2(idx));
@@ -538,8 +538,8 @@ zA = zA(:,3);
 
 distance = min(zA, wL' - zA)';
 
-width = 1;
-numBins = 25 / width;
+width = 0.2;
+numBins = 3 / width;
 [meanUtdLR, meanNN1, meanNN2, meanUTDIIR] = deal(zeros(1, 2 * numBins));
 x = zeros(1, 2 * numBins + 1);
 for i = 1:numBins
