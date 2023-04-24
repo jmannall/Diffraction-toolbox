@@ -72,11 +72,11 @@ function geometry = RandomGeometryWedge_Run2(numObservations)
     
     %% Wedge length
     %wedgeLength = [0.1, 10]; % Chosen from sensitivity examples
-    wedgeLength = [0.1 100]; % To allow for larger variation in z values
-    wL1 = RandomLoguniformDistribution(wedgeLength, numObservations / 4);
-    wL2 = RandomUniformDistribution(wedgeLength, 3 * numObservations / 4);
-    wL = [wL1; wL2];
-    %wL = RandomLoguniformDistribution(wedgeLength, numObservations);
+    wedgeLength = [0.1 50]; % To allow for larger variation in z values
+    %wL1 = RandomLoguniformDistribution(wedgeLength, numObservations / 4);
+    %wL2 = RandomUniformDistribution(wedgeLength, 3 * numObservations / 4);
+    %wL = [wL1; wL2];
+    wL = RandomLoguniformDistribution(wedgeLength, numObservations);
     
     %% Radius
     % Normalise anyway so the important question is at what point can we
