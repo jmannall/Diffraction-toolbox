@@ -13,20 +13,20 @@ numEdges = 2;
 height = 5;
 %height = 2.4;
 [zS, zR] = deal(height / 2);
-[zS, zR] = deal(0.5);
+%[zS, zR] = deal(0.5);
 
 controlparameters = struct('fs', fs, 'nfft', nfft, 'difforder', numEdges, 'c', c, 'saveFiles', 3, 'noDirect', true, 'interpolated', false);
 
 %% Generate geometry and controls
 
-numPaths = 50;
+numPaths = 500;
 
 index = DataHash({numPaths, fs, nfft, numEdges, height});
 index = '2180cfff4ddad1de505214480a4535ce';
 [loadPath, savePath] = deal(['geometry/NthOrderPaths_01mTo3m_', num2str(index), '.mat']);
 restart = true;
 generate = false;
-plotFigures = true;
+plotFigures = false;
 createPlot = false;
 if restart
     i = 1;
@@ -49,6 +49,9 @@ nBand = 8;
 
 loadDir = 'NNSaves';
 netName = ['Run6', filesep, 'IIR-7_32_0001.mat'];
+
+loadDir = 'NNSaves_FinalRun';
+netName = ['Run6', filesep, 'IIR-7_36_0001.mat'];
 
 % loadDir = 'NNSaves_DC';
 % netName = ['Run2', filesep, 'IIR-6_40_0001.mat'];
@@ -347,7 +350,7 @@ W = W(1:numPaths);
 fields = fieldnames(loss.i);
 numFields = length(fields);
 
-width = 0.2;
+width = 0.1;
 numBins = 3 / width;
 x = (0:width:3 + width) - width / 2;
 for i = 2:numBins+1
@@ -365,19 +368,20 @@ for j = 1:numFields
 end
 
 saveDir = 'figures';
-color = colorStore([4,4,1,2,5,5,6,3],:);
+color = colorStore([4,4,1,2,4,4,1,2],:);
 
 figure
-plot(x, loss.w.BtmE)
+plot(x, loss.w.BtmE, 'Color', [color(1,:), 0.6])
 hold on
 grid on
-plot(x, loss.w.BtmIE, 'Color', [color(1,:), 0.6])
+plot(x, loss.w.BtmIE)
 plot(x, loss.w.NNE)
 plot(x, loss.w.UtdILRE)
-plot(x, loss.w.BtmA, '--')
-plot(x, loss.w.BtmIA, '--', 'Color', [color(5,:), 0.6])
+plot(x, loss.w.BtmA, '--', 'Color', [color(1,:), 0.6])
+plot(x, loss.w.BtmIA, '--')
 plot(x, loss.w.NNA, '--')
 plot(x, loss.w.UtdILRA, '--')
+
 colororder(color)
 xlim([0.1 3])
 ylim([0 6])

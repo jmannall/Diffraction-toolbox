@@ -300,11 +300,36 @@ for i = 2:numFields
 end
 
 %%
+
+[zA, phii] = CalculateApex(rS, rR, zS, zR, wL, true);
+zA = zA(:,3);
+%zA = zA ./ wL';
+
+distance = min(zA, wL' - zA)';
+
+idx = wL > 4 & wL < 6 & distance < 1;
+fields = {'NN1', 'UtdILR'};
+numFields = 2;
+percentiles = 10:10:50;
+
 close all
-for i = 2:numFields
+for i = 1:numFields
     field = fields{i};
     figure
-    PlotVarDependentLoss(lossN.i.(field)(wL > wLMin), phii(wL > wLMin), 1, percentiles, ['phii: ', field], i)
+    PlotVarDependentLoss(lossN.i.(field)(idx), phii(idx), 1, percentiles, ['phii: ', field], i)
+end
+
+idx = wL > 4 & wL < 6;
+for i = 1:numFields
+    field = fields{i};
+    figure
+    PlotVarDependentLoss(lossN.i.(field)(idx), rS(idx), 1, percentiles, ['rS: ', field], i)
+end
+
+for i = 1:numFields
+    field = fields{i};
+    figure
+    PlotVarDependentLoss(lossN.i.(field)(idx), rR(idx), 1, percentiles, ['rR: ', field], i)
 end
 
 close all

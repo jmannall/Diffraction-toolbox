@@ -165,7 +165,7 @@ tb = 137.51*10^-3;
 
 CcBtmOld = tb * single_thread_flops / numPaths;
 
-wedgeLength = 4;
+wedgeLength = 5;
 r1 = 1;
 r2 = 1;
 z1 = wedgeLength / 2;
@@ -222,6 +222,7 @@ T60 = 0.03;
 N = Fs./Fr'+T60*Fs-1;
 
 numUtdFreq = N;
+numUtdFreq = 512 * ones(size(N));
 utdPerFreq = 84;
 utdOnce = 67;
 tfmagCalc = 8;
