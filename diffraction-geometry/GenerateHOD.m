@@ -12,7 +12,7 @@ function GenerateHOD(idx)
         thetaR(i) = data(i).thetaR;
         bA(i,:) = deg2rad([wI(i,1) - thetaS(i), wI(i,2:numEdges - 1), thetaR(i)]);
     
-        [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid, vReceiver] = CreateNthOrderPathData(wI(i,:), thetaS(i,:), thetaR(i,:), rS(i,:), rR(i,:), W(i,:), height);
+        [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid, vReceiver] = CreateNthOrderPathData(wI(i,:), thetaS(i,:), thetaR(i,:), rS(i,:), rR(i,:), W(i,:), h);
     
         source(:,3) = zS(i);
         receiver(:,3) = zR(i);
@@ -32,7 +32,7 @@ function GenerateHOD(idx)
         apex(1,3) = zS(i) + (rS(i)) * dZ / (rS(i) + W(i) + rR(i));
         apex(2,3) = zS(i) + (rS(i) + W(i)) * dZ / (rS(i) + W(i) + rR(i));
     
-        if max(apex(:,3)) > height || min(apex(:,3)) < 0
+        if max(apex(:,3)) > h || min(apex(:,3)) < 0
             disp('Apex outside of edge')
         end
     
@@ -80,8 +80,8 @@ function GenerateHOD(idx)
     
         disp('BTM Ext')
     
-        [tfmag.BtmIE(:,1), ~, tf.BtmIE(:,1)] = SingleWedgeInterpolated(height, wI(i,1), epsilon, wI(i,1) - thetaS(i), rS(i), W(i) + rR(i), zS(i), zR(i), controlparameters, false);
-        [tfmag.BtmIE(:,2), ~, tf.BtmIE(:,2)] = SingleWedgeInterpolated(height, wI(i,2), epsilon, thetaR(i), rS(i) + W(i), rR(i), zS(i), zR(i), controlparameters, false);
+        [tfmag.BtmIE(:,1), ~, tf.BtmIE(:,1)] = SingleWedgeInterpolated(h, wI(i,1), epsilon, wI(i,1) - thetaS(i), rS(i), W(i) + rR(i), zS(i), zR(i), controlparameters, false);
+        [tfmag.BtmIE(:,2), ~, tf.BtmIE(:,2)] = SingleWedgeInterpolated(h, wI(i,2), epsilon, thetaR(i), rS(i) + W(i), rR(i), zS(i), zR(i), controlparameters, false);
     
     end
 end

@@ -1,6 +1,8 @@
 close all
 clear all
 
+GenerateHOD(0)
+
 set(0, 'DefaultLineLineWidth', 1.5);
 colorStore = colororder('default');
 
