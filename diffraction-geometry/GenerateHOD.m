@@ -12,7 +12,7 @@ function GenerateHOD(idx)
         thetaR(i) = data(i).thetaR;
         bA(i,:) = deg2rad([wI(i,1) - thetaS(i), wI(i,2:numEdges - 1), thetaR(i)]);
     
-        [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid, vReceiver] = CreateNthOrderPathData(wI(i,:), thetaS(i,:), thetaR(i,:), rS(i,:), rR(i,:), W(i,:), h);
+        [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid, vReceiver] = CreateNthOrderPathData(wI(i,:), thetaS(i), thetaR(i), rS(i,:), rR(i,:), W(i,:), h);
     
         source(:,3) = zS(i);
         receiver(:,3) = zR(i);
