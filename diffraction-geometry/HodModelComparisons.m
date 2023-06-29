@@ -330,10 +330,10 @@ loss1.UtdILRE = (lossN1.mean.UtdILRE + lossN2.mean.UtdILRE) / 2;
 
 loss = CalculateLoss(tfmagN, tfmagN.Btm);
 
-for i = 1:numPaths
-    disp(['NN Loss: ', num2str(lossN1.i.NNE), ' + ', num2str(lossN2.i.NNE), ' = ', num2str(loss.i.NNE(i))])
-    disp(['UTD Loss: ', num2str(lossN1.i.UtdILRE), ' + ', num2str(lossN2.i.UtdILRE), ' = ', num2str(loss.i.UtdILRE(i))])
-end
+% for i = 1:numPaths
+%     disp(['NN Loss: ', num2str(lossN1.i.NNE), ' + ', num2str(lossN2.i.NNE), ' = ', num2str(loss.i.NNE(i))])
+%     disp(['UTD Loss: ', num2str(lossN1.i.UtdILRE), ' + ', num2str(lossN2.i.UtdILRE), ' = ', num2str(loss.i.UtdILRE(i))])
+% end
 disp('Complete')
     
 %% Data
@@ -367,10 +367,10 @@ for j = 1:numFields
     loss.w.(field)(numBins + 2) = 0;
 end
 
+%% Plot
 saveDir = 'figures';
 color = colorStore([4,4,1,2,4,4,1,2],:);
-
-figure
+f = figure;
 plot(x, loss.w.BtmE, 'Color', [color(1,:), 0.6])
 hold on
 grid on
@@ -387,7 +387,8 @@ xlim([0.1 3])
 ylim([0 6])
 legend('BTM Extension', 'BTM-I Extension', 'NN-IIR (best) Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR (best) Apex', 'UTD-LR Apex')
 xlabel('W_1 (m)')
-ylabel('Mean absolute error (dB)')
+ylabel('Mean absolute error \Psi (dB)')
+%fontsize(f, 16, "points")
 
 saveas(gcf, [saveDir filesep 'HODComparison'], 'epsc')
 saveas(gcf, [saveDir filesep 'HODComparison'], 'svg')

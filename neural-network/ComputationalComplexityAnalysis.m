@@ -105,7 +105,7 @@ nO = 5; % Number of outputs
 nI = 8; % Number of inputs
 
 gx = 5; % Activation layer and normalisation cost per node
-nN = 32; % Number of nodes per layer
+nN = 36; % Number of nodes per layer
 nL = 7; % Number of layers
 nO = 5; % Number of outputs
 nI = 8; % Number of inputs
@@ -172,7 +172,7 @@ z1 = wedgeLength / 2;
 z2 = wedgeLength / 2;
 t0 = (r1 + r2) / c;
 tMax = (sqrt(r1 ^ 2 + z1 ^ 2) + sqrt(r2 ^ 2 + z2 ^ 2)) / c;
-numSegments = ceil((tMax - t0) * Fs);
+numSegments = 2 * ceil((tMax - t0) * Fs);
 numTheta = 4;
 numIntegralPoints = 2 * numSegments + 1;
 
@@ -462,6 +462,7 @@ fontsize(gcf,20,"pixels")
 saveas(gcf, [savePath, filesep, 'DiffractionModelCostsSmall'], 'epsc')
 saveas(gcf, [savePath, filesep, 'DiffractionModelCostsSmall'], 'svg')
 
+return
 %%
 
 perNNIIR = reshape(CdNNIIR, 101,1,[]) ./ (Cp + reshape(CdNNIIR, 101,1,[])) * 100;

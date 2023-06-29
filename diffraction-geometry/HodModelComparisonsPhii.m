@@ -62,25 +62,37 @@ validPath = true(1, numEdges);
 
 
 %% Models
-close all
+
 disp('Start')
 
-wI = [270 270
-    270 270];
-thetaS = [5; 5];
-thetaR = [220; 220];
-rS = [1.5; 1.5];
-rR = [3; 3];
-W = [1; 1];
-mA = deg2rad([epsilon, epsilon]);
+% wI = [270 270
+%     270 270
+%     270 270];
+% thetaS = [5; 5; 5];
+% thetaR = [250; 250; 250];
+% rS = [1; 1; 1];
+% rR = [3; 3; 3];
+% W = [0.8; 0.8; 0.8];
+
+r = [0.1 3];
+rS = RandomUniformDistribution(r, numExamples);
+rR = RandomUniformDistribution(r, numExamples);
+W = RandomUniformDistribution(r, numExamples);
+mA = deg2rad(epsilon) * ones(1, numEdges);
 
 
-phii = [90; 20];
-
+phii = [90; 45; 20];
+p = [atand(W / h) 90 * ones(size(W))];
+phii = RandomUniformDistribution(p, numExamples);
+len = rS + rR + W;
+test = tand(phii);
+z = h - W ./ tand(phii);
+zRange = (h - z) / 2 + [zeros(size(z)) z];
 zA = 2.5;
-z = 1 ./ tand(phii);
-zS = zA - (W / 2 + rS) ./ tand(phii);
-zR = zA + (W / 2 + rR) ./ tand(phii);
+zA = RandomUniformDistribution(zRange, numExamples);
+z = tand(90 - phii);
+zS = zA - (W / 2 + rS) .* z;
+zR = zA + (W / 2 + rR) .* z;
 
 dZ = zS - zR;
 L = sqrt((rS + sum(W, 2) + rR) .^ 2 + dZ .^ 2);
@@ -94,15 +106,21 @@ if max(zAall(:,3)) > h || min(zAall(:,3)) < 0
     return
 end
 createPlot = true;
+n = 1;
+%%
+
+index = '2180cfff4ddad1de505214480a4535ce';
+[loadPath, savePath] = deal(['geometry/NthOrderPaths_01mTo3m_', num2str(index), '.mat']);
+load(loadPath, 'data')
 
 %%
 n = 1;
+load('HODdata.mat')
 zA1 = zA1(:,3);
 zA2 = zA2(:,3);
 
 
-numExamples = 2;
-figure
+numExamples = 500;
 for i = n:numExamples
 
 %     wI(i,:) = 185 + (355 - 185) * rand(1, numEdges);
@@ -110,9 +128,9 @@ for i = n:numExamples
 %     thetaR(i) = 180 + (wI(i,end) - 180.1) * rand(1);
 %     bA(i,:) = deg2rad([wI(i,1) - thetaS(i), wI(i,2:numEdges - 1), thetaR(i)]);
 
-%     wI(i,:) = data(i).wedgeIndex;
-%     thetaS(i) = data(i).thetaS;
-%     thetaR(i) = data(i).thetaR;
+    wI(i,:) = data(i).wedgeIndex;
+    thetaS(i) = data(i).thetaS;
+    thetaR(i) = data(i).thetaR;
     bA(i,:) = deg2rad([wI(i,1) - thetaS(i), wI(i,2:numEdges - 1), thetaR(i)]);
 
     [source, receiver, Q, apex, corners, planeCorners, planeRigid, valid, vReceiver] = CreateNthOrderPathData(wI(i,:), thetaS(i), thetaR(i), rS(i,:), rR(i,:), W(i,:), h);
@@ -320,6 +338,7 @@ for i = n:numExamples
     [tfmagN.UtdILRA(:,i), ~, ~] = CreateFrequencyNBands(tfmag.UtdILRA(:,end), fvec, nBand);
     
     %% Plot
+    close all
 
 %     figure
 %     semilogx(fvecBtm, tfmag.Btm)
@@ -334,30 +353,6 @@ for i = n:numExamples
 %     legend('BTM', 'BTME', 'BTMIE', 'NNE', 'NNA', 'UtdILR', 'UtdILRA')
 %     xlim([20 20e3])
 
-    color = colorStore([7, 4, 1, 2, 7, 4, 1, 2],:);
-
-    if n == 2
-        x = -20;
-    else
-        x = 0;
-    end
-    semilogx(fvecBtm, x + tfmag.Btm)
-    hold on
-    grid on
-    %semilogx(fvecBtm, x + tfmag.BtmE(:,end), 'LineWidth', 3)
-    semilogx(fvecBtm, x + tfmag.BtmIE(:,end), 'LineWidth', 3)
-    semilogx(fvec, x + tfmag.NNE(:,end))
-    semilogx(fvec, x + tfmag.UtdILRE(:,end), '--')
-    legend('BTM (2nd-order)', 'BTM-I Extension', 'NN-IIR Extension (best)', 'UTD-LR')
-    xlim([20 20e3])
-    colororder(color)
-    ylabel('Magnitude (dB)')
-    xlabel('Frequency (Hz)')
-    f = 5e3;
-    idx = find(fvec > f, 1);
-    txt = ['Example ' num2str(i)];
-    y = x + max(max(tfmag.BtmIE(idx,end), tfmag.Btm(idx,end))) + 2.5;
-    text(f,y,txt)
     tfmagN1.BtmIE(:,i) = CreateNBandMagnitude(tfmag.BtmIE(:,1), fidx);
     tfmagN1.UtdILRE(:,i) = CreateFrequencyNBands(tfmag.UtdILRE(:,1), fvec, nBand);
     tfmagN1.NNE(:,i) = CreateNBandMagnitude(tfmag.NNE(:,1), fidx);
@@ -369,14 +364,172 @@ for i = n:numExamples
     n = n + 1;
     disp(num2str(i))
 end
-%%
 
-
-saveDir = 'figures';
-saveas(gcf, [saveDir filesep 'HODExamples'], 'epsc')
-saveas(gcf, [saveDir filesep 'HODExamples'], 'svg')
 %%
 
 loss = CalculateLoss(tfmagN, tfmagN.Btm);
 loss1 = CalculateLoss(tfmagN1, tfmagN1.BtmIE);
 loss2 = CalculateLoss(tfmagN2, tfmagN2.BtmIE);
+
+%% Plot
+
+close all
+
+[test, testIdx] = sort(loss.i.BtmIA);
+
+if isfield(loss, 'w')
+    loss = rmfield(loss, 'w');
+end
+
+test = sqrt((zA1 - zA2) .^ 2 + W .^ 2);
+
+fields = fieldnames(loss.i);
+numFields = length(fields);
+
+width = 0.1;
+numBins = 3 / width;
+x = (0:width:3 + width) - width / 2;
+for i = 2:numBins+1
+    idx = width * (i - 2) < W & W <= width * (i - 1);
+    for j = 1:numFields
+        field = fields{j};
+        loss.w.(field)(i) = mean(loss.i.(field)(idx));
+    end
+    num(i) = sum(idx);
+end
+for j = 1:numFields
+    field = fields{j};
+    idx = isnan(loss.w.(field));
+    loss.w.(field)(idx) = 0;
+    loss.w.(field)(numBins + 2) = 0;
+end
+
+saveDir = 'figures';
+color = colorStore([4,4,1,2,4,4,1,2],:);
+
+figure
+plot(x, loss.w.BtmE, 'Color', [color(1,:), 0.6])
+hold on
+grid on
+plot(x, loss.w.BtmIE)
+plot(x, loss.w.NNE)
+plot(x, loss.w.UtdILRE)
+plot(x, loss.w.BtmA, '--', 'Color', [color(1,:), 0.6])
+plot(x, loss.w.BtmIA, '--')
+plot(x, loss.w.NNA, '--')
+plot(x, loss.w.UtdILRA, '--')
+colororder(color)
+xlim([0.1 3])
+ylim([0 6])
+legend('BTM Extension', 'BTM-I Extension', 'NN-IIR (best) Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR (best) Apex', 'UTD-LR Apex')
+xlabel('W_1 (m)')
+ylabel('Mean dB difference (dB)')
+
+saveas(gcf, [saveDir filesep 'HODComparisonW'], 'epsc')
+saveas(gcf, [saveDir filesep 'HODComparisonW'], 'svg')
+
+%% Phii
+
+if isfield(loss, 'p')
+    loss = rmfield(loss, 'p');
+end
+
+test = sqrt((zA1 - zA2) .^ 2 + W .^ 2);
+
+fields = fieldnames(loss.i);
+numFields = length(fields);
+
+width = 3;
+numBins = 90 / width;
+x = (0:width:90 + width) - width / 2;
+for i = 2:numBins+1
+    idx = width * (i - 2) < phii & phii <= width * (i - 1);
+    for j = 1:numFields
+        field = fields{j};
+        loss.p.(field)(i) = mean(loss.i.(field)(idx));
+    end
+    num(i) = sum(idx);
+end
+for j = 1:numFields
+    field = fields{j};
+    idx = isnan(loss.p.(field));
+    loss.p.(field)(idx) = 0;
+    loss.p.(field)(numBins + 2) = 0;
+end
+
+saveDir = 'figures';
+color = colorStore([4,4,1,2,4,4,1,2],:);
+
+figure
+plot(x, loss.p.BtmE, 'Color', [color(1,:), 0.6])
+hold on
+grid on
+plot(x, loss.p.BtmIE)
+plot(x, loss.p.NNE)
+plot(x, loss.p.UtdILRE)
+plot(x, loss.p.BtmA, '--', 'Color', [color(1,:), 0.6])
+plot(x, loss.p.BtmIA, '--')
+plot(x, loss.p.NNA, '--')
+plot(x, loss.p.UtdILRA, '--')
+colororder(color)
+xlim([1 90])
+ylim([0 15])
+legend('BTM Extension', 'BTM-I Extension', 'NN-IIR (best) Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR (best) Apex', 'UTD-LR Apex')
+xlabel('phii (degrees)')
+ylabel('Mean dB difference (dB)')
+
+saveas(gcf, [saveDir filesep 'HODComparisonPhii'], 'epsc')
+saveas(gcf, [saveDir filesep 'HODComparisonPhii'], 'svg')
+
+%% D
+
+if isfield(loss, 'd')
+    loss = rmfield(loss, 'd');
+end
+
+D = sqrt((zA1 - zA2) .^ 2 + W .^ 2);
+
+fields = fieldnames(loss.i);
+numFields = length(fields);
+
+width = 0.2;
+numBins = 6 / width;
+x = (0:width:6 + width) - width / 2;
+for i = 2:numBins+1
+    idx = width * (i - 2) < D & D <= width * (i - 1);
+    for j = 1:numFields
+        field = fields{j};
+        loss.d.(field)(i) = mean(loss.i.(field)(idx));
+    end
+    num(i) = sum(idx);
+end
+for j = 1:numFields
+    field = fields{j};
+    idx = isnan(loss.w.(field));
+    loss.d.(field)(idx) = 0;
+    loss.d.(field)(numBins + 2) = 0;
+end
+
+saveDir = 'figures';
+color = colorStore([4,4,1,2,4,4,1,2],:);
+
+figure
+plot(x, loss.d.BtmE, 'Color', [color(1,:), 0.6])
+hold on
+grid on
+plot(x, loss.d.BtmIE)
+plot(x, loss.d.NNE)
+plot(x, loss.d.UtdILRE)
+plot(x, loss.d.BtmA, '--', 'Color', [color(1,:), 0.6])
+plot(x, loss.d.BtmIA, '--')
+plot(x, loss.d.NNA, '--')
+plot(x, loss.d.UtdILRA, '--')
+colororder(color)
+xlim([0.1 5])
+ylim([0 6])
+legend('BTM Extension', 'BTM-I Extension', 'NN-IIR (best) Extension', 'UTD-LR Extension', 'BTM Apex', 'BTM-I Apex', 'NN-IIR (best) Apex', 'UTD-LR Apex', 'Location', 'northwest')
+xlabel('W_1 (m)')
+ylabel('Mean dB difference (dB)')
+
+saveas(gcf, [saveDir filesep 'HODComparisonD'], 'epsc')
+saveas(gcf, [saveDir filesep 'HODComparisonD'], 'svg')

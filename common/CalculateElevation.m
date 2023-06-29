@@ -17,6 +17,7 @@ function elevationDeg = CalculateElevation(xInput, yInput, zInput)
         else
             elevation = atan(z ./ sqrt(x.^2 + y.^2));
         end
-        elevationDeg(i) = min(90, max(-30, rad2deg(elevation)));
+        %elevationDeg(i) = min(90, max(-30, rad2deg(elevation)));
+        elevationDeg(i) = rad2deg(elevation);
     end
 end

@@ -1,5 +1,8 @@
 function [azimuth, elevation] = CalculateAzimuthElevation(heading, receiverPosition, sourcePosition)
     
+    if size(heading, 1) == 1
+        heading = heading .* ones(size(sourcePosition));
+    end
     structInput = isstruct(sourcePosition);
 
     if structInput

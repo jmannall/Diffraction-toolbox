@@ -39,7 +39,9 @@ function [tfmagOut, fvec, tfcomplex, ir] = SingleWedgeInterpolated(wedgeLength, 
         % Generate reference boundary responses
         epsilon = 1e-10;
         [~, tfmagDiffRef, ~, ~, ~] = SingleWedge(wedgeLength, wedgeIndex, thetaS, (thetaS + 180 + epsilon) * ones(size(radiusR(idx))), radiusS, radiusR(idx), zS, zR(idx), controlparameters, createPlot);
-    
+        if tfmagDiffRef.diff1(1) == -200
+            [~, tfmagDiffRef, ~, ~, ~] = SingleWedge(wedgeLength, wedgeIndex, thetaS, (thetaS + 180 + epsilon) * ones(size(radiusR(idx))), radiusS, radiusR(idx) + 0.01, zS, zR(idx), controlparameters, createPlot);
+        end
         % Create scaled response
         diffRef = tfmagDiffRef.diff1;
         shift = dirRef - diffRef;

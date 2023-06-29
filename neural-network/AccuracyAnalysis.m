@@ -18,6 +18,9 @@ loadDir = 'NNSaves';
 netNames = {['Run6', filesep, 'IIR-7_32_0001.mat'], ['Run5', filesep, 'IIR-7_27_0001.mat'], ['Run6', filesep, 'IIR-5_45_0001.mat'], ['Run3', filesep, 'IIR-4_31_0001.mat'], ['Run6', filesep, 'IIR-4_20_0001.mat']};
 netNames = {['Run6', filesep, 'IIR-7_32_0001.mat'], ['Run6', filesep, 'IIR-4_20_0001.mat'], 'iir-2057_0001-1-09-099-3-25.mat'};
 netNames = {['Run6', filesep, 'IIR-7_32_0001.mat'], ['Run6', filesep, 'IIR-4_20_0001.mat']};
+
+loadDir = 'NNSaves_FinalRun';
+netNames = {['Run6', filesep, 'IIR-7_36_0001.mat'], ['Run6', filesep, 'IIR-4_20_0001.mat']};
 % loadDir = 'NNSaves_UniformZw';
 % netNames = {['Run2', filesep, 'IIR-7_27_0001.mat'], ['Run5', filesep, 'IIR-6_16_0001.mat']};
 % loadDir = 'NNSaves_75Uniform_Zw';
@@ -390,12 +393,12 @@ grid on
 l = legend('NN (best)', 'NN (small)', 'UTD-LR', 'UTD', 'UTD-IIR', 'Location','northwest');
 title(l, 'Diffraction Model')
 xlabel('Percentile')
-ylabel('Mean absolute error (dB)')
+ylabel('Mean absolute error \Psi (dB)')
 ylim([0 30])
 
 % creating the zoom-in inset
 ax=axes;
-set(ax,'units','normalized','position',[0.2,0.2,0.35,0.4])
+set(ax,'units','normalized','position',[0.2,0.26,0.3,0.35])
 box(ax,'on')
 % for i = 2:numFields
 %     idx = fields{i};
@@ -425,7 +428,7 @@ grid on
 l = legend(fields{3:end}, 'Location','northwest');
 title(l, 'Diffraction Model')
 xlabel('Percentile')
-ylabel('Mean absolute error (dB)')
+ylabel('Mean absolute error \Psi (dB)')
 ylim([0 40])
 
 %saveas(gcf, [savePath, filesep, 'PercentileLoss_Cropped.svg'], 'svg')
@@ -503,7 +506,7 @@ plot(x, meanUTDIIR, ':')
 %plot(x, upUtdLR, ':')
 %legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UTD-IIR')
 xlabel('Wedge length (m)')
-ylabel('Mean absolute error (dB)')
+ylabel('Mean absolute error \Psi (dB)')
 ylim([0 16])
 fontsize(gcf,20,"pixels")
 
@@ -544,8 +547,8 @@ plot(x, meanUTDIIR, ':')
 %plot(x, upNN)
 %plot(x, upUtdLR, ':')
 legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UTD-IIR')
-xlabel('Phii (degrees)')
-ylabel('Mean absolute error (dB)')
+xlabel('Phi (degrees)')
+ylabel('Mean absolute error \Psi (dB)')
 ylim([0 7])
 xlim([0 90])
 fontsize(gcf,20,"pixels")
@@ -594,7 +597,7 @@ plot(x, meanUTDIIR, ':')
 %plot(x, upUtdLR, ':')
 %legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UTD-IIR')
 xlabel('Minimum distance of z_a from z_0 or z_w (m)')
-ylabel('Mean absolute error (dB)')
+ylabel('Mean absolute error \Psi (dB)')
 ylim([0 4])
 fontsize(gcf,20,"pixels")
 
