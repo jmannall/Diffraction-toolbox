@@ -30,10 +30,19 @@ function [tfmag, fvec, tfcomplex] = SingleUTDWedgeInterpolated(thetaS, thetaR, r
         shift = DirRef - DiffRef;
         scaledResponse = tfmag + shift;
 
+        trueRes = db2mag(tfmag) * pathLength;
         % Interpolate between the true and scaled responses
         i = (thetaR - thetaS - 180) / (wedgeIndex - thetaS - 180);
         tfmag = ((1 - i) * scaledResponse + i * tfmag);
         
+        sbRes = db2mag(DiffRef) * pathLength;
+
+
+        scaleRes = mag2db(trueRes ./ (sbRes * pathLength));
+
+        scaleRes = trueRes ./ sbRes;
+        interpRes = (1 - i) * scaleRes + i * trueRes;
+        test = mag2db(interpRes / pathLength);
         % Adjust magnitude of tfcomplex
         phase = angle(tfcomplex);
         tfcomplex = PolarToComplex(10.^(tfmag / 20), phase);

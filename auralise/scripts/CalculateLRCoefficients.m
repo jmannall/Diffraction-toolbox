@@ -21,7 +21,7 @@ function [b, a, totalTfmag] = CalculateLRCoefficients(fc, fs, freqResponse)
     aLpfHpf(:,2,:) = aLpfHpf(:,1,:);
 
     % Create bands
-    bLow= [bLpf(:,:,2), bLpf(:,:,3), bHpf(:,:,3), bLpf(:,:,1)];
+    bLow = [bLpf(:,:,2), bLpf(:,:,3), bHpf(:,:,3), bLpf(:,:,1)];
     aLow = [aLpfHpf(:,:,2), aLpfHpf(:,:,3), aLpfHpf(:,:,3), aLpfHpf(:,:,1)];
 
     bMidLow = [bLpf(:,:,2), bLpf(:,:,3), bHpf(:,:,3), bHpf(:,:,1)];

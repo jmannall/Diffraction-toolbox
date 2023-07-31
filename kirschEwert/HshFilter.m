@@ -2,6 +2,7 @@ function H = HshFilter(f, fc, g)
 
     s = (1j * f / fc)';
     H = (1 + sqrt(g) * s) ./ (1 + s / sqrt(g));
+
 %     tfmagRef = mag2db(abs(H));
 % 
 %     s = 1j * 2 * pi * f;
