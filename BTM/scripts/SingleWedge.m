@@ -11,6 +11,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
     % Create file info
     mFile = mfilename('fullpath');
     controlparameters.difforder = 1;
+    controlparameters.docalcir = 1;
     index = DataHash({wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters});
     [inFilePath, fileName, savePath, loadPath, resultExists] = BTMFileHandling(mFile, index);
 
@@ -82,7 +83,9 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleWedge(wedgeLength,wedgeIndex
         filehandlingparameters.showtext = 0;
         filehandlingparameters.suppressresultrecycling = 1;
     
-        EDmain_convex_time(geofiledata,Sindata,Rindata,struct,controlparameters,filehandlingparameters);
+        envdata.cair = controlparameters.c;
+        
+        EDmain_convex(geofiledata,Sindata,Rindata,envdata,controlparameters,filehandlingparameters);
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         

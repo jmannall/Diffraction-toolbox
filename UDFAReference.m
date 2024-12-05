@@ -1,6 +1,8 @@
 
 close all
 
+set(0, 'DefaultLineLineWidth', 1.5);
+
 fs = 48e3;
 nfft = 8192;
 c = 344;
@@ -17,10 +19,21 @@ zS = 1;
 zR = 1;
 n = 4;
 
-[tfmag, fvec] = SingleIIRWedge(wedgeLength, wedgeIndex, thetaS, thetaR, rS, rR, zS, zR, n, controlparameters);
 
+wedgeLength = 100;
+wedgeIndex = 359;
+thetaS = 0.0001;
+thetaR = rad2deg(7 * pi / 6);
+rS = 1;
+rR = 1;
+zS = wedgeLength / 2;
+zR = wedgeLength / 2;
+
+[tfmag, fvec] = SingleIIRWedge(wedgeLength, wedgeIndex, thetaS, thetaR, rS, rR, zS, zR, n, controlparameters);
+%%
 controlparameters.fs = 2 * fs;
 controlparameters.nfft = 2 * nfft;
+controlparameters.noDirect = false;
 [~, tfmagBtm, ~, fvecBtm] = SingleWedge(wedgeLength, wedgeIndex, thetaS, thetaR, rS, rR, zS, zR, controlparameters, false);
 %%
 input = extractdata(NNInputFromGeometry(wedgeIndex, wedgeLength, thetaR, thetaS, rS, rR, zS, zR, false))';
@@ -65,12 +78,12 @@ tfUtd = db2mag(tfmagUtd);
 LinkwitzRiley(fvec, fs, nfft, tfmagUtd);
 %%
 figure
-semilogx(fvecBtm, tfmagBtm.diff1)
+%semilogx(fvecBtm, tfmagBtm.diff1)
+semilogx(fvec, tfmag, '--')
 hold on
-%semilogx(fvec, tfmag, '--')
 %semilogx(fvec, tfmagNNBest, ':')
-semilogx(fvec, tfmagNNSmall, '--')
-semilogx(fvec, tfmagNNSmall_Test, ':')
+%semilogx(fvec, tfmagNNSmall, '--')
+%semilogx(fvec, tfmagNNSmall_Test, ':')
 semilogx(fvecUtd, tfmagUtd, '--')
 grid on
 xlim([20 20e3])

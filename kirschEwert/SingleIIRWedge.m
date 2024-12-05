@@ -103,37 +103,54 @@ function [tfmag, fvec] = SingleIIRWedge(wedgeLength, wedgeIndex, thetaS, thetaR,
         H = H .* Hi{i};
     end
 
+    sum = test{1};
     figure
     semilogx(fvec, test{1})
     hold on
     grid on
-    semilogx(fvec, test{2})
-    semilogx(fvec, test{3})
-    semilogx(fvec, test{4})
-    semilogx(fvec, mag2db(gt(1)) + test{1} + test{2} + test{3} + test{4})
+    for i = 2:n
+        semilogx(fvec, test{i})
+        sum = sum + test{i};
+    end
+    semilogx(fvec, mag2db(gt(1)) + sum)
     semilogx(fvec, mag2db(gt(1) * abs(H)), '--')
-    xlim([20 22.05e3])
+    xlim([10 22.05e3])
     yticks([-24:6:0])
     ylim([-24 0])
 
+
+    grey = "#243849";
+    yellow = "#F1B43D";
+    pink = "#EF6180";
+    cyan = "#00A4B1";
+    green = "#349352";
+    purple = "#90199D";
+    blue = "#3559C3";
+    red = "#CB323F";
+
     figure
-    semilogx(ft, mag2db(gt), 'x')
-    hold on
-    semilogx(fRef, mag2db(abs(HRef)), '-.')
-    semilogx(fi, mag2db(abs(gi)), 'o')
-    semilogx(fsh, mag2db(abs(gi)), 'x')
+
     for i = 1:n
-        semilogx(fvec, mag2db(gt(i) * abs(Hi{i})))
-        semilogx(fvec, mag2db(gt(i)) + test{i}, '--')
+        semilogx(fvec, mag2db(gt(i) * abs(Hi{i})), 'Color', cyan)
+        hold on
+        %semilogx(fvec, mag2db(gt(i)) + test{i}, '--')
     end
+    semilogx(fRef, mag2db(abs(HRef)), 'LineWidth', 4, 'Color', grey)
+    semilogx(fvec, mag2db(gt(1) * abs(H)), 'Color', yellow)
     grid on
-    xlim([20 22.05e3])
+    xlim([10 22.05e3])
     ylim([-24 0])
-    semilogx(fvec, mag2db(gt(1) * abs(H)))
-    semilogx(fvec, mag2db(gt(1)) + test{1} + test{2} + test{3} + test{4}, '--')
+
+    semilogx(ft, mag2db(gt), 'x', 'Color', pink, 'MarkerSize', 10)
+    %semilogx(fi, mag2db(abs(gi)), 'o', 'Color', blue)
+    %semilogx(fsh, mag2db(abs(gi)), 'x', 'Color', green)
+    %semilogx(fvec, mag2db(gt(1)) + sum, '--')
     yticks([-24:6:0])
     grid on
     ylim([-24 0])
+    legend('Individual Filters', '', '', '', 'Fractional Filter', 'Shelving Filters', 'Targets')
+
+saveas(gcf,"C:\Users\jmann\OneDrive - University of Surrey\Documents\Sound PhD\Year 3\SeminarDay Dec\UDFA.svg", "svg")
 
     dZ = abs(zR - zS);
     pathLength = sqrt((rS + rR) .^ 2 + dZ .^ 2);
