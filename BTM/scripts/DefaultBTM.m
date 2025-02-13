@@ -20,7 +20,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = DefaultBTM(controlparameters)
     % Create file info
     mFile = mfilename('fullpath');
     controlparameters.difforder = 1;
-    controlparameters.saveFiles = 2;
+    %controlparameters.saveFiles = 2;
     index = DataHash({wedgeLength,wedgeIndex,thetaS,thetaR,radiusS,radiusR,zS,zR,controlparameters});
     [inFilePath, fileName, savePath, loadPath, resultExists] = BTMFileHandling(mFile, index);
 
@@ -80,8 +80,10 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = DefaultBTM(controlparameters)
         filehandlingparameters.savelogfile = 0;
         filehandlingparameters.showtext = 1;
         filehandlingparameters.suppressresultrecycling = 1;
+
+        envdata.cair = controlparameters.c;
     
-        EDmain_convex_time(geofiledata,Sindata,Rindata,struct,controlparameters,filehandlingparameters);
+        EDmain_convex(geofiledata,Sindata,Rindata,envdata,controlparameters,filehandlingparameters);
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         

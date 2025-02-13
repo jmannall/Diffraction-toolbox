@@ -32,7 +32,7 @@ function [ir, tfmag, tvec, fvec, tfcomplex] = SingleBTM(source, receiver, corner
         filehandlingparameters.showtext = 1;
         filehandlingparameters.suppressresultrecycling = 1;
         
-        EDmain_convex_time(geofiledata,Sindata,Rindata,struct,controlparameters,filehandlingparameters);
+        EDmain_convex(geofiledata,Sindata,Rindata,struct,controlparameters,filehandlingparameters);
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
