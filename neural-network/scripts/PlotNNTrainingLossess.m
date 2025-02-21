@@ -4,10 +4,11 @@ function PlotNNTrainingLossess(losses, epochLosses, figTitle)
     iterationsPerEpoch = numIterations / numEpochs;
     
     xLosses = 1:numIterations;
-    xEpochLosses = 1:iterationsPerEpoch:numIterations;
+    xEpochLosses = iterationsPerEpoch / 2:iterationsPerEpoch:numIterations;
     figure
     plot(xLosses, losses)
     hold on
+    grid on
     plot(xEpochLosses, epochLosses)
     xlim([0 numIterations])
     ylim([0 50])

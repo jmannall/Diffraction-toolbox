@@ -3,9 +3,7 @@
 function [tfmag, fvec, tfcomplex] = CreateIIRFilter(z, p, k, nfft, fs)
     
     %% Calculate tfmag
-    numObservations = size(z,2);
-
-    numIIRFilters = size(z,1);
+    [numIIRFilters, numObservations] = size(z);
     
     [b, a] = IIRFilterCoefficients(z, p, k, numIIRFilters, numObservations);
     

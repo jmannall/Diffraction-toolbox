@@ -1,4 +1,4 @@
-function [net, losses] = TrainNN(net, hP, tP, nP)
+function [net, losses] = TrainNN(net, hP, tP, nP, losses)
 
     worker = getCurrentWorker;
     name = ['Network: ' num2str(hP.numLayers), '-', num2str(hP.hiddenLayerSize), '-' num2str(hP.learnRate)];
@@ -14,15 +14,13 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
 
     % Initialise losss variables
     numIterationsPerEpoch = floor(tP.epochSize./tP.miniBatchSize);
-    losses.iteration = zeros(1, tP.numEpochs * numIterationsPerEpoch);
-    [losses.epoch, losses.test] = deal(1e3 * ones(1, tP.numEpochs));
     thisIterationLosses = zeros(1, numIterationsPerEpoch);
 
     iteration = 0;
     start = tic;
     i = 1;
 
-    [lineIterationLoss, lineEpochLoss] = CreateAnimatedLinePlot();
+    lines = CreateAnimatedLinePlot();
 
     %numLayers = length(net.Learnables.Value);
     %numNodes = numel(net.Learnables.Value{2});
@@ -40,24 +38,18 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     %[testInputData, testTargetData, DC] = tP.dataFunc('TestData');
     %testTargetData = [DC; testTargetData];
     testInputData = dlarray(single(testInputData), "CB");
-    learnRate = hP.learnRate;
 
-    switch learnRate
-        case 1e-3
-            reductionPoints = [100 300 450];
-        case 1e-4
-            reductionPoints = [300 450];
-        case 1e-5
-            reductionPoints = [400 475];
-        otherwise
-            reductionPoints = [200 400];
-    end
+    reductionPoints = [100 300 450];
 
     % Check if restarting training
     restart = exist([cd filesep loadPath], "file");
     if restart == 2
         load(loadPath, "net", "losses", "hP", "tP", "nP", "iteration", "i")
         disp('Restart training')
+    elseif losses.iteration(1) > 0
+        i = find(losses.epoch == 1000, 1);
+        iteration = find(losses.iteration == 0, 1);
+        disp('Continue training')
     else
         disp('Start training')
     end
@@ -73,11 +65,11 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
         trainingData = trainingData(:,idx);
         %DCTargetData = DCTargetData(idx);
         %targetData = [DCTargetData; targetData];
-        for i = 1:numIterationsPerEpoch
+        for j = 1:numIterationsPerEpoch
             iteration = iteration + 1;
     
             % Create input and target variables
-            [X, T] = ProcessNNBatchInputData(trainingData, targetData, tP.miniBatchSize, i);
+            [X, T] = ProcessNNBatchInputData(trainingData, targetData, tP.miniBatchSize, j);
     
             % Evaluate the model loss and gradients using dlfeval and the
             % modelLoss function.input
@@ -90,22 +82,23 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
     
             % Clip gradients
             gradients = ClipGradients(gradients, tP.maxGrad);
+
             % Update the network parameters using the Adam optimizer.
-            [net,averageGrad,averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, learnRate, tP.gradDecay, tP.sqGradDecay);
+            [net,averageGrad,averageSqGrad] = adamupdate(net, gradients, averageGrad, averageSqGrad, iteration, hP.learnRate, tP.gradDecay, tP.sqGradDecay);
             
             % Store losses
-            idx = numIterationsPerEpoch * (epoch - 1) + i;
+            idx = numIterationsPerEpoch * (epoch - 1) + j;
             loss = double(loss);
             losses.iteration(idx) = loss;
-            thisIterationLosses(i) = loss;
+            thisIterationLosses(j) = loss;
         end
         losses.test(epoch) = tP.testFunc(net, testInputData, testTargetData);
         losses.epoch(epoch) = mean(thisIterationLosses);
         if sum(ismember(epoch, reductionPoints)) > 0
-            learnRate = learnRate / 10;
+            hP.learnRate = hP.learnRate / 10;
         end
 
-        UpdateNNAnimatedLinePlot(lineIterationLoss, lineEpochLoss, losses, numIterationsPerEpoch, epoch, start)
+        UpdateNNAnimatedLinePlot(lines, losses, numIterationsPerEpoch, epoch, start)
 
         % Backup result every 5 epochs
         if mod(epoch, backupRate) == 0
@@ -121,12 +114,12 @@ function [net, losses] = TrainNN(net, hP, tP, nP)
         if epoch > 9 && losses.test(epoch) > 1e3
             disp(['Early stop criteria reached. Epoch: ' num2str(epoch)])
             nP.savePath = [nP.savePath '_INCOMPLETE'];
-            break
+            return
         end
         if isnan(loss)
             disp(['End training early. Epoch: ' num2str(epoch)])
             nP.savePath = [nP.savePath '_INCOMPLETE'];
-            break
+            return
         end
     end
     toc

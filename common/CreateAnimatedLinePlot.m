@@ -1,9 +1,10 @@
-function [lineOne, lineTwo] = CreateAnimatedLinePlot()
+function lines = CreateAnimatedLinePlot()
 
     figure
     C = colororder;
-    lineOne = animatedline('Color',C(1,:));
-    lineTwo = animatedline('Color',C(2,:));
+    lines.iteration = animatedline('Color',C(1,:));
+    lines.epoch = animatedline('Color',C(2,:));
+    lines.test = animatedline('Color',C(3,:));
     ylim([0 inf])
     xlabel("Iteration")
     ylabel("Loss")

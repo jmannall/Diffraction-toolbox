@@ -8,7 +8,7 @@ function [tfmag, fvec, tfcomplex] = CalculateFilterResponse(b, a, nfft, fs)
     
     epsilon = 1e-12;
     F = x ./ (y + epsilon);
-    F = x ./ y;
+    %F = x ./ y;
     tfcomplex = F(1:(end / 2),:);
     tfmag = (20*log(abs(tfcomplex)+epsilon) / log(10));
 
