@@ -39,7 +39,8 @@ function [net, losses] = TrainNN(net, hP, tP, nP, losses)
     %testTargetData = [DC; testTargetData];
     testInputData = dlarray(single(testInputData), "CB");
 
-    reductionPoints = [100 300 450];
+    %reductionPoints = [100 300 450];
+    reductionPoints = [40 75 90];
 
     % Check if restarting training
     restart = exist([cd filesep loadPath], "file");
@@ -102,7 +103,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP, losses)
 
         % Backup result every 5 epochs
         if mod(epoch, backupRate) == 0
-            i = epoch;
+            i = epoch + 1;
             worker = getCurrentWorker;
             if ~isempty(worker)
                 %disp(['Save backup: ', num2str(worker.ProcessId)])

@@ -1,6 +1,6 @@
-function TestNNPerformance(loadDir)
+function TestNNPerformance(numData)
 
-    close all
+    %close all
 
     % Control parameters
     controlparameters.fs = 48e3;
@@ -12,6 +12,7 @@ function TestNNPerformance(loadDir)
 
     % Load paths
     rootDir = 'NNSaves';
+    loadDir = 'SingleUDFA_NN';
     CheckFileDir(rootDir)
     CheckFileDir([rootDir filesep loadDir])
     
@@ -20,10 +21,9 @@ function TestNNPerformance(loadDir)
     files = files(~[files.isdir]);
 
     numFiles = length(files);
-    numData = 5;
 
     colours = colororder;
-    colours = colours(1:numData,:);
+    colours = colours(mod(0:numData - 1, length(colours)) + 1,:);
     for i = 1:numFiles
         if (numFiles == 1)
             file = files;
@@ -36,12 +36,12 @@ function TestNNPerformance(loadDir)
         disp(['Loss: ', num2str(losses.test(end))])
 
         controlparameters.numNNInputs = nP.numInputs;
-        [inputData, ~, validationData] = CreateUDFATrainingData(5, controlparameters, 'UDFA_NN', true, 'ValidationData');
+        [inputData, ~, validationData] = CreateSingleUDFA_NNTrainingData(numData, controlparameters, true, 'ValidationData');
         X = dlarray(single(inputData), "CB");
 
         tfmag = MakeUDFA_NNPrediction(net, X, controlparameters);
 
-        PlotNNTrainingLossess(losses.iteration, losses.epoch, file.name)
+        PlotNNTrainingLossess(losses.iteration, losses.epoch, losses.test, file.name)
 
         figure
         colororder(colours);
@@ -49,6 +49,8 @@ function TestNNPerformance(loadDir)
         hold on
         grid on
         semilogx(controlparameters.fvec, tfmag, '--')
-        title(file.name)
+        title(replace(file.name, '_', ' '))
+        ylim([-70 10])
+        xlim([20 20e3])
     end
 end

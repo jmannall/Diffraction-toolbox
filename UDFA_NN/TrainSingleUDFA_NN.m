@@ -1,4 +1,4 @@
-function TrainUDFA_NN(numLayers, size, learnRate)
+function TrainSingleUDFA_NN(numLayers, size, learnRate, runIdx)
 
     close all
 
@@ -13,7 +13,6 @@ function TrainUDFA_NN(numLayers, size, learnRate)
     controlparameters.nBands = 8;
     controlparameters.fvec = controlparameters.fs/controlparameters.nfft*[0:controlparameters.nfft/2-1];
     controlparameters.fidx = CreateFidx(controlparameters.fvec, controlparameters.nBands);
-    controlparameters.numNNInputs = 8;
 
     filterFunc = @(output, target) IIRFilterLoss(output, target, controlparameters);
     
@@ -27,11 +26,11 @@ function TrainUDFA_NN(numLayers, size, learnRate)
     maxGrad = 0.9;
 
     lossFunc = @(net, trainingData, targetData) NNFilterLoss(net, trainingData, targetData, filterFunc, true);
-    dataFunc = @(idx) CreateUDFA_NNTrainingData(epochSize, controlparameters, false, idx);
+    dataFunc = @(idx) CreateSingleUDFA_NNTrainingData(epochSize, controlparameters, false, idx);
     testFunc = @(net, trainingData, targetData) NNFilterLoss(net, trainingData, targetData, filterFunc, false);
 
     % Network parameters
-    numInputs = controlparameters.numNNInputs;
+    numInputs = 1;
     numOutputs = 2 * controlparameters.filterOrder + 1;
     alpha = 0.2;
     
@@ -51,13 +50,15 @@ function TrainUDFA_NN(numLayers, size, learnRate)
     
     % Save paths
     rootDir = 'NNSaves';
-    saveDir = 'UDFA_NN';
+    saveDir = 'SingleUDFA_NN';
+    runDir = ['Run' num2str(runIdx)];
     CheckFileDir(rootDir)
     CheckFileDir([rootDir filesep saveDir])
+    CheckFileDir([rootDir filesep saveDir filesep runDir])
     idx = [num2str(numLayers), '_', num2str(hiddenLayerSize), '_', num2str(learnRate)];
     idx = erase(idx, '.');
     saveFile = ['NN-', idx];
-    savePath = [rootDir filesep saveDir filesep saveFile];
+    savePath = [rootDir filesep saveDir filesep runDir filesep saveFile];
 
     rng shuffle
     seed = rng().Seed;
