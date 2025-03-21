@@ -35,7 +35,7 @@ Sampling frequency (Fs)
 
 Fs = 48e3;
 Fr = 0:100;
-savePath = 'figures';
+savePath = 'figures/EURASIP';
 
 colorStore = colororder;
 
@@ -197,6 +197,8 @@ CcBtm = btmOnce + btmPerTheta * numTheta + btmEveryIntegralPoint * numIntegralPo
 CdUtdLR = Fr' * diffOrders .* CcUtdLR + CrLR;
 CdNNIIR = Fr' * diffOrders .* CcNNIIR + CrIIR2;
 CdNNIIR2 = Fr' * diffOrders .* CcNNIIR2 + CrIIR2;
+
+%CrIIR4 = ones(size(CrIIR4)) * CrIIR4(1);
 CdUDFAIIR = Fr' * diffOrders .* CcUDFAIIR + CrIIR4;
 
 color = colorStore(1:5,:);
@@ -429,7 +431,7 @@ saveas(gcf, [savePath, filesep, 'GAModelCostsSmall'], 'svg')
 
 %%
 
-color = colorStore([1, 1, 2, 3, 4],:);
+color = colorStore([1, 1, 2, 5, 3, 4],:);
 figure('Position', [gap gap 6 * x 1.5 * x])
 t = tiledlayout(1, 3, 'TileSpacing', 'compact');
 for i = 1:2:numDiff
@@ -440,7 +442,7 @@ for i = 1:2:numDiff
     grid on
     semilogy(Fr, CdNNIIR2(:,i), 'Color', [color(1,:), 0.6])
     semilogy(Fr, CdUtdLR(:,i), '-.')
-    %semilogy(Fr, CdUDFAIIR(:,i), ':')
+    semilogy(Fr, CdUDFAIIR(:,i), ':')
     semilogy(Fr, CdUtdOverlapAdd(:,i), '--')
     if i == 1
         semilogy(Fr, CdBtmOverlapAdd, ':')
@@ -455,12 +457,41 @@ for i = 1:2:numDiff
     title(['Diffraction order: ', num2str(diffOrders(i))])
 end
 fontsize(gcf,scale=textScale)
-l = legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UTD-overlap add', 'BTM-overlap add', 'Location', 'bestoutside');
+l = legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UDFA', 'UTD-overlap add', 'BTM-overlap add', 'Location', 'bestoutside');
 title(l, 'Diffraction Model')
 fontsize(gcf,20,"pixels")
 
 saveas(gcf, [savePath, filesep, 'DiffractionModelCostsSmall'], 'epsc')
 saveas(gcf, [savePath, filesep, 'DiffractionModelCostsSmall'], 'svg')
+
+%%
+close all
+
+color = colorStore([1, 1, 2, 5, 4],:);
+%figure('Position', [gap gap 6 * x 1.5 * x])
+figure
+colororder(color);
+semilogy(Fr, CdNNIIR(:,1))
+hold on
+grid on
+semilogy(Fr, CdNNIIR2(:,1), 'Color', [color(1,:), 0.6])
+semilogy(Fr, CdUtdLR(:,1), '--')
+semilogy(Fr, CdUDFAIIR(:,1), ':')
+%semilogy(Fr, CdUtdOverlapAdd(:,1), '--')
+semilogy(Fr, CdBtmOverlapAdd, 'LineWidth', 3)
+%semilogy(Fr, CdUtdIIR(:,i), ':')
+xlim([10 100])
+ylim([5e5 5e8])
+xlabel('Update rate (Hz)')
+ylabel('FLOPS')
+%title(['Diffraction order: ', num2str(diffOrders(i))])
+%fontsize(gcf,scale=textScale)
+l = legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UDFA', 'BTM-overlap add', 'Location', 'northwest');
+%title(l, 'Diffraction Model')
+fontsize(gcf,20,"pixels")
+
+saveas(gcf, [savePath, filesep, '1stOrderDiffractionModelCosts'], 'epsc')
+saveas(gcf, [savePath, filesep, '1stOrderDiffractionModelCosts'], 'svg')
 
 return
 %%

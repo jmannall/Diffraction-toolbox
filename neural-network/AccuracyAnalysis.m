@@ -131,7 +131,7 @@ disp('IIR')
 
 tfmag.IIR = zeros(length(fvec), testSize);
 for i = 1:testSize
-    tfmag.IIR(:,i) = SingleIIRWedge(wL(i), wI(i), thetaS(i), thetaR(i), rS(i), rR(i), zS(i), zR(i), 1, controlparameters);
+    tfmag.IIR(:,i) = SingleIIRWedge(wL(i), wI(i), thetaS(i), thetaR(i), rS(i), rR(i), zS(i), zR(i), 4, controlparameters);
 end
 tfmagN.IIR = CreateFrequencyNBands(tfmag.IIR, fvec, nBands);
 
@@ -155,7 +155,7 @@ tfmagN.IIR = CreateFrequencyNBands(tfmag.IIR, fvec, nBands);
 
 %% Plots constants
 
-savePath = 'figures';
+savePath = 'figures/EURASIP';
 fontSize = 18;
 width = 300;
 gap = 10;
@@ -200,7 +200,7 @@ for j = 1:numSets
         title({['wL: ' num2str(roundInput(4, idx)), ' wI: ', num2str(roundInput(1, idx)), ' mA: ', num2str(roundInput(3, idx)), ' bA: ', num2str(roundInput(2, idx))] ...
             [' rS: ' num2str(roundInput(5, idx)), ' rR: ', num2str(roundInput(6, idx)), ' zS: ', num2str(roundInput(7, idx)), ' zR: ', num2str(roundInput(8, idx))]})
     end
-    %saveas(gcf, [savePath, filesep, 'AccuracyExample_', num2str(j), '.svg'], 'svg')
+    saveas(gcf, [savePath, filesep, 'AccuracyExample_', num2str(j), '.svg'], 'svg')
 end
 
 %% Losses
@@ -372,8 +372,9 @@ close all
 percentiles = 0:0.1:100;
 
 percentile = CalculatePercentiles(lossN.i, percentiles);
+percentileTrue = CalculatePercentiles(lossNTrue.i, percentiles);
 
-color = colorStore([1, 1, 2, 3, 5], :);
+color = colorStore([1, 1, 2, 5], :);
 
 figure
 colororder(color)
@@ -386,11 +387,11 @@ plot(percentiles, percentile.NN1)
 hold on
 plot(percentiles, percentile.NN2, 'Color', [color(1,:), 0.6])
 plot(percentiles, percentile.UtdILR, '--')
-plot(percentiles, percentile.UtdI, '-.')
+%plot(percentiles, percentile.UtdI, '-.')
 %plot(percentiles, percentile.IIRHi, ':')
-plot(percentiles, percentile.IIR, ':')
+plot(percentiles, percentileTrue.IIR, ':')
 grid on
-l = legend('NN (best)', 'NN (small)', 'UTD-LR', 'UTD', 'UTD-IIR', 'Location','northwest');
+l = legend('NN (best)', 'NN (small)', 'UTD-LR', 'UTD-IIR', 'Location','northwest');
 title(l, 'Diffraction Model')
 xlabel('Percentile')
 ylabel('Mean absolute error \Psi (dB)')
@@ -409,9 +410,9 @@ plot(percentiles, percentile.NN1)
 hold on
 plot(percentiles, percentile.NN2, 'Color', [color(1,:), 0.6])
 plot(percentiles, percentile.UtdILR, '--')
-plot(percentiles, percentile.UtdI, '-.')
+%plot(percentiles, percentile.UtdI, '-.')
 %plot(percentiles, percentile.IIRHi, ':')
-plot(percentiles, percentile.IIR, ':')
+plot(percentiles, percentileTrue.IIR, ':')
 grid on
 set(ax,'xlim',[0,40],'ylim',[0,1])
 
@@ -437,36 +438,36 @@ ylim([0 40])
 
 %close all
 
-score = sum(iLossesNN2 < iLossesUtdLR) / testSize * 100;
-comparison = iLossesUtdLR - iLossesNN2;
-
-figure
-bar(comparison)
-grid on
-title('Improvement in NN-IIR over UTD-LR')
-ylabel('Mean absolute error improvement (dBA)')
-xlabel('Number of cases')
-ylim([-10 35])
-xticks(0:2e3:2e4)
-xticklabels(0:2e3:2e4)
-
-%saveas(gcf, [savePath, filesep, 'Comparison.svg'], 'svg')
-
-percentilesComparison = prctile(comparison, percentiles);
-
-figure
-plot(percentiles, percentilesComparison)
-grid on
-xlabel('Mean absolute error improvement (dBA)')
-ylabel('Percentile')
-
-figure
-histogram(comparison)
-grid on
-%title('Improvement in NN-IIR over UTD-LR')
-xlabel('Mean absolute error improvement (dBA)')
-ylabel('Number of cases')
-xlim([-10 35])
+% score = sum(iLossesNN2 < iLossesUtdLR) / testSize * 100;
+% comparison = iLossesUtdLR - iLossesNN2;
+% 
+% figure
+% bar(comparison)
+% grid on
+% title('Improvement in NN-IIR over UTD-LR')
+% ylabel('Mean absolute error improvement (dBA)')
+% xlabel('Number of cases')
+% ylim([-10 35])
+% xticks(0:2e3:2e4)
+% xticklabels(0:2e3:2e4)
+% 
+% %saveas(gcf, [savePath, filesep, 'Comparison.svg'], 'svg')
+% 
+% percentilesComparison = prctile(comparison, percentiles);
+% 
+% figure
+% plot(percentiles, percentilesComparison)
+% grid on
+% xlabel('Mean absolute error improvement (dBA)')
+% ylabel('Percentile')
+% 
+% figure
+% histogram(comparison)
+% grid on
+% %title('Improvement in NN-IIR over UTD-LR')
+% xlabel('Mean absolute error improvement (dBA)')
+% ylabel('Number of cases')
+% xlim([-10 35])
 
 %saveas(gcf, [savePath, filesep, 'ComparisonHistogram'], 'epsc')
 %saveas(gcf, [savePath, filesep, 'ComparisonHistogram'], 'svg')
@@ -484,7 +485,7 @@ for i = 1:numBins
     meanUtdLR(2 * i - 1:2 * i) = mean(lossN.i.UtdILR(idx));
     meanNN1(2 * i - 1:2 * i) = mean(lossN.i.NN1(idx));
     meanNN2(2 * i - 1:2 * i) = mean(lossN.i.NN2(idx));
-    meanUTDIIR(2 * i - 1:2 * i) = mean(lossN.i.IIR(idx));
+    meanUTDIIR(2 * i - 1:2 * i) = mean(lossNTrue.i.IIR(idx));
     x(2 * i:2 * i + 1) = width * i;
 end
 x = x(1:end - 1);
@@ -526,7 +527,7 @@ for i = 1:numBins
     meanUtdLR(2 * i - 1:2 * i) = mean(lossN.i.UtdILR(idx));
     meanNN1(2 * i - 1:2 * i) = mean(lossN.i.NN1(idx));
     meanNN2(2 * i - 1:2 * i) = mean(lossN.i.NN2(idx));
-    meanUTDIIR(2 * i - 1:2 * i) = mean(lossN.i.IIR(idx)); 
+    meanUTDIIR(2 * i - 1:2 * i) = mean(lossNTrue.i.IIR(idx)); 
     x(2 * i:2 * i + 1) = width * i;
 end
 x = x(1:end - 1);
@@ -546,7 +547,7 @@ plot(x, meanUTDIIR, ':')
 %plot(x, lpUtdLR, ':')
 %plot(x, upNN)
 %plot(x, upUtdLR, ':')
-legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UTD-IIR')
+legend('NN-IIR (best)', 'NN-IIR (small)', 'UTD-LR', 'UDFA')
 xlabel('Phi (degrees)')
 ylabel('Mean absolute error \Psi (dB)')
 ylim([0 7])
@@ -575,7 +576,7 @@ for i = 1:numBins
     meanUtdLR(2 * i - 1:2 * i) = mean(lossN.i.UtdILR(idx));
     meanNN1(2 * i - 1:2 * i) = mean(lossN.i.NN1(idx));
     meanNN2(2 * i - 1:2 * i) = mean(lossN.i.NN2(idx));
-    meanUTDIIR(2 * i - 1:2 * i) = mean(lossN.i.IIR(idx)); 
+    meanUTDIIR(2 * i - 1:2 * i) = mean(lossNTrue.i.IIR(idx)); 
     x(2 * i:2 * i + 1) = width * i;
 end
 x = x(1:end - 1);
@@ -603,6 +604,8 @@ fontsize(gcf,20,"pixels")
 
 saveas(gcf, [savePath, filesep, 'ZaError'], 'epsc')
 saveas(gcf, [savePath, filesep, 'ZaError'], 'svg')
+
+return
 
 %% function of zA
 
@@ -651,7 +654,7 @@ for i = 1:numBins
     meanUtdLR(2 * i - 1:2 * i) = mean(lossN.i.UtdILR(idx));
     meanNN1(2 * i - 1:2 * i) = mean(lossN.i.NN1(idx));
     meanNN2(2 * i - 1:2 * i) = mean(lossN.i.NN2(idx));
-    meanUTDIIR(2 * i - 1:2 * i) = mean(lossN.i.IIR(idx));
+    meanUTDIIR(2 * i - 1:2 * i) = mean(lossNTrue.i.IIR(idx));
     x(2 * i:2 * i + 1) = width * i;
 end
 x = x(1:end - 1);

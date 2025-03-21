@@ -5,40 +5,42 @@ set(0, 'DefaultLineLineWidth', 1.0);
 
 %% Shoebox room
 
-x = 2;
-y = 3;
-z = 2.6;
+x = 4.97;
+y = 4.12;
+z = 3;
 
 roomFunc = @()CreateShoeboxRoomGeometry(x, y, z);
+room.receiver = [2.77, 1.3, 1.51];
+room.source = [1.4, 3.02, 1.36];
 
 %% Ring shaped room
 
-x = [8 2 5];
-y = [12 3 6];
-z = 2.6;
-
-roomFunc = @()CreateRingShapedRoomGeometry(x, y, z);
+% x = [8 2 5];
+% y = [12 3 6];
+% z = 2.6;
+% 
+% roomFunc = @()CreateRingShapedRoomGeometry(x, y, z);
 
 %% L shaped room
 
-x = [2 4];
-y = [3 6];
-z = 2.6;
-
-roomFunc = @()CreateLShapedRoomGeometry(x, y, z);
+% x = [4 7];
+% y = [3 5];
+% z = 3;
+% 
+% roomFunc = @()CreateLShapedRoomGeometry(x, y, z);
+% room.receiver = [5, 4.5, 1];
+% room.source = [1.5, 2. 1];
 
 %% Modelling
 
-refOrder = 6;
+refOrder = 3;
 diffOrder = 3;
-combinedOrder = 5;
+combinedOrder = 3;
 maxPathLength = 100;
 
 op = struct('geometry', true, 'sr', true, 'direct', false, 'specular', false, 'hodSpecular', false, 'diff', false, 'hodDiff', false);
 
-room.receiver = [5.7 0.8 1.6];
 [room, plot] = CreateRoomGeometry(roomFunc, room);
-% [room.source, plot.source] = deal([1.9 2 1.6]);
 
 %% Direct sound
 
@@ -77,11 +79,16 @@ op.hodSpecular = true;
 
 PlotIS(plot, op)
 
-vSources = zeros(inf, 3);
-validPath = false(inf, 1);
-[pathIdx, specularPathLength, refOrderPaths] = deal(zeros(inf, 1));
-[refPlanePath, vSourceIdxPath] = deal(zeros(inf, refOrder));
 
+
+
+
+%vSources = zeros(inf, 3);
+%validPath = false(inf, 1);
+%[pathIdx, specularPathLength, refOrderPaths] = deal(zeros(inf, 1));
+%[refPlanePath, vSourceIdxPath] = deal(zeros(inf, refOrder));
+
+diffIdx = 0;
 idx = 0;
 count = 0;
 tic
@@ -89,12 +96,12 @@ disp('Reflection order: 1')
 for i = 1:room.numPlanes
     disp(['Plane: ', num2str(i)])
     % Check if source behind the plane
-    [k, validSource] = PointPlanePosition(source, room.planeNormals(i,:), room.d(i));
+    [k, validSource] = PointPlanePosition(room.source, room.planeNormals(i,:), room.d(i));
 
     if validSource
         % Create virtual source
-        vS = source - 2 * room.planeNormals(i,:) * k;
-        pathLength = PathLength(vS, receiver);
+        vS = room.source - 2 * room.planeNormals(i,:) * k;
+        pathLength = PathLength(vS, room.receiver);
         if pathLength > maxPathLength
             validSource = false;
         end
@@ -105,13 +112,13 @@ for i = 1:room.numPlanes
             vSourceIdxPath(idx,:) = [idx, zeros(1, refOrder - 1)];
     
             % Find intersection point and check it is valid
-            [intersection, validIntersection] = CheckValidLinePlaneIntersection(receiver, vSources(idx,:), room, i);
+            [intersection, validIntersection] = CheckValidLinePlaneIntersection(room.receiver, vSources(idx,:), room, i);
             intersections{idx} = intersection;
     
-            if validIntersection && receiverCanSeePlane(i)
+            if validIntersection && room.receiverCanSeePlane(i)
                 % Check if path is blocked
-                obstruction = CheckForObstruction(intersection, receiver, room, i);
-                obstruction = CheckForObstruction(source, intersection, room, i, obstruction);
+                obstruction = CheckForObstruction(intersection, room.receiver, room, i);
+                obstruction = CheckForObstruction(room.source, intersection, room, i, obstruction);
                 if obstruction
                     validPath(idx) = false;
                 else
@@ -125,23 +132,23 @@ for i = 1:room.numPlanes
         end
         % sp-ed
         for j = 1:room.numEdges
-            if edgeCanSeePlane(j,i)
-                vSourceCanSeeEdge{i}(j) = ~CheckForObstruction(vSources(idx,:), room.edgeMidPoint(j,:), room, i);
+            if room.edgeCanSeePlane(j,i)
+                vSourceCanSeeEdge{i}(j) = ~CheckForObstruction(vSources(idx,:), room.edgeMidPoints(j,:), room, i);
                 
-                if receiverCanSeeEdge(j) && vSourceCanSeeEdge{i}(j)
+                if room.receiverCanSeeEdge(j) && vSourceCanSeeEdge{i}(j)
                     % Find intersection point and check it is valid
-                    [intersection, validIntersection] = CheckValidLinePlaneIntersection(room.edgeMidPoint(j,:), vSources(idx,:), room, i);
+                    [intersection, validIntersection] = CheckValidLinePlaneIntersection(room.edgeMidPoints(j,:), vSources(idx,:), room, i);
                     %intersections{idx} = intersection;
                     
                     if validIntersection
-                        obstruction = CheckForObstruction(intersection, room.edgeMidPoint(j,:), room, i);
-                        obstruction = CheckForObstruction(source, intersection, room, i, obstruction);
+                        obstruction = CheckForObstruction(intersection, room.edgeMidPoints(j,:), room, i);
+                        obstruction = CheckForObstruction(room.source, intersection, room, i, obstruction);
                 
                         if ~obstruction
                             diffIdx = diffIdx + 1;
                             validDiffPath(diffIdx) = true;
                             diffPath(diffIdx,:) = [j, zeros(1, diffOrder - 1)];
-                            edgePath{diffIdx} = [source; intersection; room.edgeMidPoint(j,:); receiver];
+                            edgePath{diffIdx} = [room.source; intersection; room.edgeMidPoints(j,:); room.receiver];
                         end
                     end
                 end
@@ -149,25 +156,25 @@ for i = 1:room.numPlanes
         end
         % ed-sp
         % Check if receiver behind the plane
-        [k, validReceiver] = PointPlanePosition(receiver, room.planeNormals(i,:), room.d(i));
+        [k, validReceiver] = PointPlanePosition(room.receiver, room.planeNormals(i,:), room.d(i));
         if validReceiver
-            vR = receiver - 2 * room.planeNormals(i,:) * k;
+            vR = room.receiver - 2 * room.planeNormals(i,:) * k;
             for j = 1:room.numEdges
-                vReceiverCanSeeEdge{i}(j) = ~CheckForObstruction(vR, room.edgeMidPoint(j,:), room, i);
-                if sourceCanSeeEdge(j) && vReceiverCanSeeEdge{i}(j)
+                vReceiverCanSeeEdge{i}(j) = ~CheckForObstruction(vR, room.edgeMidPoints(j,:), room, i);
+                if room.sourceCanSeeEdge(j) && vReceiverCanSeeEdge{i}(j)
                     % Find intersection point and check it is valid
-                    [intersection, validIntersection] = CheckValidLinePlaneIntersection(room.edgeMidPoint(j,:), vR, room, i);
+                    [intersection, validIntersection] = CheckValidLinePlaneIntersection(room.edgeMidPoints(j,:), vR, room, i);
                     %intersections{idx} = intersection;
                     
                     if validIntersection
-                        obstruction = CheckForObstruction(room.edgeMidPoint(j,:), intersection, room, i);
-                        obstruction = CheckForObstruction(intersection, receiver, room, i, obstruction);
+                        obstruction = CheckForObstruction(room.edgeMidPoints(j,:), intersection, room, i);
+                        obstruction = CheckForObstruction(intersection, room.receiver, room, i, obstruction);
                 
                         if ~obstruction
                             diffIdx = diffIdx + 1;
                             validDiffPath(diffIdx) = true;
                             diffPath(diffIdx,:) = [j, zeros(1, diffOrder - 1)];
-                            edgePath{diffIdx} = [source; room.edgeMidPoint(j,:); intersection; receiver];
+                            edgePath{diffIdx} = [room.source; room.edgeMidPoints(j,:); intersection; room.receiver];
                         end
                     end
                 end
@@ -178,7 +185,7 @@ end
 toc
 
 numVSources(1) = idx;
-PlotGeometry(room.corners, room.planeCorners, source, receiver, lineOfSight, vSources, intersections, validPath, edgePath)
+PlotGeometry(room.corners, room.planeCorners, room.source, room.receiver, lineOfSight, vSources, intersections, validPath, edgePath)
 
 %% Higher order reflection
 
@@ -247,11 +254,11 @@ for j = 2:refOrder
                     % sp-ed
                     for k = 1:room.numEdges
                         if edgeCanSeePlane(k,i)
-                            vSourceCanSeeEdge{i}(k) = ~CheckForObstruction(vSources(idx,:), room.edgeMidPoint(k,:), room, i);
+                            vSourceCanSeeEdge{i}(k) = ~CheckForObstruction(vSources(idx,:), room.edgeMidPoints(k,:), room, i);
                             
                             if receiverCanSeeEdge(k) && vSourceCanSeeEdge{i}(k)
                                 % Find intersection point and check it is valid
-                                [intersection, validIntersection] = CheckValidLinePlaneIntersection(room.edgeMidPoint(k,:), vSources(idx,:), room, i);
+                                [intersection, validIntersection] = CheckValidLinePlaneIntersection(room.edgeMidPoints(k,:), vSources(idx,:), room, i);
                                 intersectionStore(j,:) = intersection;
                                 %intersections{idx} = intersection;
                                 m = 1;
@@ -275,7 +282,7 @@ for j = 2:refOrder
                                         diffIdx = diffIdx + 1;
                                         validDiffPath(diffIdx) = true;
                                         diffPath(diffIdx,:) = [k, zeros(1, diffOrder - 1)];
-                                        edgePath{diffIdx} = [source; intersectionStore; room.edgeMidPoint(k,:); receiver];
+                                        edgePath{diffIdx} = [source; intersectionStore; room.edgeMidPoints(k,:); receiver];
                                     end
                                 end
                             end

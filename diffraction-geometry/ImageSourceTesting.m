@@ -1,14 +1,48 @@
 close all
-%clear all
+clear all
+
+
+
+
+
+
+
+i = 1:6;
+count = [0 0 0];
+idx2 = 1;
+idx3 = 1;
+for k = 1:length(i)
+   count(1) = count(1) + 1;
+   path{1}(k) = k;
+   for j = 1:length(i)
+        if j ~= k
+            count(2) = count(2) + 1;
+            path{2}(idx2,:) = [k, j];
+            idx2 = idx2 + 1;
+            for m = 1:length(i)
+                if m ~= j
+                    count(3) = count(3) + 1;
+                    path{3}(idx3,:) = [k, j, m];
+                    idx3 = idx3 + 1;
+                end
+            end
+        end
+   end
+end
+
+path{2} = sort(path{2}, 2);
 
 audioFile = 'music';
 [audio, fs] = audioread(['sourceAudio/' audioFile '.wav']);
 
-x = [2 4];
+x = [1 3];
 y = [3 5];
-z = 2.5;
+z = 2;
 
-%[corners, planes, source, receiver] = CreateLShapedRoomGeometry(x, y, z);
+room = CreateLShapedRoomGeometry(x, y, z);
+
+source = [2.5, 4.4, 1];
+receiver = [0.7, 1.8, 1.1];
 
 x = [15.73 1.73 14];
 y = [23.72 2.33 19.58];
@@ -23,12 +57,23 @@ z = 2.6;
 % source = [1.40, 3.02, 1.36];
 % receiver = [2.77, 1.30, 1.51];
 
-x = 4.97;
-y = 4.12;
-z = 3;
-source = [1.40, 3.02, 1.36];
-receiver = [2.77, 1.30, 1.51];
-room = CreateShoeboxRoomGeometry(x, y, z);
+x = 3;
+y = 5;
+z = 2;
+% room = CreateShoeboxRoomGeometry(x, y, z);
+% 
+% 
+% source = [2.5 3.23 1];
+% receiver = [1.95 2.1 1.1];
+
+% source = [2 3 1];
+% receiver = [2 2 1];
+% x = [2 3];
+% y = [2 4];
+% z = 2; 
+% room = CreateLShapedRoomGeometry(x, y, z);
+room.source = source;
+room.receiver = receiver;
 PlotGeometry(room.corners, room.planeCorners, source, receiver)
 
 alphaFreq = [250 500 1e3 2e3 4e3];
@@ -40,56 +85,56 @@ alpha = [0.06 0.15 0.4 0.6 0.6  % floor
     0.7 0.6 0.7 0.7 0.5         % y
     0.2 0.2 0.1 0.07 0.04];     % x
 
-f1 = 20;
-f2 = max(alphaFreq)^(0.1) * (fs/2)^(0.9);
-
-[bpB, bpA] = butter(1, [f1 ,f2]/fs*2);
-
-refBTemp = ism_setup.b_refl;
-refATemp = ism_setup.a_refl;
-
-idx = [1 6 2 3 5 4];
-for i = 1:6
-    refB{1,i} = refBTemp{1,idx(i)};
-    refA{1,i} = refATemp{1,idx(i)};
-
-    refB{2,i} = refBTemp{2,idx(i)};
-    refA{2,i} = refATemp{2,idx(i)};
-end
+% f1 = 20;
+% f2 = max(alphaFreq)^(0.1) * (fs/2)^(0.9);
+% 
+% [bpB, bpA] = butter(1, [f1 ,f2]/fs*2);
+% 
+% refBTemp = ism_setup.b_refl;
+% refATemp = ism_setup.a_refl;
+% 
+% idx = [1 6 2 3 5 4];
+% for i = 1:6
+%     refB{1,i} = refBTemp{1,idx(i)};
+%     refA{1,i} = refATemp{1,idx(i)};
+% 
+%     refB{2,i} = refBTemp{2,idx(i)};
+%     refA{2,i} = refATemp{2,idx(i)};
+% end
 
 %source = [1.1 0.9 1];
 %receiver = [3 3.8 1];
 tic
-refOrder = 5;
-maxPathLength = 200;
+refOrder = 3;
+maxPathLength = 1e3;
 
-numPlanes = size(planes, 1);
-normals = zeros(numPlanes, 3);
-[d, numPlaneCorners] = deal(zeros(numPlanes, 1));
-validPlane = true(numPlanes, 1);
+room.numPlanes = size(room.planeCorners, 1);
+room.planeNormals = zeros(room.numPlanes, 3);
+[room.d, room.numPlaneCorners] = deal(zeros(room.numPlanes, 1));
+validPlane = true(room.numPlanes, 1);
 
 % Create geometry parameters
-for i = 1:numPlanes
-    validCorners = planes(i,:) > 0;
-    numPlaneCorners(i) = sum(validCorners);
-    planeCorners = corners(planes(i,validCorners),:);
-    normals(i,:) = normr(cross(planeCorners(1,:) - planeCorners(2,:), planeCorners(1,:) - planeCorners(3,:)));
-    d(i) = sum(normals(i,:) .* planeCorners(1,:));
+for i = 1:room.numPlanes
+    validCorners = room.planeCorners(i,:) > 0;
+    room.numPlaneCorners(i) = sum(validCorners);
+    planeCorners = room.corners(room.planeCorners(i,validCorners),:);
+    room.planeNormals(i,:) = normr(cross(planeCorners(1,:) - planeCorners(2,:), planeCorners(1,:) - planeCorners(3,:)));
+    room.d(i) = sum(room.planeNormals(i,:) .* planeCorners(1,:));
     % Check if receiver lies behind the plane
-    [kR(i), validPlane(i)] = PointPlanePosition(receiver, normals(i,:), d(i));
+    [kR(i), validPlane(i)] = PointPlanePosition(receiver, room.planeNormals(i,:), room.d(i));
 end
-edgesCanSee = true(numPlanes);
-for i = 1:numPlanes
-    for j = 1:numPlanes
-        dotProduct = dot(normals(i,:), normals(j,:));
-        angle1 = acosd(dot(normals(i,:), normals(j,:)));
-        angle2 = asind(dot(normals(i,:), normals(j,:)));
+edgesCanSee = true(room.numPlanes);
+for i = 1:room.numPlanes
+    for j = 1:room.numPlanes
+        dotProduct = dot(room.planeNormals(i,:), room.planeNormals(j,:));
+        angle1 = acosd(dot(room.planeNormals(i,:), room.planeNormals(j,:)));
+        angle2 = asind(dot(room.planeNormals(i,:), room.planeNormals(j,:)));
         if dotProduct == 1
             [edgesCanSee(i,j), edgesCanSee(j,i)] = deal(false);
         else
-            validCorners = false(1, numPlaneCorners(j));
-            for n = 1:numPlaneCorners(j)
-                [~, validCorners(n)] = PointPlanePosition(corners(planes(j,n),:), normals(i,:), d(i));
+            validCorners = false(1, room.numPlaneCorners(j));
+            for n = 1:room.numPlaneCorners(j)
+                [~, validCorners(n)] = PointPlanePosition(room.corners(room.planeCorners(j,n),:), room.planeNormals(i,:), room.d(i));
             end
             if sum(validCorners) == 0
                 [edgesCanSee(i,j), edgesCanSee(j,i)] = deal(false);
@@ -97,13 +142,12 @@ for i = 1:numPlanes
         end
     end
 end
-
+%%
 
 % Check for direct sound
-
 i = 0;
 obstruction = false;
-obstruction = CheckForObstruction(source, receiver, planes, normals, d, corners, numPlaneCorners, numPlanes, i, obstruction);
+obstruction = CheckForObstruction(source, receiver, room, i, obstruction);
 
 lineOfSight = ~obstruction;
 if lineOfSight
@@ -114,18 +158,18 @@ end
 idx = 0;
 count = 0;
 disp('Reflection order: 1')
-for i = 1:numPlanes
+for i = 1:room.numPlanes
     disp(['Plane: ', num2str(i)])
     % Check if source behind the plane
-    [k, validSource] = PointPlanePosition(source, normals(i,:), d(i));
+    [k, validSource] = PointPlanePosition(room.source, room.planeNormals(i,:), room.d(i));
 
     if validSource
         % Create virtual source
-        vSourceStore = source - 2 * normals(i,:) * k;
-        pathLength = norm(vSourceStore - receiver);
-        if pathLength > maxPathLength
-            validSource = false;
-        end
+        vSourceStore = room.source - 2 * room.planeNormals(i,:) * k;
+        pathLength = norm(vSourceStore - room.receiver);
+%         if pathLength > maxPathLength
+%             validSource = false;
+%         end
         if validSource
             idx = idx + 1;
             vSources(idx,:) = vSourceStore;
@@ -133,15 +177,15 @@ for i = 1:numPlanes
             vSourceIdxPath(idx,:) = [idx, zeros(1, refOrder - 1)];
     
             % Find intersection point and check it is valid
-            [intersection, validPath(idx,:)] = CheckValidLinePlaneIntersection(receiver, vSources(idx,:), normals(i,:), d(i), planes, corners, numPlaneCorners, i);
+            [intersection, validPath(idx,:)] = CheckValidLinePlaneIntersection(receiver, vSources(idx,:), room, i);
             intersections{idx} = intersection;
     
             if validPath(idx)
                 if validPlane(i)
                     % Check if path is blocked
                     obstruction = false;
-                    obstruction = CheckForObstruction(intersection, receiver, planes, normals, d, corners, numPlaneCorners, numPlanes, i, obstruction);
-                    obstruction = CheckForObstruction(source, intersection, planes, normals, d, corners, numPlaneCorners, numPlanes, i, obstruction);
+                    obstruction = CheckForObstruction(intersection, receiver, room, i, obstruction);
+                    obstruction = CheckForObstruction(source, intersection, room, i, obstruction);
                     if obstruction
                         validPath(idx) = false;
                     else
@@ -157,32 +201,34 @@ for i = 1:numPlanes
     end
 end
 toc
-PlotGeometry(corners, planes, source, receiver, lineOfSight, vSources, intersections, validPath)
+PlotGeometry(room.corners, room.planeCorners, room.source, room.receiver, lineOfSight, vSources, intersections, validPath)
 
 % Correct up to first order reflection not including accounting for
 % obstructions
 % Higher order reflections
 numVSources(1) = idx;
+numVisVSources(1) = count;
 for j = 2:refOrder
     disp(['Reflection order: ', num2str(j)])
-    for i = 1:numPlanes
+    for i = 1:room.numPlanes
         disp(['Plane: ', num2str(i)])
         for n = 1:numVSources(j - 1)
             vSourceIdx = sum(numVSources(1:j - 2)) + n;
             lastRefPlane = refPlanePath(vSourceIdx,j - 1);
-            if lastRefPlane ~= i && edgesCanSee(i, lastRefPlane)
+            %if lastRefPlane ~= i && edgesCanSee(i, lastRefPlane)
+            if lastRefPlane ~= i
 
                 vSource = vSources(vSourceIdx,:);
                 % Check if source behind the plane
-                [k, validSource] = PointPlanePosition(vSource, normals(i,:), d(i));
+                [k, validSource] = PointPlanePosition(vSource, room.planeNormals(i,:), room.d(i));
                         
                 if validSource
                     % Create virtual source
-                    vSourceStore = vSource - 2 * normals(i,:) * k;
-                    pathLength = norm(vSourceStore - receiver);
-                    if pathLength > maxPathLength
-                        validSource = false;
-                    end
+                    vSourceStore = vSource - 2 * room.planeNormals(i,:) * k;
+                    pathLength = norm(vSourceStore - room.receiver);
+%                     if pathLength > maxPathLength
+%                         validSource = false;
+%                     end
                     if validSource
                         idx = idx + 1;
                         vSources(idx,:) = vSourceStore;
@@ -191,12 +237,12 @@ for j = 2:refOrder
                         vSourceIdxPath(idx,:) = [vSourceIdxPath(vSourceIdx,1:j - 1), idx, zeros(1, refOrder - j)];
     
                         % Find intersection point and check it is valid
-                        [intersection, validPath(idx,:)] = CheckValidLinePlaneIntersection(receiver, vSources(idx,:), normals(i,:), d(i), planes, corners, numPlaneCorners, i);
+                        [intersection, validPath(idx,:)] = CheckValidLinePlaneIntersection(room.receiver, vSources(idx,:), room, i);
                         intersections{idx}(j,:) = intersection;
                         for m = 1:j - 1
                             refPlane = refPlanePath(vSourceIdx, j - m);
                             startPos = vSources(vSourceIdxPath(vSourceIdx, j - m),:);
-                            [intersection, validPathStore] = CheckValidLinePlaneIntersection(intersection, startPos, normals(refPlane,:), d(refPlane), planes, corners, numPlaneCorners, refPlane);
+                            [intersection, validPathStore] = CheckValidLinePlaneIntersection(intersection, startPos, room, refPlane);
                             intersections{idx}(j - m,:) = intersection;
                             if ~validPathStore
                                 validPath(idx) = validPathStore;
@@ -207,11 +253,13 @@ for j = 2:refOrder
                             if validPlane(i)
                                 % Check if path is blocked
                                 obstruction = false;
-                                obstruction = CheckForObstruction(intersections{idx}(j,:), receiver, planes, normals, d, corners, numPlaneCorners, numPlanes, i, obstruction);
-                                obstruction = CheckForObstruction(source, intersections{idx}(1,:), planes, normals, d, corners, numPlaneCorners, numPlanes, i, obstruction);
+                                obstruction = CheckForObstruction(intersections{idx}(j,:), room.receiver, room, i, obstruction);
+                                refPlane = refPlanePath(vSourceIdx, 1);
+                                obstruction = CheckForObstruction(room.source, intersections{idx}(1,:), room, refPlane, obstruction);
                                 p = 1;
                                 while ~obstruction && p < j
-                                    obstruction = CheckForObstruction(intersections{idx}(p,:), intersections{idx}(p + 1,:), planes, normals, d, corners, numPlaneCorners, numPlanes, i, obstruction);
+                                    refPlanes = refPlanePath(idx, [j - p, j - p + 1]);
+                                    obstruction = CheckForObstruction(intersections{idx}(p,:), intersections{idx}(p + 1,:), room, refPlanes, obstruction);
                                     p = p + 1;
                                 end
                                 if obstruction
@@ -220,7 +268,7 @@ for j = 2:refOrder
                                     count = count + 1;
                                     validPath(idx) = true;
                                     pathIdx(count) = idx;
-                                    specularPathLength(count) = norm(vSources(idx,:) - receiver);
+                                    specularPathLength(count) = norm(vSources(idx,:) - room.receiver);
                                     refOrderPaths(count) = j;
                                 end
                             else
@@ -232,8 +280,9 @@ for j = 2:refOrder
             end
         end
     end
-    PlotGeometry(corners, planes, source, receiver, lineOfSight, vSources, intersections, validPath)
+    PlotGeometry(room.corners, room.planeCorners, room.source, room.receiver, lineOfSight, vSources, intersections, validPath)
     numVSources(j) = idx - sum(numVSources(1:j - 1));
+    numVisVSources(j) = count - sum(numVisVSources(1:j - 1));
 end
 
 numValidPaths = sum(validPath);
