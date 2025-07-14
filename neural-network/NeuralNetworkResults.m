@@ -12,8 +12,9 @@ dirInfo = dirInfo(3:end);
 idx = [dirInfo.isdir];
 folders = dirInfo([dirInfo.isdir]);
 
+[~, runIdx] = sort(str2double(extractAfter({folders.name}, 'Run')));
+folders = folders(runIdx);
 numFolders = length(folders);
-numFolders = 6;
 for i = 1:numFolders
     dirPath = [loadDir filesep folders(i).name];
     dirInfo = dir(dirPath);
@@ -29,25 +30,28 @@ end
 
 %% Plot training loss
 
-plotGraphs = true;
+plotGraphs = false;
 numNets = length(nets);
 gx = 5;
 
 color = colorStore(1:2,:);
 for i = 1:numNets
     close all
-    numLayers = nets{i}(1).hP.numLayers;
-    hiddenLayerSize = nets{i}(1).hP.hiddenLayerSize;
-    learnRate = nets{i}(1).hP.learnRate;
-    size = CalculateNNIIRCost(numLayers, hiddenLayerSize, nets{i}(1).nP.numInputs, nets{i}(1).nP.numOutputs, gx);
-    if plotGraphs
-        titleText = ['Net: ', num2str(numLayers), '-', num2str(hiddenLayerSize), ', Learn rate: ', num2str(learnRate), ', Size: ', num2str(size)];
-        figure
-        hold on
-        colororder(color)
-    end
     numRuns = length(nets{i});
     for j = 1:numRuns
+        if (isempty(nets{i}(j).losses))
+            continue;
+        end
+        numLayers = nets{i}(j).hP.numLayers;
+        hiddenLayerSize = nets{i}(j).hP.hiddenLayerSize;
+        learnRate = nets{i}(j).hP.learnRate;
+        size = CalculateNNIIRCost(numLayers, hiddenLayerSize, nets{i}(j).nP.numInputs, nets{i}(j).nP.numOutputs, gx);
+        if plotGraphs
+            titleText = ['Net: ', num2str(numLayers), '-', num2str(hiddenLayerSize), ', Learn rate: ', num2str(learnRate), ', Size: ', num2str(size)];
+            figure
+            hold on
+            colororder(color)
+        end
         losses = nets{i}(j).losses;
         numEpochs = nets{i}(j).tP.numEpochs;
         lvec = 1:numEpochs;

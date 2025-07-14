@@ -1,18 +1,23 @@
 function [tfmag, fvec, b, a] = GraphicEqualiser(material, fc)
 
 fs = 48e3;
-nfft = 4096;
+nfft = 4096*2;
 Q = 0.98;
 
-g = sqrt(1 - material);
-gain = db2mag(mean(mag2db(g)));
-target = mag2db(g);
-g = g / gain;
 
-fc = [(fc(1) / 2) * sqrt(fc(1) / (fc(1) / 2)), fc, fc(end) * sqrt((2.0 * fc(end)) / fc(end))];
+g = sqrt(1 - material);
+
+target = mag2db(g);
+
+%fc = [(fc(1) / 2), fc, fc(end) * 2];
+fc = [fc(1) * sqrt(2) / 2, fc, fc(end) * sqrt(2)];
+
 g = [(g(1) + g(2)) / 2, g, (g(end - 1) + g(end)) / 2];
 
-gdb = mag2db(g);
+gain = db2mag(mean(mag2db(g + 1e-8)));
+g = g / gain;
+
+gdb = mag2db(g + 1e-8);
 P = 6;
 
 [b, a] = PeakFilters(fc, db2mag(P) * ones(size(fc)), Q, fs);
@@ -30,8 +35,8 @@ P = 6;
 %f = [200, 250, 315, 400, 500, 630, 800, 1e3, 1.25e3, 1.6e3, 2e3, 2.5e3, 3.15e3, 4e3, 5e3];
 f = fc;
 %f = [fc(1) / 2, fc, 2 * fc(end)];
-f(1) = f(2) / 2;
-f(end) = 2 * f(end - 1);
+%f(1) = f(2) / 2;
+%f(end) = 2 * f(end - 1);
 o = 2 * pi * f' / fs;
 num = (b(1,:) + b(2,:) .* exp(-1i * o) + b(3,:) .* exp(-1i * 2 * o));
 den = (a(1,:) + a(2,:) .* exp(-1i * o) + a(3,:) .* exp(-1i * 2 * o));
@@ -74,9 +79,12 @@ for i = 1:length(f)
     end
 end
 
+invMat = inverse .* P;
+test = gdb * invMat;
+
 k = gdb * inverse;
-gdb = k .* P;
-g = db2mag(gdb);
+gdbTemp = k .* P;
+g = db2mag(gdbTemp);
 
 
 %%
@@ -105,10 +113,11 @@ tfmagI = mag2db(abs(num ./ den));
 b(:,1) = gain * b(:,1);
 [tfmag, fvec] = CalculateFilterResponse(b, a, nfft, fs);
 
+
 semilogx(fvec, tfmag)
 hold on
 grid on
 semilogx(fvec, tfmagI)
-semilogx(fc(2:end - 1), target, 'x')
+semilogx(fc(2:end-1), target, 'x')
 semilogx(fc, gdb, 'o')
 end

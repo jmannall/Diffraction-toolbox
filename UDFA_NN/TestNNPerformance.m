@@ -1,5 +1,6 @@
 function TestNNPerformance(numData)
-
+%close all
+set(gca,'ColorOrder','factory')
     %close all
 
     % Control parameters
@@ -12,7 +13,7 @@ function TestNNPerformance(numData)
 
     % Load paths
     rootDir = 'NNSaves';
-    loadDir = 'SingleUDFA_NN';
+    loadDir = 'SingleUDFA_NN/Run2';
     CheckFileDir(rootDir)
     CheckFileDir([rootDir filesep loadDir])
     
@@ -24,7 +25,7 @@ function TestNNPerformance(numData)
 
     colours = colororder;
     colours = colours(mod(0:numData - 1, length(colours)) + 1,:);
-    for i = 1:numFiles
+    for i = 5:5
         if (numFiles == 1)
             file = files;
         else
@@ -41,16 +42,33 @@ function TestNNPerformance(numData)
 
         tfmag = MakeUDFA_NNPrediction(net, X, controlparameters);
 
-        PlotNNTrainingLossess(losses.iteration, losses.epoch, losses.test, file.name)
+        %PlotNNTrainingLossess(losses.iteration, losses.epoch, losses.test, file.name)
+
+        for j = 1:numData
+            [b, a] = fracOrderBlendLPapprox3(10 ^ inputData(j), 0.5, 1.44, 0.2, 2, controlparameters.fs);
+            udfaIIR2(:,j) = CalculateFilterResponse(b', a', controlparameters.nfft, controlparameters.fs);
+            [b, a] = fracOrderBlendLPapprox3(10 ^ inputData(j), 0.5, 1.44, 0.2, 4, controlparameters.fs);
+            udfaIIR4(:,j) = CalculateFilterResponse(b', a', controlparameters.nfft, controlparameters.fs);
+        end
 
         figure
         colororder(colours);
-        semilogx(controlparameters.fvec, validationData)
+        semilogx(controlparameters.fvec, validationData, '-k', 'LineWidth', 3)
         hold on
         grid on
-        semilogx(controlparameters.fvec, tfmag, '--')
+        semilogx(controlparameters.fvec, tfmag, '-r')
+        semilogx(controlparameters.fvec, udfaIIR2, '--b')
+        semilogx(controlparameters.fvec, udfaIIR4, '-.g')
         title(replace(file.name, '_', ' '))
-        ylim([-70 10])
+        ylim([-40 10])
         xlim([20 20e3])
+
+        target = CreateNBandMagnitude(validationData, controlparameters.fidx);
+        tfmagNBand = CreateNBandMagnitude(tfmag, controlparameters.fidx);
+        lossNN(i) = mean((tfmagNBand - target).^2, 'all');
+        tfmagNBand = CreateNBandMagnitude(udfaIIR2, controlparameters.fidx);
+        lossUDFA2(i) = mean((tfmagNBand - target).^2, 'all');
+        tfmagNBand = CreateNBandMagnitude(udfaIIR4, controlparameters.fidx);
+        lossUDFA4(i) = mean((tfmagNBand - target).^2, 'all');
     end
 end

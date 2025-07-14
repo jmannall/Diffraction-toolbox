@@ -6,7 +6,7 @@ function [tfmag, fvec, tfcomplex] = CalculateFilterResponse(b, a, nfft, fs)
     x = squeeze(prod(x,2));
     y = squeeze(prod(y,2));
     
-    epsilon = 1e-12;
+    epsilon = 1e-32;
     F = x ./ (y + epsilon);
     %F = x ./ y;
     tfcomplex = F(1:(end / 2),:);

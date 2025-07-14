@@ -2,7 +2,7 @@ function [z, p, k] = myBestNN(in)
 
     persistent mynet;
     if isempty(mynet)
-        mynet = coder.loadDeepLearningNetwork('NNSaves_FinalRun/Run6/IIR-7_36_0001.mat');
+        mynet = coder.loadDeepLearningNetwork('C:/GitHub/jmannall/NNSaves_FinalRun/Run6/IIR-7_36_0001.mat');
     end
     
     in = dlarray(single(in'), "CB");

@@ -5,7 +5,8 @@ function PlotSpectrogram(tfcomplex, f, t, limits, fileName, phase, savePlot, xLa
     if nargin < 8
         xLabel = 'Time (s)';
     end
-    x = mag2db(abs(tfcomplex));
+    %x = mag2db(abs(tfcomplex));
+    x = tfcomplex;
     x = max(x, limits(1));
     position = [50 50 700 600];
     titleText = strrep(fileName, '_', ' ');
@@ -52,7 +53,7 @@ function PlotSpectrogram(tfcomplex, f, t, limits, fileName, phase, savePlot, xLa
         title(tl, titleText)
     else
         % Create figure
-        figure("Position", position);
+        %figure("Position", position);
         sh = surf(t, f, x);
         %sh.FaceColor = 'interp';
         %colormap("hot")

@@ -1,4 +1,4 @@
-function [tfmag, fvec, tfcomplex] = SingleUTDWedgeInterpolated(thetaS, thetaR, radiusS, radiusR, wedgeIndex, phii, controlparameters, A, B)
+function [tfmag, test, fvec, tfcomplex] = SingleUTDWedgeInterpolated(thetaS, thetaR, radiusS, radiusR, wedgeIndex, phii, controlparameters, A, B)
     
     input = [1; zeros(5, 1)];
     c = controlparameters.c;
@@ -41,8 +41,9 @@ function [tfmag, fvec, tfcomplex] = SingleUTDWedgeInterpolated(thetaS, thetaR, r
         scaleRes = mag2db(trueRes ./ (sbRes * pathLength));
 
         scaleRes = trueRes ./ sbRes;
+        interpResNew = scaleRes .^ (1 - i) .* trueRes .^ i;
         interpRes = (1 - i) * scaleRes + i * trueRes;
-        test = mag2db(interpRes / pathLength);
+        test = mag2db(interpResNew / pathLength);
         % Adjust magnitude of tfcomplex
         phase = angle(tfcomplex);
         tfcomplex = PolarToComplex(10.^(tfmag / 20), phase);

@@ -23,7 +23,9 @@ function [tfmag, fvec, tfcomplex] = SingleUTDWedge(thetaS, thetaR, radiusS, radi
         frontFactor = -exp(-1i * (pi / 4)) ./ (2 * n * sqrt(2 * pi * k));
     else
         L = l * m  * B0^2 / (l + m); % 5
-        A = exp(-1i  * k * (l + m)) / sqrt(l * m * (l + m)); % 9 - From Pisha code. Not certain why this
+        A = sqrt(1 / (l * m * (l + m))); % From Pisha code. Not certain why this
+        A = sqrt(l / (m * (l + m))); % eq 23 in (Kouyoumjian and Pathak, 1974)
+        A = exp(-1i  * k * (l + m)) * A; % 9 - From Pisha code. Not certain why this
         frontFactor = -A .* exp(-1i * (pi / 4)) ./ (2 * n * sqrt(2 * pi * k) * B0); % 12
         B = 1;
     end

@@ -4,7 +4,7 @@ function [b, a] = PeakFilters(fc, g, Q, fs)
     %g = g(2:end - 1);
     
     omega = 2 * pi * fc(2:end - 1) / fs;
-    alpha = sin(omega / (2 * Q));
+    alpha = sin(omega) / (2 * Q);
 
     r = 1 ./ (1 + alpha);
 
