@@ -1,4 +1,4 @@
-function [a_lm, targets] = CalculateSphericalHarmonics(data, freqBands, fs, normalise)
+function [a_lm, targets, DI, invDF] = CalculateSphericalHarmonics(data, freqBands, fs, normalise)
     
     [N, numPositions] = size(data.IR);
     numFreqBands = length(freqBands);  % Number of frequency bands to analyze
@@ -64,8 +64,12 @@ function [a_lm, targets] = CalculateSphericalHarmonics(data, freqBands, fs, norm
     for k = 1:numFreqBands
         store = magnitudeResponse(:,k);
         targets{k} = store(idx);
+
+        %di(k) = 10 * log10(max(targets{k} .^ 2) / mean(targets{k} .^ 2));
+        %df(k) = 1 / (10 ^ (di(k) / 20));
     end
     
+
     %%
     
     % Parameters
@@ -143,6 +147,10 @@ function [a_lm, targets] = CalculateSphericalHarmonics(data, freqBands, fs, norm
         xlabel('X'); ylabel('Y'); zlabel('Z');
         clim([-40 40])
         view([60 15])
+
+        power = abs(f).^2;        
+        DI(k) = 10 * log10( max(power, [], 'all') / mean(power, 'all'));
+        invDF(k) = 1 / db2mag(DI(k));
     end
 end
 
