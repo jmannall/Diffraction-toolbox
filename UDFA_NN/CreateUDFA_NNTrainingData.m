@@ -1,5 +1,5 @@
 function [trainingData, targetData, validationData] = CreateUDFA_NNTrainingData(numInputs, controlparameters, saveValidation, index)
-
+    tic
     geometry = RandomGeometryUDFA(numInputs);
 
     fs = controlparameters.fs;
@@ -112,4 +112,5 @@ function [trainingData, targetData, validationData] = CreateUDFA_NNTrainingData(
         end
         % save([cd filesep savePath2 '.mat'], 'fc', 'gain', 'blendExpn', 'Q', 'udfaTerms');
     end
+    toc
 end
