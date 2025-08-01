@@ -51,22 +51,31 @@ function [trainingData, targetData, validationData] = CreateUDFA_NNTrainingData(
         % Q = zeros(4, numInputs);
         % udfaTerms = zeros(70, 5, numInputs);
         % fAxis = logspace(log10(20), log10(2e4), numNNInputs);
-        for i = 1:length(geometry.wedgeIndex)
-            thetaW = deg2rad(geometry.wedgeIndex(i));
-            thetaS = deg2rad(geometry.thetaS(i));
-            thetaR = deg2rad(geometry.thetaR(i));
-            zW = geometry.wedgeLength(i);
-            rS = geometry.rS(i);
-            rR = geometry.rR(i);
-            zS = geometry.zS(i);
-            zR = geometry.zR(i);
+
+        wedgeIndexAll = deg2rad(geometry.wedgeIndex);
+        thetaSAll = deg2rad(geometry.thetaS);
+        thetaRAll = deg2rad(geometry.thetaR);
+        zWAll = geometry.wedgeLength;
+        rSAll = geometry.rS;
+        rRAll = geometry.rR;
+        zSAll = geometry.zS;
+        zRAll = geometry.zR;
+        parfor i = 1:length(geometry.wedgeIndex)
+            thetaW = wedgeIndexAll(i);
+            thetaS = thetaSAll(i);
+            thetaR = thetaRAll(i);
+            zW = zWAll(i);
+            rS = rSAll(i);
+            rR = rRAll(i);
+            zS = zSAll(i);
+            zR = zRAll(i);
             %offset = mag2db(sqrt((rR+rS)^2+(zR-zS)^2));
             % Infinite edges 2 x (fc, gain)
             % Finite edges 4 x (fc, gain) + variable blendExpn, Q (fitted
             % and depend on fc and gain - maybe not needed for network)
             % zA not on edge makes 2 x (fc, gain) inf and adds a lpf with
             % (fc, gain, set blendExpn and Q)
-            [pDiffr, ~, ~, ~, pDiffr_terms, fcOut, gainOut, blendOut] = getUDFA(fvec,thetaW,[rS zS],[rR zR],thetaS,thetaR,[0 zW],op);
+            [~, ~, ~, ~, ~, fcOut, gainOut, ~] = getUDFA(fvec,thetaW,[rS zS],[rR zR],thetaS,thetaR,[0 zW],op);
 
             pDiffrBTMS = edBTMS(fvec,thetaW,[rS zS],[rR zR],thetaS,thetaR,[0 zW]);
             % geometry.wedgeLength(i) = inf;
