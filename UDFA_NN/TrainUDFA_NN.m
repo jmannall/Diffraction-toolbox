@@ -52,7 +52,7 @@ function TrainUDFA_NN(numLayers, size, learnRate, runIdx)
     
     % Save paths
     rootDir = 'NNSaves';
-    saveDir = 'UDFA_NN_BTMS';
+    saveDir = 'UDFA_NN';
     
     runDir = ['Run' num2str(runIdx)];
     CheckFileDir(rootDir)
