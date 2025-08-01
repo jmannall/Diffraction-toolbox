@@ -1,5 +1,6 @@
-function TrainUDFA_NN(numLayers, size, learnRate)
+function TrainUDFA_NN(numLayers, size, learnRate, runIdx)
 
+    disp("Start TrainUDFA_NN")
     close all
 
     if learnRate > 1
@@ -51,13 +52,16 @@ function TrainUDFA_NN(numLayers, size, learnRate)
     
     % Save paths
     rootDir = 'NNSaves';
-    saveDir = 'UDFA_NN';
+    saveDir = 'UDFA_NN_BTMS';
+    
+    runDir = ['Run' num2str(runIdx)];
     CheckFileDir(rootDir)
     CheckFileDir([rootDir filesep saveDir])
+    CheckFileDir([rootDir filesep saveDir filesep runDir])
     idx = [num2str(numLayers), '_', num2str(hiddenLayerSize), '_', num2str(learnRate)];
     idx = erase(idx, '.');
     saveFile = ['NN-', idx];
-    savePath = [rootDir filesep saveDir filesep saveFile];
+    savePath = [rootDir filesep saveDir filesep runDir filesep saveFile];
 
     rng shuffle
     seed = rng().Seed;

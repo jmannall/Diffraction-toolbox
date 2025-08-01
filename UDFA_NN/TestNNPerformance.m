@@ -13,7 +13,7 @@ set(gca,'ColorOrder','factory')
 
     % Load paths
     rootDir = 'NNSaves';
-    loadDir = 'SingleUDFA_NN/Run2';
+    loadDir = ['UDFA_NN' filesep 'Run0'];
     CheckFileDir(rootDir)
     CheckFileDir([rootDir filesep loadDir])
     
@@ -37,7 +37,7 @@ set(gca,'ColorOrder','factory')
         disp(['Loss: ', num2str(losses.test(end))])
 
         controlparameters.numNNInputs = nP.numInputs;
-        [inputData, ~, validationData] = CreateSingleUDFA_NNTrainingData(numData, controlparameters, true, 'ValidationData');
+        [inputData, ~, validationData] = CreateUDFA_NNTrainingData(numData, controlparameters, true, 'ValidationData');
         X = dlarray(single(inputData), "CB");
 
         tfmag = MakeUDFA_NNPrediction(net, X, controlparameters);

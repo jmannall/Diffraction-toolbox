@@ -58,6 +58,7 @@ function geometry = RandomGeometryUDFA(numObservations)
     pathLength = RandomUniformDistribution(L, numObservations);
 
     split = RandomUniformDistribution([epsilon 1 - epsilon], numObservations);
+    x = 1;
     l = pathLength .* split;
     m = pathLength .* (1 - split);
 

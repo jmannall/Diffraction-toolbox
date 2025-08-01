@@ -6,7 +6,8 @@ colorStore = colororder;
 
 %% Load networks
 
-loadDir = 'NNSaves/SingleUDFA_NN';
+rootDir = 'NNSaves';
+loadDir = [rootDir filesep 'UDFA_NN'];
 dirInfo = dir(loadDir);
 dirInfo = dirInfo(3:end);
 idx = [dirInfo.isdir];
@@ -35,7 +36,7 @@ numNets = length(nets);
 gx = 5;
 
 color = colorStore(1:2,:);
-for i = 1:numNets
+for i = 1:45
     close all
     numRuns = length(nets{i});
     for j = 1:numRuns
@@ -65,7 +66,7 @@ for i = 1:numNets
         sizes(i,j) = size;
         loss(i,j) = losses.test(end);
         % networkNames{i,j} = ['Net: ', num2str(numLayers), '-', num2str(hiddenLayerSize), ', Learn rate: ', num2str(learnRate), ', Size: ', num2str(size), ', Seed: ', num2str(nets{i}(j).nP.seed), ', Run: ', num2str(j), ', Loss: ', num2str(losses.test(end))];
-        networkNames{i,j} = ['Net: ', num2str(numLayers), '-', num2str(hiddenLayerSize), ', Size: ', num2str(size), ', Seed: ', num2str(nets{i}(j).nP.seed), ', Run: ', num2str(j), ', Loss: ', num2str(losses.test(end))];
+        networkNames{i,j} = ['Net: ', num2str(numLayers), '-', num2str(hiddenLayerSize), ', Size: ', num2str(size), ', Seed: ', num2str(nets{i}(j).nP.seed), ', Run: ', num2str(j - 1), ', Loss: ', num2str(losses.test(end))];
     end
     if plotGraphs
         grid on
@@ -75,6 +76,8 @@ for i = 1:numNets
         xlabel('Mean absolute error (dB)')
     end
 end
+
+networkNames(cellfun(@(x) isempty(x) || ~ischar(x), networkNames)) = {'empty'};
 
 %%
 
@@ -89,10 +92,22 @@ sizesSort = sizesReshape(b);
 % [lossA, idxA] = min(loss);
 % [bestLoss, idxB] = min(lossA);
 
-disp(['The best network is ', char(networkNamesSort(1))])
+disp(['The best network is ', char(networkNamesSort(7))])
+
+%%
+
+close all
+
+for i = 7:9
+    [net, run] = find(matches(networkNames, networkNamesSort(i)));
+    TestSingleNNPerformance(nets{net}(run).nP.savePath, 5);
+end
 
 %%
 close all
+TestSingleNNPerformance(nets{44}(5).nP.savePath, 5);
+
+%%
 
 f = figure;
 scatter(lossSort, sizesSort)
