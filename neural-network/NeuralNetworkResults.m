@@ -36,7 +36,7 @@ numNets = length(nets);
 gx = 5;
 
 color = colorStore(1:2,:);
-for i = 1:45
+for i = 1:length(nets)
     close all
     numRuns = length(nets{i});
     for j = 1:numRuns
@@ -98,10 +98,34 @@ disp(['The best network is ', char(networkNamesSort(7))])
 
 close all
 
-for i = 7:9
+for i = 3:5
     [net, run] = find(matches(networkNames, networkNamesSort(i)));
-    TestSingleNNPerformance(nets{net}(run).nP.savePath, 5);
+    TestSingleNNPerformance(nets{net}(run).nP.savePath, 4);
 end
+
+%%
+clear all
+close all
+fvec = CreateFvec(48e3, 1024);
+thetaW = deg2rad(270);
+rS = 0.2;
+rR = 0.2;
+zS = 0.02;
+zR = 0.02;
+thetaS = deg2rad(10);
+thetaR = deg2rad(60);
+zW = 20;
+
+op.udfa_underlying = 'pierce';
+op.UDFAdoAsymBlendF = 0;
+[~, ~, ~, ~, ~, fcOutzA, gainOutzA, ~] = getUDFA(fvec,thetaW,[rS zS],[rR zR],thetaS,thetaR,[0 zW],op);
+[fcOutzA(1:4), idx] = sort(log10(fcOutzA(1:4)));
+gainOutzA(1:4) = gainOutzA(idx);
+zS = -0.02;
+zR = -0.02;
+[~, ~, ~, ~, ~, fcOut, gainOut, ~] = getUDFA(fvec,thetaW,[rS zS],[rR zR],thetaS,thetaR,[0 zW],op);
+[fcOut(1:4), idx] = sort(log10(fcOut(1:4)));
+gainOut(1:4) = gainOut(idx);
 
 %%
 close all

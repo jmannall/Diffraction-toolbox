@@ -1,4 +1,4 @@
-function [trainingData, targetData, validationData] = CreateUDFA_NNTrainingData(numInputs, controlparameters, saveValidation, index)
+function [trainingData, targetData, validationData, geometry] = CreateUDFA_NNTrainingData(numInputs, controlparameters, saveValidation, index)
     tic
     geometry = RandomGeometryUDFA(numInputs);
 
@@ -34,12 +34,10 @@ function [trainingData, targetData, validationData] = CreateUDFA_NNTrainingData(
 
     if (complete == 2)
         if (saveValidation)
-            load([cd filesep savePath '.mat'], 'trainingData', 'targetData', 'validationData');
+            load([cd filesep savePath '.mat'], 'trainingData', 'targetData', 'validationData', 'geometry');
         else
             load([cd filesep savePath '.mat'], 'trainingData', 'targetData');
         end
-        trainingData(1:numNNInputs / 2,:) = log10(trainingData(1:numNNInputs / 2,:));
-        trainingData = min(trainingData, 10);
     else
         disp('Generate data')
         % Generate data
@@ -86,7 +84,10 @@ function [trainingData, targetData, validationData] = CreateUDFA_NNTrainingData(
             pDiffrBTMS = distance * pDiffrBTMS;
             validationData(:,i) = mag2db(abs(pDiffrBTMS));
 
-            trainingData(:,i) = [fcOut(1:numNNInputs / 2), gainOut(1:numNNInputs / 2)];
+            [fcOut, idx] = sort(fcOut(1:numNNInputs / 2));
+            gainOut = gainOut(idx);
+
+            trainingData(:,i) = [fcOut, gainOut];
             %fc(:,i) = fcOut';
             %gain(:,i) = gainOut';
             %blendExpn(:,i) = blendOut(1:4)';
@@ -106,11 +107,13 @@ function [trainingData, targetData, validationData] = CreateUDFA_NNTrainingData(
         targetData = max(-128, min(128, targetData));
         % trainingData = max(-128, min(128, trainingData)) / 128;
         if (saveValidation)
-            save([cd filesep savePath '.mat'], 'trainingData', 'targetData', 'validationData');
+            save([cd filesep savePath '.mat'], 'trainingData', 'targetData', 'validationData', 'geometry');
         else
             save([cd filesep savePath '.mat'], 'trainingData', 'targetData');
         end
         % save([cd filesep savePath2 '.mat'], 'fc', 'gain', 'blendExpn', 'Q', 'udfaTerms');
     end
+    trainingData(1:numNNInputs / 2,:) = log10(trainingData(1:numNNInputs / 2,:));
+    trainingData = min(trainingData, 10);
     toc
 end

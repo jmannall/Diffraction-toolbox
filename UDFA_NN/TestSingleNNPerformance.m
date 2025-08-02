@@ -15,7 +15,7 @@ function TestNNPerformance(loadPath, numData)
     disp(['Loss: ', num2str(losses.test(end))])
 
     controlparameters.numNNInputs = nP.numInputs;
-    [inputData, ~, validationData] = CreateUDFA_NNTrainingData(numData, controlparameters, true, 'ValidationData');
+    [inputData, ~, validationData, geometry] = CreateUDFA_NNTrainingData(numData, controlparameters, true, 'ValidationData');
     
     X = dlarray(single(inputData), "CB");
 
@@ -32,6 +32,8 @@ function TestNNPerformance(loadPath, numData)
     hold on
     grid on
     semilogx(controlparameters.fvec, tfmag, '--')
+    legendEntries = [{'Target'}, repmat({''}, 1, numData - 1), {'NN-UDFA'}];
+    legend(legendEntries)
     title(replace(loadPath, '_', ' '))
     ylim([-70 10])
     xlim([20 20e3])
