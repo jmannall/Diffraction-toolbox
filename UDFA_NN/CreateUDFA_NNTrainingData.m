@@ -50,6 +50,7 @@ function [trainingData, targetData, validationData, geometry] = CreateUDFA_NNTra
         % udfaTerms = zeros(70, 5, numInputs);
         % fAxis = logspace(log10(20), log10(2e4), numNNInputs);
 
+        parpool('Threads', [1 128])
         wedgeIndexAll = deg2rad(geometry.wedgeIndex);
         thetaSAll = deg2rad(geometry.thetaS);
         thetaRAll = deg2rad(geometry.thetaR);
