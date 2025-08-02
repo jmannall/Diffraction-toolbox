@@ -1,5 +1,5 @@
 function [trainingData, targetData, validationData, geometry] = CreateUDFA_NNTrainingData(numInputs, controlparameters, saveValidation, index)
-    tic
+    
     geometry = RandomGeometryUDFA(numInputs);
 
     fs = controlparameters.fs;
@@ -39,6 +39,7 @@ function [trainingData, targetData, validationData, geometry] = CreateUDFA_NNTra
             load([cd filesep savePath '.mat'], 'trainingData', 'targetData');
         end
     else
+        tic
         disp('Generate data')
         % Generate data
         validationData = zeros(nfft / 2, numInputs);
@@ -50,7 +51,9 @@ function [trainingData, targetData, validationData, geometry] = CreateUDFA_NNTra
         % udfaTerms = zeros(70, 5, numInputs);
         % fAxis = logspace(log10(20), log10(2e4), numNNInputs);
 
-        parpool('Threads', [1 128])
+        if isempty(gcp('nocreate'))
+            parpool('Threads', [1 128])
+        end
         wedgeIndexAll = deg2rad(geometry.wedgeIndex);
         thetaSAll = deg2rad(geometry.thetaS);
         thetaRAll = deg2rad(geometry.thetaR);
@@ -113,8 +116,8 @@ function [trainingData, targetData, validationData, geometry] = CreateUDFA_NNTra
             save([cd filesep savePath '.mat'], 'trainingData', 'targetData');
         end
         % save([cd filesep savePath2 '.mat'], 'fc', 'gain', 'blendExpn', 'Q', 'udfaTerms');
+        toc
     end
     trainingData(1:numNNInputs / 2,:) = log10(trainingData(1:numNNInputs / 2,:));
     trainingData = min(trainingData, 10);
-    toc
 end
