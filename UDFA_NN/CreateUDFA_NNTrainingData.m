@@ -118,6 +118,15 @@ function [trainingData, targetData, validationData, geometry] = CreateUDFA_NNTra
         % save([cd filesep savePath2 '.mat'], 'fc', 'gain', 'blendExpn', 'Q', 'udfaTerms');
         toc
     end
+
+    % Transform Fc
     trainingData(1:numNNInputs / 2,:) = log10(trainingData(1:numNNInputs / 2,:));
+
+    % Transform gain
+    gainSign = sign(trainingData(numNNInputs / 2:numNNInputs,:));
+    trainingData(numNNInputs / 2:numNNInputs,:) = log10(1+abs(1e10*trainingData(numNNInputs / 2:numNNInputs,:)));
+
+    % Clip max value
     trainingData = min(trainingData, 10);
+    trainingData(numNNInputs / 2:numNNInputs,:) = gainSign .* trainingData(numNNInputs / 2:numNNInputs,:);
 end
