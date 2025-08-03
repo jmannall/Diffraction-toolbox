@@ -41,7 +41,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP, losses)
 
     %reductionPoints = [100 300 450];
     %reductionPoints = [40 75 90];
-    reductionPoints = [10 40 75 90];
+    reductionPoints = [15 40 75 90];
 
     % Check if restarting training
     restart = exist([cd filesep loadPath], "file");

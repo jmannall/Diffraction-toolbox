@@ -124,7 +124,7 @@ function [trainingData, targetData, validationData, geometry] = CreateUDFA_NNTra
 
     % Transform gain
     gainSign = sign(trainingData(numNNInputs / 2:numNNInputs,:));
-    trainingData(numNNInputs / 2:numNNInputs,:) = log10(1+abs(1e10*trainingData(numNNInputs / 2:numNNInputs,:)));
+    trainingData(numNNInputs / 2 + 1:numNNInputs,:) = log10(1+abs(1e10*trainingData(numNNInputs / 2 + 1:numNNInputs,:)));
 
     % Clip max value
     trainingData = min(trainingData, 10);

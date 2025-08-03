@@ -21,19 +21,22 @@ function PlotNNTrainingLossess(losses, epochLosses, testLosses, figTitle)
     xticklabels(labels);
     title(figTitle)
 
+    xEpochLosses = 1:numEpochs;
     figure
-    plot(xLosses, losses)
+    % plot(xLosses, losses)
+    % hold on
+    % grid on
+    plot(xEpochLosses, epochLosses)
     hold on
     grid on
-    plot(xEpochLosses, epochLosses)
     plot(xEpochLosses, testLosses)
-    xlim([0 numIterations])
-    ylim([0 10])
+    xlim([0 numEpochs])
+    ylim([0 50])
     xlabel('Epochs')
     ylabel('Loss (dB)')
-    legend('Iteration losses', 'Epoch losses', 'Test losses', 'Location', 'northeast')
+    legend('Epoch losses', 'Test losses', 'Location', 'northeast')
     labels = split(num2str(0:20:numEpochs));
-    xticks(0:20 * iterationsPerEpoch:numIterations)
+    xticks(0:20:numEpochs)
     xticklabels(labels);
     title(figTitle)
 end
