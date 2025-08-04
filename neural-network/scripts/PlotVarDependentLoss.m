@@ -1,13 +1,14 @@
 function PlotVarDependentLoss(data, variable, width, percentiles, titleText, cIdx)
 
     maxWl = max(variable);
+    minWl = min(variable);
     
-    numBins = ceil(maxWl / width);
+    numBins = ceil((maxWl - minWl) / width);
     [x, meanAv, medianAv] = deal(zeros(1, numBins));
     
     numPercentiles = length(percentiles);
     for i = 1:numBins
-        idx = width * (i - 1) < variable & variable <= width * i;
+        idx = width * (i - 1) + minWl < variable & variable <= width * i + minWl;
         input = data(idx);
         meanAv(i) = mean(input);
         medianAv(i) = median(input);
@@ -16,9 +17,9 @@ function PlotVarDependentLoss(data, variable, width, percentiles, titleText, cId
             pTop(j,i) = prctile(input, 100-p);
             pBot(j,i) = prctile(input, p);
         end
-        x(i) = (i - 0.5) * width;
+        x(i) = (i - 0.5) * width + minWl;
     end
-    x = [0, x, width * numBins];
+    x = [minWl, x, width * numBins];
     meanAv = [meanAv(1), meanAv, meanAv(end)];
     medianAv = [medianAv(1), medianAv, medianAv(end)];
     pTop = [pTop(:,1), pTop, pTop(:,end)];

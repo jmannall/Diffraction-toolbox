@@ -41,7 +41,8 @@ function [net, losses] = TrainNN(net, hP, tP, nP, losses)
 
     %reductionPoints = [100 300 450];
     %reductionPoints = [40 75 90];
-    reductionPoints = [15 40 75 90];
+    reductionPoints = [40 75 90];
+    reductionPoints = [10 40 75 90];
 
     % Check if restarting training
     restart = exist([cd filesep loadPath], "file");
@@ -97,7 +98,7 @@ function [net, losses] = TrainNN(net, hP, tP, nP, losses)
         losses.test(epoch) = tP.testFunc(net, testInputData, testTargetData);
         losses.epoch(epoch) = mean(thisIterationLosses);
         if sum(ismember(epoch, reductionPoints)) > 0
-            hP.learnRate = hP.learnRate / 10;
+            hP.learnRate = hP.learnRate / 3;
         end
 
         UpdateNNAnimatedLinePlot(lines, losses, numIterationsPerEpoch, epoch, start)
