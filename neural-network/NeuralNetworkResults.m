@@ -95,17 +95,12 @@ sizesSort = sizesReshape(b);
 disp(['The best network is ', char(networkNamesSort(1))])
 
 %%
-close all
-
-SingleNNAnalysis(nets{1}.nP.savePath);
-
-%%
 
 close all
 
-for i = 1
+for i = 1:3
     [net, run] = find(matches(networkNames, networkNamesSort(i)));
-    SingleNNAnalysis(nets{net}{run}.nP.savePath);
+    SingleNNAnalysis(nets{net}(run).nP.savePath);
     TestSingleNNPerformance(nets{net}(run).nP.savePath, 4);
 end
 

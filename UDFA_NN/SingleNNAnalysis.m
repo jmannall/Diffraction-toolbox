@@ -10,7 +10,6 @@ function SingleNNAnalysis(loadPath)
     controlparameters.fvec = controlparameters.fs/controlparameters.nfft*[0:controlparameters.nfft/2-1];
     controlparameters.fidx = CreateFidx(controlparameters.fvec, controlparameters.nBands);
     epochSize = 20e3;
-    epochSize = 200;
     
     load([cd filesep loadPath], 'net', 'losses', 'nP');
 
@@ -74,21 +73,4 @@ function SingleNNAnalysis(loadPath)
 
     figure
     PlotVarDependentLoss(losses.all.i, sum(inputData(7:8,:), 1), 1, percentiles, 'gains 2', 1)
-
-    PlotNNTrainingLossess(losses.iteration, losses.epoch, losses.test, loadPath)
-
-    colours = colororder;
-    colours = colours(mod(0:numData - 1, length(colours)) + 1,:);
-    
-    figure
-    colororder(colours);
-    semilogx(controlparameters.fvec, validationData)
-    hold on
-    grid on
-    semilogx(controlparameters.fvec, tfmag, '--')
-    legendEntries = [{'Target'}, repmat({''}, 1, numData - 1), {'NN-UDFA'}];
-    legend(legendEntries)
-    title(replace(loadPath, '_', ' '))
-    ylim([-70 10])
-    xlim([20 20e3])
 end
