@@ -73,4 +73,13 @@ function SingleNNAnalysis(loadPath)
 
     figure
     PlotVarDependentLoss(losses.all.i, sum(inputData(7:8,:), 1), 1, percentiles, 'gains 2', 1)
+
+    figure
+    histogram(sum(inputData(1:2,:), 1))
+    figure
+    histogram(sum(inputData(3:4,:), 1))
+    figure
+    histogram(sum(inputData(5:6,:), 1))
+    figure
+    histogram(sum(inputData(7:8,:), 1))
 end

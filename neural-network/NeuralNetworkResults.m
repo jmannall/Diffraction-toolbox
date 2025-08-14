@@ -64,6 +64,9 @@ for i = 1:length(nets)
         %lvec = (1:numIterations) / numIterations * numEpochs;
         %plot(lvec, losses.iteration)
         sizes(i,j) = size;
+        losses.test = losses.test(losses.test ~= 1000);
+        losses.epoch = losses.epoch(losses.epoch ~= 1000);
+        losses.iteration = losses.iteration(1:length(losses.epoch) * numIterations / numEpochs);
         loss(i,j) = losses.test(end);
         % networkNames{i,j} = ['Net: ', num2str(numLayers), '-', num2str(hiddenLayerSize), ', Learn rate: ', num2str(learnRate), ', Size: ', num2str(size), ', Seed: ', num2str(nets{i}(j).nP.seed), ', Run: ', num2str(j), ', Loss: ', num2str(losses.test(end))];
         networkNames{i,j} = ['Net: ', num2str(numLayers), '-', num2str(hiddenLayerSize), ', Size: ', num2str(size), ', Seed: ', num2str(nets{i}(j).nP.seed), ', Run: ', num2str(j - 1), ', Loss: ', num2str(losses.test(end))];
@@ -98,11 +101,21 @@ disp(['The best network is ', char(networkNamesSort(1))])
 
 close all
 
-for i = 1:3
+for i = 1:5
     [net, run] = find(matches(networkNames, networkNamesSort(i)));
-    SingleNNAnalysis(nets{net}(run).nP.savePath);
-    TestSingleNNPerformance(nets{net}(run).nP.savePath, 4);
+    %SingleNNAnalysis(nets{net}(run).nP.savePath);
+    TestSingleNNPerformance(nets{net}(run).nP.savePath, 5);
 end
+%%
+close all
+
+TestSingleNNPerformance(nets{36}(1).nP.savePath, 5);
+TestSingleNNPerformance(nets{22}(2).nP.savePath, 5);
+TestSingleNNPerformance(nets{21}(4).nP.savePath, 5);
+
+%%
+close all
+SingleNNAnalysis(nets{36}(1).nP.savePath);
 
 %%
 clear all
@@ -128,9 +141,6 @@ zR = -0.02;
 [fcOut(1:4), idx] = sort(log10(fcOut(1:4)));
 gainOut(1:4) = gainOut(idx);
 
-%%
-close all
-TestSingleNNPerformance(nets{44}(5).nP.savePath, 5);
 
 %%
 

@@ -12,11 +12,18 @@ function TestNNPerformance(loadPath, numData)
     
     load([cd filesep loadPath], 'net', 'losses', 'nP');
 
+    numEpochs = length(losses.epoch);
+    numIterations = length(losses.iteration) / numEpochs;
+    losses.test = losses.test(losses.test ~= 1000);
+    losses.epoch = losses.epoch(losses.epoch ~= 1000);
+    losses.iteration = losses.iteration(1:length(losses.epoch) * numIterations / numEpochs);
+
     disp(['Loss: ', num2str(losses.test(end))])
 
     controlparameters.numNNInputs = nP.numInputs;
     [inputData, ~, validationData, geometry] = CreateUDFA_NNTrainingData(numData, controlparameters, true, 'ValidationData');
-    
+    numData = length(geometry.wedgeIndex);
+
     X = dlarray(single(inputData), "CB");
 
     tfmag = MakeUDFA_NNPrediction(net, X, controlparameters);

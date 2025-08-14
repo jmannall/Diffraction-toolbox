@@ -62,7 +62,9 @@ function geometry = RandomGeometryUDFA(numObservations)
     l = pathLength .* split;
     m = pathLength .* (1 - split);
 
-    apex = [-wL / 2 - 2 wL / 2 + 2];
+    % apex = [-wL / 2 - 2 wL / 2 + 2];
+    apex = [-wL / 2 + epsilon * const wL / 2 - epsilon * const];
+
     %apex = [-25 25];
     %apex = [epsilon * const wL-epsilon];
 
