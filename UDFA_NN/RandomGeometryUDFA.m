@@ -33,10 +33,48 @@ function geometry = RandomGeometryUDFA(numObservations)
 
     %% Bending angle and minimum angle
 
-    minAngle = [epsilon * const, (wI - (180 + epsilon)) / 2];
+    % minAngle = [epsilon * const, (wI - (180 + epsilon)) / 2];
+    % mA = RandomTriangularDistribution(minAngle, false, numObservations);
+    % 
+    % bendingAngle = [epsilon * const, wI - 2 * mA];
+    % bA = RandomUniformDistribution(bendingAngle, numObservations);
+
+    %% Bending angle and minimum angle
+
+    numRepeats = floor(numObservations / 3); % number of full [1 2 3] repeats
+    numExtras = mod(numObservations, 3);      % leftover length
+    
+    % Construct array with repeated pattern
+    zoneFlag = repmat([1; 2; 3], numRepeats, 1);
+    
+    % Add remainder with random values between 1 and 3
+    if numExtras > 0
+        zoneFlag = [zoneFlag; randi(3, numExtras, 1)];
+    end
+
+    %zoneFlag = randi(3, numObservations, 1);
+    
+    minmA = epsilon * const;
+    maxmA = (wI - (180 + epsilon)) / 2;
+
+    maxmA(zoneFlag == 1) = (90 - epsilon) * const(zoneFlag == 1);
+
+    minAngle = [minmA, maxmA];
+    %minAngle = [epsilon * const, (wI - (180 + epsilon)) / 2];
     mA = RandomTriangularDistribution(minAngle, false, numObservations);
 
-    bendingAngle = [epsilon * const, wI - 2 * mA];
+    minbA = epsilon * const;
+    maxbA = wI - 2 * mA;
+
+    maxbA(zoneFlag == 1) = 180 * const(zoneFlag == 1) - 2 * mA(zoneFlag == 1);
+
+    minbA(zoneFlag == 2) = 180 * const(zoneFlag == 2) - 2 * mA(zoneFlag == 2);
+    maxbA(zoneFlag == 2) = (180 - epsilon) * const(zoneFlag == 2);
+
+    minbA(zoneFlag == 3) = (180 + epsilon) * const(zoneFlag == 3);
+
+    bendingAngle = [minbA, maxbA];
+    %bendingAngle = [epsilon * const, wI - 2 * mA];
     bA = RandomUniformDistribution(bendingAngle, numObservations);
     
     %% Wedge length

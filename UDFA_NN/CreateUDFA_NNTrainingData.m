@@ -2,9 +2,9 @@ function [trainingData, targetData, validationData, geometry] = CreateUDFA_NNTra
     
     geometry = RandomGeometryUDFA(numInputs);
 
-    % geometry.wedgeIndex = 270;
-    % geometry.bendingAngle = 190;
-    % geometry.minAngle = 5;
+    % geometry.wedgeIndex = 360;
+    % geometry.bendingAngle = 180 - 45 - 10;
+    % geometry.minAngle = 45;
     % geometry.wedgeLength = 10;
     % geometry.rS = 2;
     % geometry.rR = 2;
